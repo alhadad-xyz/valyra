@@ -23,6 +23,10 @@
       "package": "dispute_dao",
       "candid": "backend/dispute_dao/src/dispute_dao.did",
       "workspace": "backend"
+    },
+    "internet_identity": {
+      "type": "pull",
+      "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"
     }
   },
   "defaults": {

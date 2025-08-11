@@ -1,0 +1,328 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(12deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(12deg);
+  }
+}
+
+@keyframes float-delayed {
+  0%, 100% {
+    transform: translateY(0px) rotate(-6deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(-6deg);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes curtain-left {
+  0% {
+    clip-path: inset(0 50% 0 0);
+  }
+  100% {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+@keyframes curtain-right {
+  0% {
+    clip-path: inset(0 0 0 50%);
+  }
+  100% {
+    clip-path: inset(0 0 0 100%);
+  }
+}
+
+@keyframes reveal-up {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes reveal-scale {
+  0% {
+    transform: scale(1.1);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-delayed 6s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 1s ease-in-out;
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.8s ease-out both;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-twinkle {
+  animation: twinkle ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 2s linear infinite;
+}
+
+.animate-curtain-left {
+  animation: curtain-left 1s ease-in-out forwards;
+}
+
+.animate-curtain-right {
+  animation: curtain-right 1s ease-in-out forwards;
+}
+
+.animate-reveal-up {
+  animation: reveal-up 1s ease-out forwards;
+}
+
+.animate-reveal-scale {
+  animation: reveal-scale 1.2s ease-out forwards;
+}
+
+@keyframes morphing-blob {
+  0%, 100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+  }
+  25% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+    transform: translate(-50%, -50%) rotate(90deg) scale(1.1);
+  }
+  50% {
+    border-radius: 50% 40% 50% 70% / 30% 70% 40% 60%;
+    transform: translate(-50%, -50%) rotate(180deg) scale(0.9);
+  }
+  75% {
+    border-radius: 70% 30% 40% 50% / 60% 50% 70% 30%;
+    transform: translate(-50%, -50%) rotate(270deg) scale(1.05);
+  }
+}
+
+@keyframes particle-float {
+  0%, 100% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px) rotate(90deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-10px) translateX(-15px) rotate(180deg);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translateY(-30px) translateX(5px) rotate(270deg);
+    opacity: 0.8;
+  }
+}
+
+@keyframes glass-reflection {
+  0%, 100% {
+    transform: translateX(-100px) translateY(-100px) rotate(45deg);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(100px) translateY(100px) rotate(45deg);
+    opacity: 0.3;
+  }
+}
+
+@keyframes neon-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.5)) drop-shadow(0 0 15px rgba(59, 130, 246, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.8)) drop-shadow(0 0 25px rgba(59, 130, 246, 0.5)) drop-shadow(0 0 35px rgba(59, 130, 246, 0.3));
+  }
+}
+
+@keyframes holographic-shift {
+  0%, 100% {
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #f97316);
+  }
+  33% {
+    background: linear-gradient(45deg, #8b5cf6, #ec4899, #f97316, #3b82f6);
+  }
+  66% {
+    background: linear-gradient(45deg, #ec4899, #f97316, #3b82f6, #8b5cf6);
+  }
+}
+
+@keyframes magnetic-pull {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.03) rotate(1deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.animate-morphing-blob {
+  animation: morphing-blob 8s ease-in-out infinite;
+}
+
+.animate-particle-float {
+  animation: particle-float 4s ease-in-out infinite;
+}
+
+.animate-glass-reflection {
+  animation: glass-reflection 3s ease-in-out infinite;
+}
+
+.animate-neon-pulse {
+  animation: neon-pulse 2s ease-in-out infinite;
+}
+
+.animate-holographic {
+  animation: holographic-shift 4s ease-in-out infinite;
+  background-size: 300% 300%;
+}
+
+.animate-magnetic-pull {
+  animation: magnetic-pull 0.6s ease-in-out;
+}
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.perspective-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.rotate-3d {
+  transform: rotateY(5deg) rotateX(5deg);
+  transition: transform 0.3s ease;
+}
+
+.rotate-3d:hover {
+  transform: rotateY(0deg) rotateX(0deg) scale(1.05);
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes marquee2 {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 60s linear infinite;
+}
+
+.animate-marquee2 {
+  animation: marquee2 60s linear infinite;
+}
+
+.marquee-container:hover .animate-marquee,
+.marquee-container:hover .animate-marquee2 {
+  animation-play-state: paused;
+}

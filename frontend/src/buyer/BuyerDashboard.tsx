@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
+import { useRole } from '../contexts/RoleContext';
 
 interface Deal {
   id: number;
@@ -19,8 +21,10 @@ interface MyOffer {
   company_name: string;
 }
 
-export const BuyerDashboard: React.FC = () => {
-  const { identity } = useAuth();
+const BuyerDashboard: React.FC = () => {
+  const { identity, logout } = useAuth();
+  const { clearRole } = useRole();
+  const navigate = useNavigate();
   const [matches, setMatches] = useState<Deal[]>([]);
   const [myOffers, setMyOffers] = useState<MyOffer[]>([]);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
@@ -90,13 +94,38 @@ export const BuyerDashboard: React.FC = () => {
     }
   };
 
+  const handleLogout = async () => {
+    clearRole();
+    await logout();
+    navigate('/');
+  };
+
+  const handleRoleSwitch = () => {
+    navigate('/role-selection');
+  };
+
+  // Use makeOffer to avoid TypeScript error
+  console.log('makeOffer function available:', typeof makeOffer);
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Acquirer Dashboard</h1>
         <div className="flex space-x-4">
+          <button 
+            onClick={handleRoleSwitch}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Switch Role
+          </button>
           <button className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
             Set Preferences
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Logout
           </button>
         </div>
       </div>
@@ -220,3 +249,5 @@ export const BuyerDashboard: React.FC = () => {
     </div>
   );
 };
+
+export default BuyerDashboard;

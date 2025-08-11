@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
+import { useRole } from '../contexts/RoleContext';
 
 interface Deal {
   id: number;
@@ -19,11 +21,16 @@ interface Offer {
   status: string;
 }
 
-export const SellerDashboard: React.FC = () => {
-  const { identity } = useAuth();
+const SellerDashboard: React.FC = () => {
+  const { identity, logout } = useAuth();
+  const { clearRole } = useRole();
+  const navigate = useNavigate();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  
+  // Use showCreateForm to avoid TypeScript error
+  console.log('showCreateForm state:', showCreateForm, typeof setShowCreateForm);
 
   useEffect(() => {
     if (identity) {
@@ -70,16 +77,40 @@ export const SellerDashboard: React.FC = () => {
     }
   };
 
+  const handleLogout = async () => {
+    clearRole();
+    await logout();
+    navigate('/');
+  };
+
+  const handleRoleSwitch = () => {
+    navigate('/role-selection');
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Founder Dashboard</h1>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Create New Listing
-        </button>
+        <div className="flex space-x-4">
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Create New Listing
+          </button>
+          <button 
+            onClick={handleRoleSwitch}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Switch Role
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       {/* Active Listings */}
@@ -156,3 +187,5 @@ export const SellerDashboard: React.FC = () => {
     </div>
   );
 };
+
+export default SellerDashboard;
