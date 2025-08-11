@@ -1,0 +1,1 @@
+export { useRole } from '../contexts/RoleContext';
