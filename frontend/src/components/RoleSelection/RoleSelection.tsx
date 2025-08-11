@@ -66,20 +66,6 @@ export const RoleSelection: React.FC = () => {
 
   return (
     <section className="min-h-screen bg-blue-50 flex flex-col overflow-hidden">
-      {/* Navigation */}
-      <nav className="flex justify-between items-center px-6 py-4 bg-white shadow-sm">
-        <div className="flex items-center space-x-2 group">
-          <div className="w-8 h-8 bg-black rounded transform rotate-45 flex items-center justify-center transition-all duration-300 group-hover:rotate-[60deg] group-hover:scale-110">
-            <span className="text-white text-xs font-bold transform -rotate-45 group-hover:-rotate-[60deg] transition-transform duration-300">V</span>
-          </div>
-          <span className="text-xl font-bold transition-colors duration-300 group-hover:text-blue-600">Valyra</span>
-        </div>
-        
-        <div className="text-sm text-gray-600">
-          Step 2 of 2: Choose Your Role
-        </div>
-      </nav>
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-16">
         <div className="max-w-6xl w-full">
@@ -143,21 +129,6 @@ export const RoleSelection: React.FC = () => {
               </p>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Bottom Section */}
-      <div className="pb-16">
-        <p className="text-center text-gray-500 text-sm mb-8">Trusted by Web3 founders & acquirers</p>
-        <div className="flex justify-center items-center space-x-12 opacity-60">
-          {['DeFi Protocols', 'NFT Projects', 'Gaming Studios', 'Infrastructure'].map((category) => (
-            <div 
-              key={category}
-              className="text-gray-400 text-lg font-semibold"
-            >
-              {category}
-            </div>
-          ))}
         </div>
       </div>
     </section>
