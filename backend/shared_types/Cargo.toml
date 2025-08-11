@@ -1,0 +1,9 @@
+[package]
+name = "shared_types"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+candid.workspace = true
+serde.workspace = true
+ic-stable-structures.workspace = true

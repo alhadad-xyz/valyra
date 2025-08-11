@@ -1,0 +1,250 @@
+openapi: 3.0.3
+info:
+  title: Valyra API
+  description: Web3 M&A Platform API for IC Canisters
+  version: 1.0.0
+  contact:
+    name: Valyra Team
+    
+servers:
+  - url: http://localhost:4943
+    description: Local development
+  - url: https://ic0.app
+    description: IC Mainnet
+
+paths:
+  /api/v2/canisters/listing_registry/query:
+    get:
+      summary: Get all active deals
+      description: Retrieve all active deal listings
+      responses:
+        '200':
+          description: List of deals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Deal'
+
+  /api/v2/canisters/listing_registry/update/create_deal:
+    post:
+      summary: Create new deal
+      description: Create a new deal listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDealRequest'
+      responses:
+        '200':
+          description: Deal created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deal'
+
+  /api/v2/canisters/listing_registry/update/create_offer:
+    post:
+      summary: Create offer
+      description: Make an offer on a deal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOfferRequest'
+      responses:
+        '200':
+          description: Offer created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+
+  /api/v2/canisters/valuation_engine/update/calculate:
+    post:
+      summary: Calculate valuation
+      description: Trigger DCF valuation calculation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValuationRequest'
+      responses:
+        '200':
+          description: Valuation calculated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValuationResult'
+
+  /api/v2/canisters/escrow/update/create_escrow:
+    post:
+      summary: Create escrow
+      description: Initialize escrow for accepted offer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEscrowRequest'
+      responses:
+        '200':
+          description: Escrow created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EscrowStatus'
+
+components:
+  schemas:
+    Deal:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        founder:
+          type: string
+          description: IC Principal
+        company_name:
+          type: string
+        valuation:
+          type: integer
+          format: int64
+        revenue:
+          type: integer
+          format: int64
+        created_at:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [Active, InNegotiation, InEscrow, Completed, Disputed]
+
+    CreateDealRequest:
+      type: object
+      required:
+        - company_name
+        - valuation
+        - revenue
+      properties:
+        company_name:
+          type: string
+        valuation:
+          type: integer
+          format: int64
+        revenue:
+          type: integer
+          format: int64
+
+    Offer:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        deal_id:
+          type: integer
+          format: int64
+        buyer:
+          type: string
+          description: IC Principal
+        amount:
+          type: integer
+          format: int64
+        equity_percentage:
+          type: number
+          format: float
+        milestones:
+          type: array
+          items:
+            $ref: '#/components/schemas/Milestone'
+        created_at:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [Pending, Accepted, Rejected, Countered]
+
+    CreateOfferRequest:
+      type: object
+      required:
+        - deal_id
+        - amount
+        - equity_percentage
+      properties:
+        deal_id:
+          type: integer
+          format: int64
+        amount:
+          type: integer
+          format: int64
+        equity_percentage:
+          type: number
+          format: float
+        terms:
+          type: string
+
+    Milestone:
+      type: object
+      properties:
+        description:
+          type: string
+        amount:
+          type: integer
+          format: int64
+        deadline:
+          type: integer
+          format: int64
+        completed:
+          type: boolean
+
+    ValuationRequest:
+      type: object
+      properties:
+        deal_id:
+          type: integer
+          format: int64
+        revenue:
+          type: integer
+          format: int64
+        market_data:
+          type: object
+
+    ValuationResult:
+      type: object
+      properties:
+        fair_value:
+          type: integer
+          format: int64
+        confidence_score:
+          type: number
+          format: float
+        methodology:
+          type: string
+
+    CreateEscrowRequest:
+      type: object
+      properties:
+        offer_id:
+          type: integer
+          format: int64
+        amount:
+          type: integer
+          format: int64
+
+    EscrowStatus:
+      type: object
+      properties:
+        escrow_id:
+          type: string
+        status:
+          type: string
+          enum: [Pending, Funded, Released, Disputed]
+        amount:
+          type: integer
+          format: int64

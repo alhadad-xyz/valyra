@@ -1,0 +1,46 @@
+{
+  "canisters": {
+    "listing_registry": {
+      "type": "rust",
+      "package": "listing_registry",
+      "candid": "backend/listing_registry/src/listing_registry.did",
+      "workspace": "backend"
+    },
+    "valuation_engine": {
+      "type": "rust", 
+      "package": "valuation_engine",
+      "candid": "backend/valuation_engine/src/valuation_engine.did",
+      "workspace": "backend"
+    },
+    "escrow": {
+      "type": "rust",
+      "package": "escrow", 
+      "candid": "backend/escrow/src/escrow.did",
+      "workspace": "backend"
+    },
+    "dispute_dao": {
+      "type": "rust",
+      "package": "dispute_dao",
+      "candid": "backend/dispute_dao/src/dispute_dao.did",
+      "workspace": "backend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:4943",
+      "type": "ephemeral"
+    },
+    "ic": {
+      "providers": ["https://ic0.app"],
+      "type": "persistent"
+    }
+  },
+  "version": 1
+}
