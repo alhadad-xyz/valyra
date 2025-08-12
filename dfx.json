@@ -27,6 +27,21 @@
     "internet_identity": {
       "type": "pull",
       "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"
+    },
+    "frontend": {
+      "dependencies": [
+        "listing_registry",
+        "valuation_engine", 
+        "escrow",
+        "dispute_dao"
+      ],
+      "frontend": {
+        "entrypoint": "frontend/dist/index.html"
+      },
+      "source": [
+        "frontend/dist/"
+      ],
+      "type": "assets"
     }
   },
   "defaults": {

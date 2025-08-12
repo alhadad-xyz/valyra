@@ -7,6 +7,9 @@ import { RoleSelection } from './components/RoleSelection';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import BuyerDashboard from './buyer/BuyerDashboard';
 import SellerDashboard from './seller/SellerDashboard';
+import { CreateListing } from './pages/CreateListing';
+import EditListingPage from './pages/EditListingPage';
+import { Debug } from './pages/Debug';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -34,21 +37,49 @@ function App() {
           />
           
           <Route 
-            path="/seller/dashboard" 
+            path="/seller" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requireRole="seller">
                 <SellerDashboard />
               </ProtectedRoute>
             } 
           />
           
           <Route 
-            path="/buyer/dashboard" 
+            path="/seller/dashboard" 
+            element={<Navigate to="/seller" replace />} 
+          />
+          
+          <Route 
+            path="/seller/create-listing" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requireRole="seller">
+                <CreateListing />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/seller/edit-listing/:id" 
+            element={
+              <ProtectedRoute requireRole="seller">
+                <EditListingPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/buyer" 
+            element={
+              <ProtectedRoute requireRole="buyer">
                 <BuyerDashboard />
               </ProtectedRoute>
             } 
+          />
+          
+          <Route 
+            path="/buyer/dashboard" 
+            element={<Navigate to="/buyer" replace />} 
           />
           
           <Route 
@@ -60,6 +91,7 @@ function App() {
             } 
           />
           
+          <Route path="/debug" element={<Debug />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
@@ -71,9 +103,9 @@ const DashboardRedirect: React.FC = () => {
   const { role } = useRole();
   
   if (role === 'seller') {
-    return <Navigate to="/seller/dashboard" replace />;
+    return <Navigate to="/seller" replace />;
   } else if (role === 'buyer') {
-    return <Navigate to="/buyer/dashboard" replace />;
+    return <Navigate to="/buyer" replace />;
   }
   
   return <Navigate to="/role-selection" replace />;

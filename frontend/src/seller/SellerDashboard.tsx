@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ListingsTable } from '../components/ListingsTable';
+import { ConfirmModal } from '../components/ConfirmModal';
 import { useListings } from '../hooks/useListings';
+import { listingService } from '../services/listingService';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
 import { StatsCards } from '../components/StatsCards';
@@ -8,15 +11,20 @@ import { StatsCards } from '../components/StatsCards';
 const SellerDashboard: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteListingId, setDeleteListingId] = useState<number | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const navigate = useNavigate();
   
   const { listings, loading, error, refresh, lastUpdated } = useListings({
     refreshInterval: 5000,
     autoRefresh: true,
+    sellerOnly: true,
   });
 
   const handleEditListing = (id: number) => {
     console.log('Edit listing:', id);
-    // TODO: Navigate to edit form or open modal
+    navigate(`/seller/edit-listing/${id}`);
   };
 
   const handleViewListing = (id: number) => {
@@ -25,8 +33,39 @@ const SellerDashboard: React.FC = () => {
   };
 
   const handleDeleteListing = (id: number) => {
-    console.log('Delete listing:', id);
-    // TODO: Show confirmation dialog and delete
+    setDeleteListingId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteListing = async () => {
+    if (!deleteListingId) return;
+
+    setDeleteLoading(true);
+    try {
+      const result = await listingService.deleteListing(BigInt(deleteListingId));
+      
+      if (result.success) {
+        // Refresh the listings to reflect the deletion
+        await refresh();
+        setShowDeleteModal(false);
+        setDeleteListingId(null);
+      } else {
+        console.error('Failed to delete listing:', result.error);
+        // You can add toast notification here
+        alert(`Failed to delete listing: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting listing:', error);
+      alert('An error occurred while deleting the listing');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+
+  const cancelDeleteListing = () => {
+    setShowDeleteModal(false);
+    setDeleteListingId(null);
   };
 
   const handleRefresh = async () => {
@@ -122,7 +161,10 @@ const SellerDashboard: React.FC = () => {
                   <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <button className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
+                  <button 
+                    onClick={() => navigate('/seller/create-listing')}
+                    className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+                  >
                     <svg className="w-8 h-8 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
@@ -178,6 +220,16 @@ const SellerDashboard: React.FC = () => {
                   </p>
                 </div>
                 <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => navigate('/seller/create-listing')}
+                    disabled={loading}
+                    className="inline-flex items-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Create Listing
+                  </button>
                   <button
                     onClick={handleRefresh}
                     disabled={loading}
@@ -294,6 +346,19 @@ const SellerDashboard: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={cancelDeleteListing}
+        onConfirm={confirmDeleteListing}
+        title="Delete Listing"
+        message={`Are you sure you want to delete this listing? This action cannot be undone and will permanently remove the listing from the platform.`}
+        confirmText="Delete Listing"
+        cancelText="Cancel"
+        isLoading={deleteLoading}
+        type="danger"
+      />
     </div>
   );
 };

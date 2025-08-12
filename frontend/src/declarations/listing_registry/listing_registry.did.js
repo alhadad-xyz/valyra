@@ -1,0 +1,97 @@
+export const idlFactory = ({ IDL }) => {
+  const BusinessStructure = IDL.Variant({
+    'LLC' : IDL.Null,
+    'SoleProp' : IDL.Null,
+    'Corp' : IDL.Null,
+  });
+  const CreateDealRequest = IDL.Record({
+    'website_url' : IDL.Text,
+    'title' : IDL.Text,
+    'ltv_usd' : IDL.Nat32,
+    'cac_usd' : IDL.Nat32,
+    'gross_margin_pct' : IDL.Float32,
+    'mrr_usd' : IDL.Nat64,
+    'arr_usd' : IDL.Nat64,
+    'attachments_cid' : IDL.Opt(IDL.Text),
+    'net_profit_usd' : IDL.Nat64,
+    'description' : IDL.Text,
+    'gdpr_compliant' : IDL.Bool,
+    'num_employees' : IDL.Nat16,
+    'logo_url' : IDL.Text,
+    'tax_id' : IDL.Text,
+    'registered_address' : IDL.Text,
+    'business_structure' : BusinessStructure,
+    'customer_base' : IDL.Text,
+    'annual_operating_expenses_usd' : IDL.Nat64,
+    'tech_stack' : IDL.Text,
+    'churn_pct' : IDL.Float32,
+  });
+  const Result = IDL.Variant({ 'Ok' : IDL.Nat64, 'Err' : IDL.Text });
+  const Result_1 = IDL.Variant({ 'Ok' : IDL.Null, 'Err' : IDL.Text });
+  const ListingStatus = IDL.Variant({
+    'Sold' : IDL.Null,
+    'Active' : IDL.Null,
+    'Matched' : IDL.Null,
+    'Withdrawn' : IDL.Null,
+  });
+  const DealNFT = IDL.Record({
+    'id' : IDL.Nat64,
+    'status' : ListingStatus,
+    'website_url' : IDL.Text,
+    'title' : IDL.Text,
+    'updated_at' : IDL.Nat64,
+    'ltv_usd' : IDL.Nat32,
+    'cac_usd' : IDL.Nat32,
+    'gross_margin_pct' : IDL.Float32,
+    'mrr_usd' : IDL.Nat64,
+    'arr_usd' : IDL.Nat64,
+    'attachments_cid' : IDL.Opt(IDL.Text),
+    'net_profit_usd' : IDL.Nat64,
+    'description' : IDL.Text,
+    'gdpr_compliant' : IDL.Bool,
+    'created_at' : IDL.Nat64,
+    'num_employees' : IDL.Nat16,
+    'logo_url' : IDL.Text,
+    'tax_id' : IDL.Text,
+    'seller_principal' : IDL.Principal,
+    'registered_address' : IDL.Text,
+    'business_structure' : BusinessStructure,
+    'customer_base' : IDL.Text,
+    'annual_operating_expenses_usd' : IDL.Nat64,
+    'tech_stack' : IDL.Text,
+    'churn_pct' : IDL.Float32,
+  });
+  const Result_2 = IDL.Variant({ 'Ok' : DealNFT, 'Err' : IDL.Text });
+  const UpdateDealRequest = IDL.Record({
+    'status' : IDL.Opt(ListingStatus),
+    'website_url' : IDL.Opt(IDL.Text),
+    'title' : IDL.Opt(IDL.Text),
+    'ltv_usd' : IDL.Opt(IDL.Nat32),
+    'cac_usd' : IDL.Opt(IDL.Nat32),
+    'gross_margin_pct' : IDL.Opt(IDL.Float32),
+    'mrr_usd' : IDL.Opt(IDL.Nat64),
+    'arr_usd' : IDL.Opt(IDL.Nat64),
+    'attachments_cid' : IDL.Opt(IDL.Opt(IDL.Text)),
+    'net_profit_usd' : IDL.Opt(IDL.Nat64),
+    'description' : IDL.Opt(IDL.Text),
+    'gdpr_compliant' : IDL.Opt(IDL.Bool),
+    'num_employees' : IDL.Opt(IDL.Nat16),
+    'logo_url' : IDL.Opt(IDL.Text),
+    'tax_id' : IDL.Opt(IDL.Text),
+    'registered_address' : IDL.Opt(IDL.Text),
+    'business_structure' : IDL.Opt(BusinessStructure),
+    'customer_base' : IDL.Opt(IDL.Text),
+    'annual_operating_expenses_usd' : IDL.Opt(IDL.Nat64),
+    'tech_stack' : IDL.Opt(IDL.Text),
+    'churn_pct' : IDL.Opt(IDL.Float32),
+  });
+  return IDL.Service({
+    'create_deal' : IDL.Func([CreateDealRequest], [Result], []),
+    'delete_deal' : IDL.Func([IDL.Nat64], [Result_1], []),
+    'get_deal' : IDL.Func([IDL.Nat64], [Result_2], ['query']),
+    'get_deals_by_seller' : IDL.Func([IDL.Principal], [IDL.Vec(DealNFT)], ['query']),
+    'list_ids' : IDL.Func([], [IDL.Vec(IDL.Nat64)], ['query']),
+    'update_deal' : IDL.Func([IDL.Nat64, UpdateDealRequest], [Result_1], []),
+  });
+};
+export const init = ({ IDL }) => { return []; };
