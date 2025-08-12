@@ -7,6 +7,7 @@ import { RoleSelection } from './components/RoleSelection';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import BuyerDashboard from './buyer/BuyerDashboard';
 import SellerDashboard from './seller/SellerDashboard';
+import SellerListings from './seller/SellerListings';
 import { CreateListing } from './pages/CreateListing';
 import EditListingPage from './pages/EditListingPage';
 import { ListingDetail } from './pages/ListingDetail';
@@ -49,6 +50,15 @@ function App() {
           <Route 
             path="/seller/dashboard" 
             element={<Navigate to="/seller" replace />} 
+          />
+          
+          <Route 
+            path="/seller/listings" 
+            element={
+              <ProtectedRoute requireRole="seller">
+                <SellerListings />
+              </ProtectedRoute>
+            } 
           />
           
           <Route 
