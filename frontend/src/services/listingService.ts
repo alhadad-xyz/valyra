@@ -1,4 +1,4 @@
-import { HttpAgent } from '@dfinity/agent';
+import { HttpAgent, Identity } from '@dfinity/agent';
 import { AuthClient } from '@dfinity/auth-client';
 import { Principal } from '@dfinity/principal';
 import { 
@@ -38,11 +38,12 @@ type UpdateDealRequest = GeneratedUpdateDealRequest;
 export class ListingService {
   private actor: ListingRegistryService | null = null;
   private authClient: AuthClient | null = null;
+  private currentIdentity: Identity | null = null;
 
   /**
    * Initialize the service with authentication
    */
-  async initialize(): Promise<void> {
+  async initialize(identity?: Identity): Promise<void> {
     try {
       console.log('🚀 Initializing ListingService with config:', {
         IC_HOST,
@@ -50,12 +51,20 @@ export class ListingService {
         IS_LOCAL
       });
 
-      this.authClient = await AuthClient.create();
-      console.log('✅ AuthClient created');
+      // Use provided identity or create new AuthClient if none provided
+      if (identity) {
+        console.log('✅ Using provided identity');
+        this.currentIdentity = identity;
+      } else {
+        this.authClient = await AuthClient.create();
+        identity = this.authClient.getIdentity();
+        this.currentIdentity = identity;
+        console.log('✅ AuthClient created and identity extracted');
+      }
       
       const agent = new HttpAgent({ 
         host: IC_HOST,
-        identity: this.authClient.getIdentity(),
+        identity,
       });
 
       // Fetch root key for local development
@@ -143,7 +152,7 @@ export class ListingService {
       });
 
       if (!this.actor) {
-        await this.initialize();
+        await this.initialize(this.currentIdentity || undefined);
       }
 
       const isAuth = await this.isAuthenticated();
@@ -198,7 +207,7 @@ export class ListingService {
   async getListing(id: bigint): Promise<ApiResponse<DealNFT>> {
     try {
       if (!this.actor) {
-        await this.initialize();
+        await this.initialize(this.currentIdentity || undefined);
       }
 
       if (!this.actor) {
@@ -382,7 +391,7 @@ export class ListingService {
   async getListingsBySeller(sellerPrincipal?: Principal): Promise<ApiResponse<DealNFT[]>> {
     try {
       if (!this.actor) {
-        await this.initialize();
+        await this.initialize(this.currentIdentity || undefined);
       }
 
       if (!this.actor) {
@@ -423,7 +432,7 @@ export class ListingService {
   async updateListing(id: bigint, updates: Partial<CreateListingFormData>, newIpfsCid?: string): Promise<ApiResponse<null>> {
     try {
       if (!this.actor) {
-        await this.initialize();
+        await this.initialize(this.currentIdentity || undefined);
       }
 
       if (!await this.isAuthenticated()) {
@@ -516,7 +525,7 @@ export class ListingService {
   async deleteListing(id: bigint): Promise<ApiResponse<null>> {
     try {
       if (!this.actor) {
-        await this.initialize();
+        await this.initialize(this.currentIdentity || undefined);
       }
 
       if (!await this.isAuthenticated()) {
@@ -553,9 +562,22 @@ export class ListingService {
   }
 
   /**
+   * Set identity from external auth provider
+   */
+  setIdentity(identity: Identity): void {
+    this.currentIdentity = identity;
+    // Reset actor to force re-initialization with new identity
+    this.actor = null;
+  }
+
+  /**
    * Get current user's principal
    */
   async getCurrentUserPrincipal(): Promise<Principal | null> {
+    if (this.currentIdentity) {
+      return this.currentIdentity.getPrincipal();
+    }
+    
     if (!this.authClient) {
       await this.initialize();
     }

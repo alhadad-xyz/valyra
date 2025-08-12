@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  valuation-agent:
+    build: .
+    ports:
+      - "8080:8080"  # Health check endpoint
+      - "8090:8090"  # Metrics endpoint
+      - "8001:8001"  # uAgent endpoint
+    environment:
+      - LISTING_REGISTRY_URL=http://host.docker.internal:4943/api/v2/canisters/listing_registry
+      - VALUATION_ENGINE_URL=http://host.docker.internal:4943/api/v2/canisters/valuation_engine
+      - REDIS_URL=redis://redis:6379
+      - POLLING_INTERVAL=300
+      - MAX_RETRIES=3
+      - RETRY_BACKOFF_BASE=2.0
+      - CACHE_TTL=3600
+      - HEALTH_CHECK_PORT=8080
+      - METRICS_PORT=8090
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  redis_data:

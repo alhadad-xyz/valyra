@@ -187,3 +187,33 @@ export interface ListingTableRow {
   created: string; // Formatted date
   updated: string; // Formatted date;
 }
+
+// Valuation status types
+export enum ValuationStatus {
+  NotCalculated = 'NotCalculated',
+  Calculating = 'Calculating',
+  Completed = 'Completed',
+  Failed = 'Failed',
+  Stale = 'Stale'
+}
+
+// Extended listing interface with valuation information
+export interface DealNFTWithValuation extends DealNFT {
+  valuation_status?: ValuationStatus;
+  valuation_amount?: number;
+  valuation_confidence?: number;
+  valuation_last_updated?: Date;
+}
+
+// Valuation result types (mirrors valuation engine canister)
+export interface ValuationResult {
+  deal_id: string;
+  arr_multiple: number;
+  dcf_valuation: bigint;
+  market_comparable?: bigint;
+  confidence_score: number;
+  risk_factors: string[];
+  valuation_range_low: bigint;
+  valuation_range_high: bigint;
+  timestamp: bigint;
+}
