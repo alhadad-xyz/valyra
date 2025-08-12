@@ -158,6 +158,9 @@ export const useListings = ({
       return;
     }
 
+    // Set the identity on the service to ensure it uses the correct identity
+    listingService.setIdentity(identity);
+
     // Abort previous request if still pending
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();

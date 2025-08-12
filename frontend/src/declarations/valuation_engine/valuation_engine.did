@@ -1,1 +1,55 @@
-service : () -> {}
+type BusinessStructure = variant { LLC; SoleProp; Corp };
+type DealNFT = record {
+  id : nat64;
+  status : ListingStatus;
+  website_url : text;
+  title : text;
+  updated_at : nat64;
+  ltv_usd : nat32;
+  cac_usd : nat32;
+  gross_margin_pct : float32;
+  mrr_usd : nat64;
+  arr_usd : nat64;
+  attachments_cid : opt text;
+  net_profit_usd : nat64;
+  description : text;
+  gdpr_compliant : bool;
+  created_at : nat64;
+  num_employees : nat16;
+  logo_url : text;
+  tax_id : text;
+  seller_principal : principal;
+  registered_address : text;
+  business_structure : BusinessStructure;
+  customer_base : text;
+  annual_operating_expenses_usd : nat64;
+  tech_stack : text;
+  churn_pct : float32;
+};
+type HttpHeader = record { value : text; name : text };
+type HttpResponse = record {
+  status : nat;
+  body : blob;
+  headers : vec HttpHeader;
+};
+type ListingStatus = variant { Sold; Active; Matched; Withdrawn };
+type Result = variant { Ok : ValuationResult; Err : text };
+type TransformArgs = record { context : blob; response : HttpResponse };
+type ValuationResult = record {
+  valuation_range_high : nat64;
+  market_comparable : opt nat64;
+  valuation_range_low : nat64;
+  risk_factors : vec text;
+  timestamp : nat64;
+  dcf_valuation : nat64;
+  deal_id : text;
+  arr_multiple : float64;
+  confidence_score : float64;
+};
+service : () -> {
+  calculate_valuation : (text) -> (Result);
+  calculate_valuation_from_deal : (DealNFT) -> (Result);
+  get_valuation : (text) -> (opt ValuationResult) query;
+  list_valuations : () -> (vec record { text; ValuationResult }) query;
+  transform : (TransformArgs) -> (HttpResponse) query;
+}
