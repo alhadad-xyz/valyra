@@ -282,3 +282,118 @@ impl Storable for Offer {
     const BOUND: ic_stable_structures::storable::Bound = 
         ic_stable_structures::storable::Bound::Bounded { max_size: 4096, is_fixed_size: false };
 }
+
+// ════════════════════════════════════════════════════════════════════════════════════════
+// ESCROW TYPES (B-04)
+// ════════════════════════════════════════════════════════════════════════════════════════
+
+/// Escrow account states for milestone-based payment release
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub enum EscrowState {
+    /// Initial escrow state - just created
+    Created,
+    /// Funds have been deposited and locked
+    Locked,
+    /// Milestone has been completed and verified
+    MilestoneDone,
+    /// Funds have been released to seller
+    Released,
+}
+
+/// Represents an escrow account for a specific deal
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct EscrowAccount {
+    /// Unique escrow identifier
+    pub id: u64,
+    /// The listing/deal this escrow is for
+    pub listing_id: u64,
+    /// Buyer's principal
+    pub buyer: Principal,
+    /// Seller's principal  
+    pub seller: Principal,
+    /// Total escrow amount in ckUSDC (smallest unit)
+    pub total_amount: u64,
+    /// Amount currently locked in escrow
+    pub locked_amount: u64,
+    /// Amount already released to seller
+    pub released_amount: u64,
+    /// Current escrow state
+    pub state: EscrowState,
+    /// Milestones for staged release
+    pub milestones: Vec<EscrowMilestone>,
+    /// Threshold ECDSA derived address for this escrow
+    pub escrow_address: String,
+    /// Creation timestamp (nanoseconds since epoch)
+    pub created_at: u64,
+    /// Last state change timestamp
+    pub updated_at: u64,
+}
+
+/// Extended milestone information for escrow management
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct EscrowMilestone {
+    /// Milestone description
+    pub description: String,
+    /// Amount to release when completed (ckUSDC smallest unit)
+    pub amount: u64,
+    /// Deadline timestamp (nanoseconds since epoch)
+    pub deadline: u64,
+    /// Whether this milestone has been completed
+    pub completed: bool,
+    /// Whether funds have been released for this milestone
+    pub released: bool,
+    /// Completion timestamp (if completed)
+    pub completed_at: Option<u64>,
+    /// Release timestamp (if released)
+    pub released_at: Option<u64>,
+}
+
+/// Events emitted by the escrow canister
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub enum EscrowEvent {
+    /// Escrow account created
+    EscrowCreated {
+        escrow_id: u64,
+        listing_id: u64,
+        buyer: Principal,
+        seller: Principal,
+        total_amount: u64,
+    },
+    /// Funds deposited into escrow
+    FundsDeposited {
+        escrow_id: u64,
+        amount: u64,
+        depositor: Principal,
+    },
+    /// Milestone completed
+    MilestoneCompleted {
+        escrow_id: u64,
+        milestone_index: usize,
+        completed_by: Principal,
+    },
+    /// Funds released to seller
+    FundsReleased {
+        escrow_id: u64,
+        amount: u64,
+        released_to: Principal,
+    },
+    /// Escrow disputed
+    EscrowDisputed {
+        escrow_id: u64,
+        disputed_by: Principal,
+        reason: String,
+    },
+}
+
+impl Storable for EscrowAccount {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        std::borrow::Cow::Owned(candid::encode_one(self).unwrap())
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        candid::decode_one(&bytes).unwrap()
+    }
+
+    const BOUND: ic_stable_structures::storable::Bound = 
+        ic_stable_structures::storable::Bound::Bounded { max_size: 8192, is_fixed_size: false };
+}
