@@ -64,13 +64,12 @@ const EditListingPage: React.FC = () => {
             employeeCount: listing.num_employees,
             customerBase: listing.customer_base,
             operatingExpenses: Number(listing.annual_operating_expenses_usd),
-            registeredAddress: listing.registered_address,
+            location: listing.registered_address,
             taxId: listing.tax_id,
             gdprCompliant: listing.gdpr_compliant,
             businessStructure: Object.keys(listing.business_structure)[0] as BusinessStructure,
             foundedYear,
             // Set some defaults for required fields that might not be in the listing
-            location: '', // Not stored in current schema
             dealStructure: 'Asset' as const,
             minimumInvestment: 0,
             askingPrice: 0,
