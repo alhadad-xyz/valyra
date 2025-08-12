@@ -21,7 +21,7 @@ export interface DealListing {
   valuation_min?: number;
   valuation_max?: number;
   industry?: string;
-  status: 'Active' | 'Draft' | 'Under Negotiation' | 'Sold' | 'Expired' | 'Withdrawn';
+  status: 'Active' | 'Under Negotiation' | 'Sold' | 'Withdrawn';
   created_at: number;
   updated_at: number;
   offers_count?: number;
@@ -207,7 +207,7 @@ export const ListingsTable: React.FC<ListingsTableProps> = ({
     debugTable: false,
   });
 
-  const statusOptions = ['Active', 'Draft', 'Under Negotiation', 'Sold', 'Expired', 'Withdrawn'];
+  const statusOptions = ['Active', 'Under Negotiation', 'Sold', 'Withdrawn'];
 
   if (loading) {
     return (

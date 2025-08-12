@@ -97,7 +97,7 @@ const HeroSection: React.FC = () => {
               onClick={login}
               className="bg-black text-white px-6 py-2 rounded-full hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 hover:shadow-lg active:scale-95"
             >
-              Connect with Internet Identity
+              Connect Wallet
             </button>
           )}
           <button className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-all duration-300">

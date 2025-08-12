@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "build": "cd frontend && npm run build"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.1",
+    "kubo-rpc-client": "^5.2.0",
+    "react-dropzone": "^14.3.8",
+    "react-hook-form": "^7.62.0",
+    "web3.storage": "^4.5.5",
+    "yup": "^1.7.0"
+  }
+}

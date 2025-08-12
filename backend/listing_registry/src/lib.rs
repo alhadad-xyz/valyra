@@ -263,7 +263,14 @@ fn create_deal(request: CreateDealRequest) -> Result<u64, String> {
     };
     
     DEALS.with(|deals| {
-        deals.borrow_mut().insert(id, deal_nft);
+        deals.borrow_mut().insert(id, deal_nft.clone());
+        
+        // Debug: Verify the deal was actually inserted
+        let stored_deal = deals.borrow().get(&id);
+        match stored_deal {
+            Some(_) => ic_cdk::println!("✅ Deal {} successfully stored and verified", id),
+            None => ic_cdk::println!("❌ Deal {} failed to store!", id),
+        }
     });
     
     Ok(id)
@@ -441,10 +448,22 @@ fn delete_deal(id: u64) -> Result<(), String> {
 #[query]
 fn get_deal(id: u64) -> Result<DealNFT, String> {
     DEALS.with(|deals| {
-        deals
-            .borrow()
-            .get(&id)
-            .ok_or_else(|| format!("Deal with ID {} not found", id))
+        let deals_map = deals.borrow();
+        let result = deals_map.get(&id);
+        
+        // Debug logging
+        match result {
+            Some(ref deal) => {
+                ic_cdk::println!("✅ Found deal {} with title: {}", id, deal.title);
+            },
+            None => {
+                // Get all current IDs for debugging
+                let all_ids: Vec<u64> = deals_map.iter().map(|(k, _)| k).collect();
+                ic_cdk::println!("❌ Deal {} not found. Available IDs: {:?}", id, all_ids);
+            }
+        }
+        
+        result.ok_or_else(|| format!("Deal with ID {} not found", id))
     })
 }
 
@@ -466,6 +485,40 @@ fn get_deal(id: u64) -> Result<DealNFT, String> {
 fn list_ids() -> Vec<u64> {
     DEALS.with(|deals| {
         deals.borrow().iter().map(|(id, _)| id).collect()
+    })
+}
+
+/// Lists all deals created by a specific seller
+/// 
+/// Returns a vector of DealNFT objects that belong to the specified seller.
+/// This is useful for seller dashboards to show only their own listings.
+/// 
+/// # Arguments
+/// * `seller_principal` - The principal ID of the seller whose deals to retrieve
+/// 
+/// # Returns
+/// * `Vec<DealNFT>` - Array of deals owned by the seller (may be empty)
+/// 
+/// # Access Control
+/// * Public read access - any authenticated principal can query deals by seller
+/// * However, sensitive information should only be visible to the seller themselves
+/// 
+/// # Performance
+/// * O(n) iteration over all stored listings to filter by seller
+/// * Consider indexing by seller for better performance in future versions
+#[query]
+fn get_deals_by_seller(seller_principal: candid::Principal) -> Vec<DealNFT> {
+    DEALS.with(|deals| {
+        deals.borrow()
+            .iter()
+            .filter_map(|(_, deal)| {
+                if deal.seller_principal == seller_principal {
+                    Some(deal)
+                } else {
+                    None
+                }
+            })
+            .collect()
     })
 }
 

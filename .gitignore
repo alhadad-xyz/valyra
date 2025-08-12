@@ -50,6 +50,11 @@ venv.bak/
 *.wasm
 *.wasm.gz
 
+# Generated files and duplicate directories
+src/
+src/declarations/
+src/lib/
+
 # IDE
 .vscode/
 .idea/
