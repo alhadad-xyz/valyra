@@ -15,6 +15,7 @@
     "@dfinity/auth-client": "^0.20.0",
     "@dfinity/candid": "^0.20.0",
     "@dfinity/principal": "^0.20.0",
+    "@heroicons/react": "^2.2.0",
     "@tanstack/react-table": "^8.21.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   createColumnHelper,
   flexRender,
@@ -33,7 +34,6 @@ interface ListingsTableProps {
   listings: DealListing[];
   loading?: boolean;
   onEdit?: (id: number) => void;
-  onView?: (id: number) => void;
   onDelete?: (id: number) => void;
 }
 
@@ -59,7 +59,6 @@ export const ListingsTable: React.FC<ListingsTableProps> = ({
   listings,
   loading = false,
   onEdit,
-  onView,
   onDelete,
 }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -74,13 +73,13 @@ export const ListingsTable: React.FC<ListingsTableProps> = ({
         header: 'Listing Title',
         cell: (info) => (
           <div className="max-w-xs">
-            <button
-              onClick={() => onView?.(info.row.original.id)}
+            <Link
+              to={`/listing/${info.row.original.id}`}
               className="text-blue-600 hover:text-blue-800 font-medium truncate block"
               title={info.getValue()}
             >
               {info.getValue()}
-            </button>
+            </Link>
             {info.row.original.company_name && (
               <p className="text-sm text-gray-500 truncate" title={info.row.original.company_name}>
                 {info.row.original.company_name}
@@ -158,13 +157,13 @@ export const ListingsTable: React.FC<ListingsTableProps> = ({
         header: 'Actions',
         cell: (info) => (
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => onView?.(info.row.original.id)}
+            <Link
+              to={`/listing/${info.row.original.id}`}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium"
               title="View Details"
             >
               View
-            </button>
+            </Link>
             <button
               onClick={() => onEdit?.(info.row.original.id)}
               className="text-green-600 hover:text-green-800 text-sm font-medium"
@@ -184,7 +183,7 @@ export const ListingsTable: React.FC<ListingsTableProps> = ({
         enableSorting: false,
       }),
     ],
-    [onEdit, onView, onDelete]
+    [onEdit, onDelete]
   );
 
   const table = useReactTable({

@@ -27,10 +27,6 @@ const SellerDashboard: React.FC = () => {
     navigate(`/seller/edit-listing/${id}`);
   };
 
-  const handleViewListing = (id: number) => {
-    console.log('View listing:', id);
-    // TODO: Navigate to listing detail page
-  };
 
   const handleDeleteListing = (id: number) => {
     setDeleteListingId(id);
@@ -272,7 +268,6 @@ const SellerDashboard: React.FC = () => {
                 listings={listings}
                 loading={loading}
                 onEdit={handleEditListing}
-                onView={handleViewListing}
                 onDelete={handleDeleteListing}
               />
             </div>

@@ -7,8 +7,10 @@ import { RoleSelection } from './components/RoleSelection';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import BuyerDashboard from './buyer/BuyerDashboard';
 import SellerDashboard from './seller/SellerDashboard';
+import SellerListings from './seller/SellerListings';
 import { CreateListing } from './pages/CreateListing';
 import EditListingPage from './pages/EditListingPage';
+import { ListingDetail } from './pages/ListingDetail';
 import { Debug } from './pages/Debug';
 
 function App() {
@@ -51,6 +53,15 @@ function App() {
           />
           
           <Route 
+            path="/seller/listings" 
+            element={
+              <ProtectedRoute requireRole="seller">
+                <SellerListings />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
             path="/seller/create-listing" 
             element={
               <ProtectedRoute requireRole="seller">
@@ -64,6 +75,15 @@ function App() {
             element={
               <ProtectedRoute requireRole="seller">
                 <EditListingPage />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/listing/:id" 
+            element={
+              <ProtectedRoute requireRole={false}>
+                <ListingDetail />
               </ProtectedRoute>
             } 
           />
