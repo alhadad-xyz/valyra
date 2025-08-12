@@ -9,6 +9,7 @@ import BuyerDashboard from './buyer/BuyerDashboard';
 import SellerDashboard from './seller/SellerDashboard';
 import { CreateListing } from './pages/CreateListing';
 import EditListingPage from './pages/EditListingPage';
+import { ListingDetail } from './pages/ListingDetail';
 import { Debug } from './pages/Debug';
 
 function App() {
@@ -64,6 +65,15 @@ function App() {
             element={
               <ProtectedRoute requireRole="seller">
                 <EditListingPage />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/listing/:id" 
+            element={
+              <ProtectedRoute requireRole={false}>
+                <ListingDetail />
               </ProtectedRoute>
             } 
           />
