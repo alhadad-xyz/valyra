@@ -1,1 +1,184 @@
-service : () -> {}
+type EscrowAccount = record {
+  id : nat64;
+  updated_at : nat64;
+  total_amount : nat64;
+  escrow_address : text;
+  created_at : nat64;
+  seller : principal;
+  state : EscrowState;
+  released_amount : nat64;
+  buyer : principal;
+  listing_id : nat64;
+  locked_amount : nat64;
+  milestones : vec EscrowMilestone;
+};
+type EscrowEvent = variant {
+  EscrowDisputed : record {
+    disputed_by : principal;
+    escrow_id : nat64;
+    reason : text;
+  };
+  FundsReleased : record {
+    escrow_id : nat64;
+    amount : nat64;
+    released_to : principal;
+  };
+  EscrowCreated : record {
+    total_amount : nat64;
+    seller : principal;
+    buyer : principal;
+    listing_id : nat64;
+    escrow_id : nat64;
+  };
+  FundsDeposited : record {
+    depositor : principal;
+    escrow_id : nat64;
+    amount : nat64;
+  };
+  MilestoneCompleted : record {
+    completed_by : principal;
+    escrow_id : nat64;
+    milestone_index : nat64;
+  };
+};
+type EscrowMilestone = record {
+  completed : bool;
+  description : text;
+  deadline : nat64;
+  released : bool;
+  completed_at : opt nat64;
+  amount : nat64;
+  released_at : opt nat64;
+};
+type EscrowState = variant { MilestoneDone; Released; Locked; Created };
+type Milestone = record {
+  completed : bool;
+  description : text;
+  deadline : nat64;
+  amount : nat64;
+};
+type Result = variant { Ok; Err : text };
+type Result_1 = variant { Ok : nat64; Err : text };
+service : () -> {
+  // Marks a milestone as completed
+  // 
+  // # Arguments
+  // * `escrow_id` - The escrow account ID
+  // * `milestone_index` - Index of the milestone to complete
+  // 
+  // # Returns
+  // * `Result<(), String>` - Success or error message
+  complete_milestone : (nat64, nat64) -> (Result);
+  // Creates a new escrow account for a business acquisition
+  // 
+  // This function initiates the escrow process by creating a new EscrowAccount with
+  // milestone-based payment structure. It generates a unique threshold ECDSA address
+  // for secure fund management and validates all input parameters.
+  // 
+  // # Process Flow
+  // 1. **Validation**: Validates amount > 0, milestones exist, and amounts sum correctly
+  // 2. **ID Generation**: Creates unique escrow ID and increments counter
+  // 3. **Address Generation**: Creates threshold ECDSA address for fund isolation
+  // 4. **Storage**: Persists complete escrow account in stable storage
+  // 5. **Event Logging**: Records EscrowCreated event for audit trail
+  // 
+  // # Arguments
+  // * `listing_id` - Business listing ID from ListingRegistry canister
+  // * `seller` - Principal ID of the business seller (must be listing owner)
+  // * `total_amount` - Total purchase price in ckUSDC smallest unit (6 decimals)
+  // * `milestones` - Vector of payment milestones defining release schedule
+  // 
+  // # Milestone Requirements
+  // - At least one milestone must be provided
+  // - Sum of milestone amounts must equal `total_amount` exactly
+  // - Each milestone must have description, amount, and deadline
+  // - Deadlines should be in nanoseconds since epoch (IC time format)
+  // 
+  // # Returns
+  // * `Result<u64, String>` - Escrow ID on success, detailed error message on failure
+  // 
+  // # Errors
+  // - `"Total amount must be greater than zero"` - Invalid amount
+  // - `"At least one milestone is required"` - No milestones provided
+  // - `"Milestone amounts must sum to total amount"` - Math validation failure
+  // - `"Failed to generate ECDSA address: ..."` - Cryptographic error
+  // 
+  // # Example Usage
+  // ```text
+  // # Create milestones for SaaS acquisition
+  // milestones = [
+  // Milestone { description: "Initial handover", amount: 50000000000, deadline: 1700000000000000000 },
+  // Milestone { description: "Customer transition", amount: 50000000000, deadline: 1800000000000000000 }
+  // ]
+  // 
+  // # Call from buyer's principal
+  // result = create_escrow(42, seller_principal, 100000000000, milestones)
+  // # Returns: Ok(1) for first escrow
+  // ```
+  // 
+  // # Security Notes
+  // - Only callable by buyer (automatically set as caller())
+  // - Each escrow gets cryptographically unique address
+  // - All parameters validated before state changes
+  // - Complete audit trail maintained
+  create_escrow : (nat64, principal, nat64, vec Milestone) -> (Result_1);
+  // Deposits ckUSDC funds into an escrow account
+  // 
+  // # Arguments
+  // * `escrow_id` - The escrow account ID
+  // * `amount` - Amount to deposit in ckUSDC (smallest unit)
+  // 
+  // # Returns
+  // * `Result<(), String>` - Success or error message
+  deposit_funds : (nat64, nat64) -> (Result);
+  // Disputes an escrow transaction
+  // 
+  // # Arguments
+  // * `escrow_id` - The escrow account ID
+  // * `reason` - Reason for the dispute
+  // 
+  // # Returns
+  // * `Result<(), String>` - Success or error message
+  dispute_escrow : (nat64, text) -> (Result);
+  // Retrieves an escrow account by ID
+  // 
+  // # Arguments
+  // * `escrow_id` - The escrow account ID
+  // 
+  // # Returns
+  // * `Option<EscrowAccount>` - The escrow account if found
+  get_escrow : (nat64) -> (opt EscrowAccount) query;
+  // Retrieves all escrow accounts for a specific buyer
+  // 
+  // # Arguments
+  // * `buyer` - The buyer's principal
+  // 
+  // # Returns
+  // * `Vec<EscrowAccount>` - All escrow accounts for the buyer
+  get_escrows_by_buyer : (principal) -> (vec EscrowAccount) query;
+  // Retrieves all escrow accounts for a specific listing
+  // 
+  // # Arguments
+  // * `listing_id` - The business listing ID
+  // 
+  // # Returns
+  // * `Vec<EscrowAccount>` - All escrow accounts for the listing
+  get_escrows_by_listing : (nat64) -> (vec EscrowAccount) query;
+  // Retrieves recent events from the event log
+  // 
+  // # Arguments
+  // * `limit` - Maximum number of events to return
+  // 
+  // # Returns
+  // * `Vec<EscrowEvent>` - Recent events (most recent first)
+  get_recent_events : (nat64) -> (vec EscrowEvent) query;
+  // Releases funds for completed milestones to the seller
+  // 
+  // # Arguments
+  // * `escrow_id` - The escrow account ID
+  // * `milestone_index` - Index of the milestone to release funds for
+  // 
+  // # Returns
+  // * `Result<(), String>` - Success or error message
+  release_funds : (nat64, nat64) -> (Result);
+}
