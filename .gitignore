@@ -1,0 +1,16 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Next.js
+.next
+out
+
+# Turborepo
+.turbo
+
+# Misc
+.DS_Store
+*.log
+dist
+build

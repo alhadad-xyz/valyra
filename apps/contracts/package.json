@@ -1,0 +1,13 @@
+{
+    "name": "contracts",
+    "version": "0.0.0",
+    "private": true,
+    "scripts": {
+        "build": "echo 'Building contracts...'",
+        "test": "echo 'Testing contracts...'",
+        "deploy": "echo 'Deploying contracts...'"
+    },
+    "devDependencies": {
+        "config": "workspace:*"
+    }
+}
