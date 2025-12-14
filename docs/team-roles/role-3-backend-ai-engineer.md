@@ -10,7 +10,7 @@
 
 - Python FastAPI backend development
 - Coinbase AgentKit integration
-- OpenAI GPT-4 integration for valuation
+- Google Gemini integration for valuation
 - API endpoint security (signature verification)
 - Database design and management
 - External API integrations (Stripe, GitHub, Analytics)
@@ -22,7 +22,7 @@
 ### 1. Essential Tutorials
 *   **[FastAPI Tutorial](https://fastapi.tiangolo.com/tutorial/):** Best documentation in the Python world. Read "User Guide".
 *   **[Coinbase AgentKit](https://docs.cdp.coinbase.com/agentkit/docs/welcome):** The SDK we use for AI actions.
-*   **[Prompt Engineering Guide](https://www.promptingguide.ai/):** How to make GPT-4 give better valuation results.
+*   **[Prompt Engineering Guide](https://www.promptingguide.ai/):** How to make Gemini give better valuation results.
 *   **[Web3.py Docs](https://web3py.readthedocs.io/):** How Python talks to Ethereum/Base.
 
 ### 2. Concept Explainers (EL15)
@@ -47,7 +47,7 @@ When creating GitHub issues, use:
 ```markdown
 ## Endpoint: POST /valuation
 **Input:** `mrr=5000`
-**Problem:** GPT-4 returns "I cannot answer that".
+**Problem:** Gemini returns "I cannot answer that".
 **Proposed Fix:** Update system prompt to force JSON output.
 ```
 
@@ -94,7 +94,7 @@ When creating GitHub issues, use:
 ### AI Agent Integration
 - [ ] Integrate Coinbase AgentKit
 - [ ] Implement Valuation Endpoint (`/valuation/analyze`)
-- [ ] Design System Prompts for GPT-4
+- [ ] Design System Prompts for Gemini
 
 ### Verification Services
 - [ ] Build ID Verification Service (Scraper + GitHub API)

@@ -138,7 +138,7 @@ Buyer deposits: 100,000 IDRX
 
 ### Technical Specifications
 * **Blockchain:** Base Mainnet.
-* **AI Framework:** Coinbase AgentKit (LangChain/Python) + OpenAI GPT-4.
+* **AI Framework:** Coinbase AgentKit (LangChain/Python) + Google Gemini.
 * **Payment:** IDRX (ERC-20), with USDC auto-swap option.
 * **Identity:** Basenames for native Base ecosystem profiles.
 
@@ -1010,7 +1010,7 @@ If the contract is hacked or the UI goes down permanently, user funds must be re
 
 ### Tech Stack
 * **Frontend:** Next.js, Tailwind CSS, OnchainKit (Base).
-* **Backend/AI:** Python (FastAPI), Coinbase AgentKit (CDP SDK), OpenAI API.
+* **Backend/AI:** Python (FastAPI), Coinbase AgentKit (CDP SDK), Google Gemini API.
 * **Smart Contracts:** Solidity, Hardhat.
 * **Encryption:** Wallet-based ECIES + ephemeral keypair fallback for Smart Wallets.
 * **Indexing:** Simple RPC calls via Viem (no full subgraph for MVP).

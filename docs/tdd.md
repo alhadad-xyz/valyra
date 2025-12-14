@@ -1409,7 +1409,7 @@ Staging: https://api-staging.valyra.io/v1
 #### API Signature Verification (NEW)
 
 > [!IMPORTANT]
-> **Middleware Attack Prevention:** Without signature verification, attackers can bypass the frontend and call expensive AI endpoints directly, costing significant OpenAI tokens.
+> **Middleware Attack Prevention:** Without signature verification, attackers can bypass the frontend and call expensive AI endpoints directly, costing significant Gemini tokens.
 
 All authenticated endpoints require wallet signature verification:
 
@@ -1632,7 +1632,7 @@ Response:
 * **IDRX Interface:** Interaction with the official IDRX ERC-20 contract (`transferFrom`, `approve`).
 * **Uniswap V3 Interface:** Router contract for USDC→IDRX swaps.
 * **Basenames Interface:** ENS-compatible resolution for Base native identities.
-* **OpenAI API:** GPT-4o model used by the Agent to parse unstructured business descriptions (with guardrails).
+* **Google Gemini API:** Gemini 1.5 Pro model used by the Agent to parse unstructured business descriptions (with guardrails).
 
 ### User Interfaces
 

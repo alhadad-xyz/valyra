@@ -15,11 +15,7 @@ importers:
         specifier: ^1.10.0
         version: 1.13.4
 
-  apps/contracts:
-    devDependencies:
-      config:
-        specifier: workspace:*
-        version: link:../../packages/config
+  apps/backend: {}
 
   apps/web:
     dependencies:
@@ -72,6 +68,12 @@ importers:
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
+
+  packages/contracts:
+    devDependencies:
+      config:
+        specifier: workspace:*
+        version: link:../config
 
   packages/ui:
     devDependencies:

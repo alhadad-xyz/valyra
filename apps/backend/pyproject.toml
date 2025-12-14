@@ -1,0 +1,61 @@
+[tool.poetry]
+name = "valyra-backend"
+version = "0.1.0"
+description = "Valyra Backend API - AI-powered M&A marketplace"
+authors = ["Valyra Team"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.109.0"
+uvicorn = {extras = ["standard"], version = "^0.27.0"}
+sqlalchemy = "^2.0.25"
+alembic = "^1.13.1"
+pydantic = "^2.5.3"
+pydantic-settings = "^2.1.0"
+python-dotenv = "^1.0.0"
+psycopg2-binary = "^2.9.9"
+asyncpg = "^0.29.0"
+httpx = "^0.26.0"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-multipart = "^0.0.6"
+google-generativeai = "^0.3.0"
+web3 = "^6.15.0"
+eth-account = "^0.11.0"
+supabase = "^2.3.0"
+redis = "^5.0.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.4"
+pytest-asyncio = "^0.23.3"
+pytest-cov = "^4.1.0"
+black = "^23.12.1"
+ruff = "^0.1.11"
+mypy = "^1.8.0"
+httpx = "^0.26.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
