@@ -1,0 +1,26 @@
+# Koyeb ignores - files not needed in deployment
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.env.*
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+.git/
+.gitignore
+README.md
+tests/
+docs/
+*.md
+!pyproject.toml
+!poetry.lock

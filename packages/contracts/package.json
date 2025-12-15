@@ -4,6 +4,7 @@
     "private": true,
     "scripts": {
         "build": "echo 'Building contracts...'",
+        "postbuild": "cd ../.. && pnpm sync-abis",
         "test": "echo 'Testing contracts...'",
         "deploy": "echo 'Deploying contracts...'"
     },

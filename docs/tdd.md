@@ -1776,7 +1776,7 @@ Response:
 
 * **Smart Contracts:** Base Mainnet.
     * *Requirement:* Real ETH (on Base) for gas deployment (~$2).
-* **Backend (AI):** **Railway** or **Render** (Cloud hosting that supports Python/Docker).
+* **Backend (AI):** **Koyeb** (Cloud hosting that supports Python/Docker).
 * **Frontend:** **Vercel** (Seamless Next.js hosting).
 * **Credential Vault:** Encrypted storage service (AWS S3 with KMS or self-hosted).
 * **Treasury:** Multi-sig wallet (Gnosis Safe on Base).
@@ -1798,7 +1798,7 @@ Response:
     * Save the output `MarketplaceAddress` and `EscrowAddress`.
     * Verify source code on **Basescan**.
 3. **Backend Configuration:**
-    * Update `ENV` variables in Railway with the new Contract Addresses and Coinbase CDP API Keys.
+    * Update `ENV` variables in Koyeb with the new Contract Addresses and Coinbase CDP API Keys.
     * Deploy Python container.
 4. **Frontend Build:**
     * Update `config.ts` with the Mainnet Contract Addresses.
@@ -1816,7 +1816,7 @@ Response:
 ### Continuous Deployment
 
 * **Frontend:** Automatic deployments via Vercel on Git push.
-* **Backend:** Automatic deployments via Railway on Git push.
+* **Backend:** Automatic deployments via Koyeb on Git push.
 * **Contracts:** Manual deployment only (Contracts are immutable; upgrades require a new deployment).
 
 ### Fallback & Recovery

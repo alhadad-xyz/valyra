@@ -31,6 +31,12 @@
     },
     "backend#migrate": {
       "cache": false
+    },
+    "sync-abis": {
+      "cache": false,
+      "dependsOn": [
+        "contracts#build"
+      ]
     }
   }
 }

@@ -63,7 +63,7 @@ When creating GitHub issues, use:
 - [ ] **ABI Sync Script:**
   - [ ] Create `scripts/sync-abis.sh`
   - [ ] Script should copy JSON artifacts from `packages/contracts/artifacts` to `apps/web/src/abis`
-- [ ] Create Railway Project (Backend + Postgres)
+- [ ] Create Koyeb Project (Backend + Postgres)
 - [ ] Create Supabase Project (Vector support enabled)
 - [ ] Configure Environment Variables for Dev/Test
 - [ ] Set up Arweave Wallet & IPFS Gateway
@@ -124,7 +124,7 @@ When creating GitHub issues, use:
 - [ ] API Rate Limiting (10 req/min)
 
 ### Production Launch
-- [ ] Deploy to Railway (Production)
+- [ ] Deploy to Koyeb (Production)
 - [ ] Database Migration to Production
 - [ ] Domain & SSL Configuration
 - [ ] Final Security Scan (OWASP ZAP)

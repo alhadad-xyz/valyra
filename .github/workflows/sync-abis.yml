@@ -1,0 +1,78 @@
+name: Sync Contract ABIs
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'packages/contracts/**'
+  pull_request:
+    paths:
+      - 'packages/contracts/**'
+  workflow_dispatch:
+
+jobs:
+  sync-abis:
+    name: Sync Contract ABIs to Backend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.10.0
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Run ABI Sync Script
+        run: pnpm sync-abis
+      
+      - name: Check for ABI changes
+        id: git-check
+        run: |
+          git diff --exit-code apps/backend/app/abi/ || echo "changed=true" >> $GITHUB_OUTPUT
+      
+      - name: Commit and push ABI changes
+        if: steps.git-check.outputs.changed == 'true' && github.event_name == 'push'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add apps/backend/app/abi/
+          git commit -m "chore: sync contract ABIs [skip ci]"
+          git push
+      
+      - name: Comment on PR
+        if: steps.git-check.outputs.changed == 'true' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '⚠️ **ABI files have changed!** Please run `pnpm sync-abis` locally and commit the updated ABI files.'
+            })
+      
+      - name: Summary
+        run: |
+          echo "### ABI Sync Complete ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Contract ABIs have been synchronized from \`packages/contracts/deployment/abi/\` to \`apps/backend/app/abi/\`" >> $GITHUB_STEP_SUMMARY

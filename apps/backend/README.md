@@ -133,17 +133,35 @@ apps/backend/
 
 ## 🚢 Deployment
 
-### Railway
+### Koyeb
 
-1. Create new Railway project
-2. Add PostgreSQL plugin
-3. Set environment variables
-4. Deploy from GitHub
+Koyeb provides easy deployment with Docker, free tier, and automatic scaling.
 
-```bash
-# Railway will automatically detect and use Dockerfile
-railway up
-```
+#### Quick Setup
+
+**Using Koyeb Dashboard:**
+
+1. Push code to GitHub
+2. Go to [Koyeb Dashboard](https://app.koyeb.com)
+3. Click "Create App"
+4. Connect GitHub repository
+5. Set build context: `apps/backend`
+6. Add PostgreSQL database
+7. Set environment variables
+8. Click "Deploy"
+
+**📖 For detailed instructions, see [KOYEB_DEPLOYMENT.md](./KOYEB_DEPLOYMENT.md)**
+
+#### Environment Variables
+
+| Variable | Description | Auto-Set |
+|----------|-------------|----------|
+| `PORT` | Application port | ✅ |
+| `DATABASE_URL` | PostgreSQL connection | ✅ |
+| `KOYEB` | Platform indicator | ✅ |
+| All others from `.env.example` | API keys, config | ⬜ |
+
+---
 
 ### Docker
 
