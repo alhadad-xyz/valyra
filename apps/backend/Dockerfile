@@ -16,11 +16,11 @@ COPY apps/backend/pyproject.toml apps/backend/poetry.lock* ./
 # Configure Poetry to not create virtual environment
 RUN poetry config virtualenvs.create false
 
-# Install dependencies (production only)
-RUN poetry install --only main --no-interaction --no-ansi
-
-# Copy application code from monorepo
+# Copy application code from monorepo first
 COPY apps/backend/ .
+
+# Install dependencies only (no need to install as package for an application)
+RUN poetry install --only main --no-interaction --no-ansi --no-root
 
 # Expose port
 EXPOSE 8000
