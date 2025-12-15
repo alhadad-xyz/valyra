@@ -1,0 +1,69 @@
+[
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "listingId",
+                "type": "uint256"
+            }
+        ],
+        "name": "deposit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "escrowId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "credentialHash",
+                "type": "bytes32"
+            }
+        ],
+        "name": "uploadCredentialHash",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "escrowId",
+                "type": "uint256"
+            }
+        ],
+        "name": "confirmReceipt",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "escrowId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint8",
+                "name": "disputeType",
+                "type": "uint8"
+            },
+            {
+                "internalType": "string",
+                "name": "evidenceIpfs",
+                "type": "string"
+            }
+        ],
+        "name": "raiseDispute",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]
