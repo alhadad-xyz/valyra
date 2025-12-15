@@ -16,8 +16,8 @@ COPY apps/backend/pyproject.toml apps/backend/poetry.lock* ./
 # Configure Poetry to not create virtual environment
 RUN poetry config virtualenvs.create false
 
-# Install dependencies
-RUN poetry install --no-dev --no-interaction --no-ansi
+# Install dependencies (production only)
+RUN poetry install --only main --no-interaction --no-ansi
 
 # Copy application code from monorepo
 COPY apps/backend/ .
