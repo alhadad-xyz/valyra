@@ -1,0 +1,86 @@
+erDiagram
+    users ||--o{ listings : "sells"
+    users ||--o{ offers : "makes"
+    listings ||--o{ offers : "receives"
+    listings ||--o{ verification_records : "has"
+    offers ||--|| escrows : "creates"
+    
+    users {
+        uuid id PK
+        string wallet_address UK "UNIQUE, NOT NULL, INDEX"
+        string basename
+        string email
+        enum verification_level "DEFAULT basic"
+        integer reputation_score "DEFAULT 50"
+        datetime created_at
+        datetime updated_at
+    }
+    
+    listings {
+        uuid id PK
+        uuid seller_id FK "INDEX"
+        string asset_name "NOT NULL"
+        enum asset_type "NOT NULL"
+        string business_url "NOT NULL"
+        text description "NOT NULL"
+        numeric asking_price "NOT NULL"
+        json tech_stack
+        string build_id
+        integer customer_count "DEFAULT 0"
+        boolean domain_included "DEFAULT false"
+        boolean source_code_included "DEFAULT false"
+        boolean customer_data_included "DEFAULT false"
+        numeric mrr "NOT NULL"
+        numeric annual_revenue "NOT NULL"
+        numeric monthly_profit "NOT NULL"
+        numeric monthly_expenses "NOT NULL"
+        enum revenue_trend "NOT NULL"
+        enum verification_status "DEFAULT pending"
+        string ip_assignment_hash
+        text seller_signature
+        enum status "DEFAULT draft, INDEX"
+        datetime created_at
+        datetime updated_at
+    }
+    
+    offers {
+        uuid id PK
+        uuid listing_id FK "INDEX"
+        uuid buyer_id FK "INDEX"
+        numeric offer_amount "NOT NULL"
+        numeric earnest_deposit "NOT NULL"
+        string earnest_tx_hash
+        enum status "DEFAULT pending, INDEX"
+        datetime created_at
+        datetime updated_at
+        datetime expires_at
+    }
+    
+    escrows {
+        uuid id PK
+        uuid offer_id FK "UNIQUE"
+        string contract_address "INDEX"
+        enum escrow_state "DEFAULT created"
+        string buyer_address "NOT NULL"
+        string seller_address "NOT NULL"
+        numeric amount "NOT NULL"
+        numeric platform_fee "NOT NULL"
+        string credentials_ipfs_hash
+        datetime verification_deadline
+        text dispute_reason
+        text arbitrator_decision
+        datetime created_at
+        datetime updated_at
+    }
+    
+    verification_records {
+        uuid id PK
+        uuid listing_id FK "INDEX"
+        enum verification_type "NOT NULL"
+        enum status "DEFAULT pending"
+        json verification_data
+        string verified_by
+        text notes
+        datetime created_at
+        datetime updated_at
+    }

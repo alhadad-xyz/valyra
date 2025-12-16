@@ -8,85 +8,90 @@ The Valyra backend uses PostgreSQL (via Supabase) with the following core tables
 
 ```mermaid
 erDiagram
-    USERS ||--o{ LISTINGS : "creates"
-    USERS ||--o{ OFFERS : "makes"
-    LISTINGS ||--o{ OFFERS : "receives"
-    LISTINGS ||--o{ VERIFICATION_RECORDS : "has"
-    OFFERS ||--|| ESCROWS : "creates"
-
-    USERS {
+    users ||--o{ listings : "sells"
+    users ||--o{ offers : "makes"
+    listings ||--o{ offers : "receives"
+    listings ||--o{ verification_records : "has"
+    offers ||--|| escrows : "creates"
+    
+    users {
         uuid id PK
-        string wallet_address UK
+        string wallet_address UK "UNIQUE, NOT NULL, INDEX"
         string basename
         string email
-        enum verification_level
-        int reputation_score
-        timestamp created_at
-        timestamp updated_at
+        enum verification_level "DEFAULT basic"
+        integer reputation_score "DEFAULT 50"
+        datetime created_at
+        datetime updated_at
     }
-
-    LISTINGS {
+    
+    listings {
         uuid id PK
-        uuid seller_id FK
-        string asset_name
-        enum asset_type
-        string business_url
-        text description
+        uuid seller_id FK "INDEX"
+        string asset_name "NOT NULL"
+        enum asset_type "NOT NULL"
+        string business_url "NOT NULL"
+        text description "NOT NULL"
         decimal asking_price
         json tech_stack
         string build_id
-        decimal mrr
-        decimal annual_revenue
-        decimal monthly_profit
-        decimal monthly_expenses
-        enum revenue_trend
-        enum verification_status
+        int customer_count
+        boolean domain_included
+        boolean source_code_included
+        boolean customer_data_included
+        numeric mrr "NOT NULL"
+        numeric annual_revenue "NOT NULL"
+        numeric monthly_profit "NOT NULL"
+        numeric monthly_expenses "NOT NULL"
+        enum revenue_trend "NOT NULL"
+        enum verification_status "DEFAULT pending"
         string ip_assignment_hash
         text seller_signature
-        enum status
-        timestamp created_at
-        timestamp updated_at
+        enum status "DEFAULT draft, INDEX"
+        datetime created_at
+        datetime updated_at
     }
-
-    OFFERS {
+    
+    offers {
         uuid id PK
-        uuid listing_id FK
-        uuid buyer_id FK
-        decimal offer_amount
-        decimal earnest_deposit
+        uuid listing_id FK "INDEX"
+        uuid buyer_id FK "INDEX"
+        numeric offer_amount "NOT NULL"
+        numeric earnest_deposit "NOT NULL"
         string earnest_tx_hash
-        enum status
-        timestamp created_at
-        timestamp updated_at
-        timestamp expires_at
+        enum status "DEFAULT pending, INDEX"
+        datetime created_at
+        datetime updated_at
+        datetime expires_at
     }
-
-    ESCROWS {
+    
+    escrows {
         uuid id PK
-        uuid offer_id FK
-        string contract_address
-        enum escrow_state
-        string buyer_address
-        string seller_address
-        decimal amount
-        decimal platform_fee
+        uuid offer_id FK "UNIQUE"
+        string contract_address "INDEX"
+        enum escrow_state "DEFAULT created"
+        string buyer_address "NOT NULL"
+        string seller_address "NOT NULL"
+        numeric amount "NOT NULL"
+        numeric platform_fee "NOT NULL"
         string credentials_ipfs_hash
-        timestamp verification_deadline
+        datetime verification_deadline
         text dispute_reason
         text arbitrator_decision
-        timestamp created_at
-        timestamp updated_at
+        datetime created_at
+        datetime updated_at
     }
-
-    VERIFICATION_RECORDS {
+    
+    verification_records {
         uuid id PK
-        uuid listing_id FK
-        enum verification_type
-        enum status
+        uuid listing_id FK "INDEX"
+        enum verification_type "NOT NULL"
+        enum status "DEFAULT pending"
         json verification_data
-        timestamp verified_at
-        timestamp expires_at
-        timestamp created_at
+        string verified_by
+        text notes
+        datetime created_at
+        datetime updated_at
     }
 ```
 
