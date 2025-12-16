@@ -1,6 +1,7 @@
 """Application configuration using Pydantic Settings."""
-from typing import List
-from pydantic import field_validator
+
+from typing import List, Optional
+from pydantic import field_validator, PostgresDsn, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -15,27 +16,28 @@ class Settings(BaseSettings):
     )
 
     # Database
-    database_url: str
+    database_url: PostgresDsn
     supabase_url: str
     supabase_key: str
     supabase_service_key: str
 
-    @field_validator("database_url")
+    @field_validator("database_url", mode="before")
     @classmethod
-    def fix_database_url(cls, v: str) -> str:
+    def fix_database_url(cls, v: Optional[str]) -> Optional[str]:
         """Fix postgres:// scheme for SQLAlchemy compatibility."""
-        if v and v.startswith("postgres://"):
+        if v and isinstance(v, str) and v.startswith("postgres://"):
             return v.replace("postgres://", "postgresql://", 1)
         return v
 
     # API Keys
-    gemini_api_key: str
-    coinbase_agentkit_key: str | None = None
+    gemini_api_key: SecretStr
+    coinbase_agentkit_key: Optional[str] = None
 
-    # IPFS/Arweave
-    arweave_wallet_path: str | None = None
-    pinata_api_key: str | None = None
-    pinata_secret_key: str | None = None
+    # IPFS/Lighthouse
+    lighthouse_api_key: Optional[str] = None
+    ipfs_gateway_url: str = "https://gateway.lighthouse.storage/ipfs/"
+    pinata_api_key: Optional[str] = None
+    pinata_secret_key: Optional[str] = None
 
     # Web3
     base_rpc_url: str = "https://mainnet.base.org"
@@ -54,7 +56,7 @@ class Settings(BaseSettings):
 
     # Platform
     platform_fee_percentage: float = 2.5
-    treasury_address: str | None = None
+    treasury_address: Optional[str] = None
 
     @property
     def cors_origins_list(self) -> List[str]:

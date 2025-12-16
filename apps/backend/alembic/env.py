@@ -11,7 +11,7 @@ from alembic import context
 # Add parent directory to path to import app modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app.config import settings
+from app.core.config import settings
 from app.database import Base
 from app.models import User, Listing, Offer, Escrow, VerificationRecord
 
@@ -29,7 +29,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # Override sqlalchemy.url with environment variable
-config.set_main_option("sqlalchemy.url", settings.database_url)
+config.set_main_option("sqlalchemy.url", str(settings.database_url))
 
 
 def run_migrations_offline() -> None:
