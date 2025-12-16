@@ -1,7 +1,7 @@
 """FastAPI application entry point."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.config import settings
+from app.core.config import settings
 from app.routes import health_router
 from app import __version__
 
@@ -30,7 +30,7 @@ async def startup_event():
     """Execute on application startup."""
     print(f"🚀 Valyra Backend API v{__version__} starting...")
     print(f"📊 Environment: {settings.environment}")
-    print(f"🔗 Database: {settings.database_url.split('@')[1] if '@' in settings.database_url else 'configured'}")
+    print(f"🔗 Database: {str(settings.database_url).split('@')[1] if '@' in str(settings.database_url) else 'configured'}")
 
 
 # Shutdown event

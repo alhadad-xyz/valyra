@@ -11,6 +11,8 @@ AI-powered M&A marketplace backend built with FastAPI, running on Base L2.
 - **PostgreSQL** - Primary database (Supabase)
 - **Google Gemini** - AI valuation and analysis
 - **Web3** - Blockchain integration with Base L2
+- **Lighthouse** - Permanent decentralized file storage
+- **IPFS** - Decentralized content retrieval
 - **Pytest** - Testing framework
 
 ## 📋 Prerequisites
@@ -128,8 +130,9 @@ apps/backend/
 | `GEMINI_API_KEY` | Google Gemini API key | ✅ |
 | `SECRET_KEY` | JWT secret key | ✅ |
 | `BASE_RPC_URL` | Base L2 RPC endpoint | ✅ |
+| `LIGHTHOUSE_API_KEY` | Lighthouse API Key | ⬜ |
+| `IPFS_GATEWAY_URL` | IPFS gateway URL | ⬜ |
 | `PINATA_API_KEY` | IPFS Pinata API key | ⬜ |
-| `ARWEAVE_WALLET_PATH` | Arweave wallet file path | ⬜ |
 
 ## 🚢 Deployment
 
@@ -206,6 +209,9 @@ docker run -p 8000:8000 --env-file .env valyra-backend
 
 ## 🔗 Related Documentation
 
+- [Lighthouse Setup Guide](./docs/LIGHTHOUSE_SETUP.md)
+- [Supabase Setup Guide](./docs/SUPABASE_SETUP.md)
+- [Koyeb Deployment Guide](./KOYEB_DEPLOYMENT.md)
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
 - [Alembic Documentation](https://alembic.sqlalchemy.org/)
