@@ -18,40 +18,49 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def safe_create_enum(name, options):
+    """Create ENUM type only if it doesn't exist."""
+    bind = op.get_bind()
+    formatted_options = ", ".join(f"'{opt}'" for opt in options)
+    
+    # Check if type exists
+    exists = bind.execute(sa.text(
+        f"SELECT EXISTS (SELECT 1 FROM pg_type WHERE typname = '{name}')"
+    )).scalar()
+    
+    if not exists:
+        bind.execute(sa.text(f"CREATE TYPE {name} AS ENUM ({formatted_options})"))
+
 def upgrade() -> None:
-    # Create ENUM types
-    verification_level_enum = postgresql.ENUM('basic', 'standard', 'enhanced', name='verificationlevel')
-    verification_level_enum.create(op.get_bind())
+    # Create ENUM types safely
+    safe_create_enum('verificationlevel', ['basic', 'standard', 'enhanced'])
+    verification_level_enum = postgresql.ENUM('basic', 'standard', 'enhanced', name='verificationlevel', create_type=False)
     
-    asset_type_enum = postgresql.ENUM('saas', 'ecommerce', 'content', 'community', 'other', name='assettype')
-    asset_type_enum.create(op.get_bind())
+    safe_create_enum('assettype', ['saas', 'ecommerce', 'content', 'community', 'other'])
+    asset_type_enum = postgresql.ENUM('saas', 'ecommerce', 'content', 'community', 'other', name='assettype', create_type=False)
     
-    revenue_trend_enum = postgresql.ENUM('growing', 'stable', 'declining', name='revenuetrend')
-    revenue_trend_enum.create(op.get_bind())
+    safe_create_enum('revenuetrend', ['growing', 'stable', 'declining'])
+    revenue_trend_enum = postgresql.ENUM('growing', 'stable', 'declining', name='revenuetrend', create_type=False)
     
-    verification_status_enum = postgresql.ENUM('pending', 'verified', 'failed', name='verificationstatus')
-    verification_status_enum.create(op.get_bind())
+    safe_create_enum('verificationstatus', ['pending', 'verified', 'failed'])
+    verification_status_enum = postgresql.ENUM('pending', 'verified', 'failed', name='verificationstatus', create_type=False)
     
-    listing_status_enum = postgresql.ENUM('draft', 'active', 'sold', 'paused', name='listingstatus')
-    listing_status_enum.create(op.get_bind())
+    safe_create_enum('listingstatus', ['draft', 'active', 'sold', 'paused'])
+    listing_status_enum = postgresql.ENUM('draft', 'active', 'sold', 'paused', name='listingstatus', create_type=False)
     
-    offer_status_enum = postgresql.ENUM('pending', 'accepted', 'rejected', 'expired', name='offerstatus')
-    offer_status_enum.create(op.get_bind())
+    safe_create_enum('offerstatus', ['pending', 'accepted', 'rejected', 'expired'])
+    offer_status_enum = postgresql.ENUM('pending', 'accepted', 'rejected', 'expired', name='offerstatus', create_type=False)
     
-    escrow_state_enum = postgresql.ENUM(
-        'created', 'funded', 'delivered', 'confirmed', 'disputed', 'resolved', 'completed', 'refunded',
-        name='escrowstate'
-    )
-    escrow_state_enum.create(op.get_bind())
+    escrow_states = ['created', 'funded', 'delivered', 'confirmed', 'disputed', 'resolved', 'completed', 'refunded']
+    safe_create_enum('escrowstate', escrow_states)
+    escrow_state_enum = postgresql.ENUM(*escrow_states, name='escrowstate', create_type=False)
     
-    verification_type_enum = postgresql.ENUM(
-        'dns', 'build_id', 'oauth_stripe', 'oauth_analytics', 'github_repo', 'email_domain',
-        name='verificationtype'
-    )
-    verification_type_enum.create(op.get_bind())
+    verification_types = ['dns', 'build_id', 'oauth_stripe', 'oauth_analytics', 'github_repo', 'email_domain']
+    safe_create_enum('verificationtype', verification_types)
+    verification_type_enum = postgresql.ENUM(*verification_types, name='verificationtype', create_type=False)
     
-    verification_record_status_enum = postgresql.ENUM('pending', 'verified', 'failed', name='verificationrecordstatus')
-    verification_record_status_enum.create(op.get_bind())
+    safe_create_enum('verificationrecordstatus', ['pending', 'verified', 'failed'])
+    verification_record_status_enum = postgresql.ENUM('pending', 'verified', 'failed', name='verificationrecordstatus', create_type=False)
 
     # Create users table
     op.create_table(
