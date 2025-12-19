@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #0052FF;
+    --color-success: #10B981;
+    --color-warning: #F59E0B;
+    --color-error: #EF4444;
+    --color-background-light: #FFFFFF;
+    --color-background-dark: #111827;
+    --color-text-main: #111827;
+    --color-text-muted: #6B7280;
+  }
+
+  body {
+    @apply font-display bg-background-light dark:bg-background-dark text-text-main dark:text-white transition-colors duration-200;
+  }
+
+  /* Material Icons filled variant */
+  .material-symbols-outlined.filled {
+    font-variation-settings: 'FILL' 1;
+  }
+}
+
+@layer utilities {
+
+  /* Custom scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 3D Transform Utilities */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+}

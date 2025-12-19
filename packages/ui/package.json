@@ -4,6 +4,10 @@
     "main": "./src/index.tsx",
     "types": "./src/index.tsx",
     "license": "MIT",
+    "dependencies": {
+        "clsx": "^2.1.0",
+        "class-variance-authority": "^0.7.0"
+    },
     "devDependencies": {
         "config": "workspace:*",
         "react": "^18.0.0",
