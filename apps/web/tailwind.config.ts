@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { tokens } from "../../packages/ui/src/styles/tokens";
 
 const config: Config = {
     darkMode: "class",
@@ -12,43 +13,17 @@ const config: Config = {
     theme: {
         extend: {
             colors: {
-                // Base Blue primary
-                primary: "#0052FF",
-                "primary-light": "#3374FF",
-                "primary-dark": "#0041CC",
-
-                // Accent colors
-                success: "#10B981",
-                warning: "#F59E0B",
-                error: "#EF4444",
-
-                // Backgrounds
-                "background-light": "#FFFFFF",
-                "background-dark": "#111827",
-                "background-light-secondary": "#F9FAFB",
-                "background-dark-elevated": "#1F2937",
-
-                // Text
-                "text-main": "#111827",
-                "text-muted": "#6B7280",
+                ...tokens.colors,
+                // Custom aliases if needed to match legacy usage, though tokens.colors should cover most
+                "background-light": tokens.colors.background.light,
+                "background-dark": tokens.colors.background.dark,
+                "background-light-secondary": tokens.colors.background["light-secondary"],
+                "background-dark-elevated": tokens.colors.background["dark-elevated"],
+                "text-main": tokens.colors.text.main,
+                "text-muted": tokens.colors.text.muted,
             },
-            fontFamily: {
-                display: ["Spline Sans", "sans-serif"],
-                sans: [
-                    "Spline Sans",
-                    "system-ui",
-                    "-apple-system",
-                    "BlinkMacSystemFont",
-                    "Segoe UI",
-                    "Roboto",
-                    "sans-serif",
-                ],
-            },
-            borderRadius: {
-                DEFAULT: "0.5rem",  // 8px
-                lg: "0.75rem",      // 12px
-                xl: "1rem",         // 16px
-            },
+            fontFamily: tokens.typography.fontFamily as any,
+            borderRadius: tokens.borderRadius,
             maxWidth: {
                 "8xl": "1440px",
             },

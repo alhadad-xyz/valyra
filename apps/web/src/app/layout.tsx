@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Web3Provider } from "@/providers/Web3Provider";
 
 export const metadata: Metadata = {
     title: "Valyra - Autonomous Marketplace for Micro-Startups",
@@ -30,7 +31,9 @@ export default function RootLayout({
                     rel="stylesheet"
                 />
             </head>
-            <body>{children}</body>
+            <body>
+                <Web3Provider>{children}</Web3Provider>
+            </body>
         </html>
     );
 }

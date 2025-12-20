@@ -31,7 +31,7 @@ export function Footer() {
 
                     {/* Marketplace */}
                     <div>
-                        <h4 className="font-bold mb-6">Marketplace</h4>
+                        <h4 className="font-bold mb-6">Explore</h4>
                         <ul className="flex flex-col gap-4 text-sm text-gray-400">
                             <li>
                                 <a className="hover:text-primary transition-colors" href="#">

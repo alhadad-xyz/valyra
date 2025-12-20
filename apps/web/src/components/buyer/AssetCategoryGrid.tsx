@@ -50,7 +50,7 @@ export function AssetCategoryGrid() {
                     className="hidden sm:flex items-center gap-1 text-sm font-bold hover:text-primary transition-colors text-text-main dark:text-white"
                     href="#"
                 >
-                    View Marketplace <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                    View Explore <span className="material-symbols-outlined text-lg">arrow_forward</span>
                 </a>
             </div>
 
