@@ -1,0 +1,140 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "forge-std/Test.sol";
+import "../contracts/MarketplaceV1.sol";
+import "../contracts/mocks/MockIDRX.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
+contract MarketplaceV1GenesisTest is Test {
+    MarketplaceV1 public implementation;
+    MarketplaceV1 public marketplace;
+    ERC1967Proxy public proxy;
+    MockIDRX public mockToken;
+    
+    address public owner;
+    address public agent;
+    
+    uint256 constant MINIMUM_SELLER_STAKE = 750_000 * 1e18;
+    
+    function setUp() public {
+        owner = address(this);
+        agent = address(0x1);
+        
+        // Deploy mock IDRX
+        mockToken = new MockIDRX();
+        
+        // Deploy implementation
+        implementation = new MarketplaceV1();
+        
+        // Deploy proxy and initialize
+        bytes memory initData = abi.encodeWithSelector(
+            MarketplaceV1.initialize.selector,
+            address(mockToken),
+            agent
+        );
+        proxy = new ERC1967Proxy(address(implementation), initData);
+        
+        // Wrap proxy in MarketplaceV1 interface
+        marketplace = MarketplaceV1(address(proxy));
+    }
+    
+    // Helper to set verification level by creating a listing
+    function setVerificationLevel(address seller, MarketplaceV1.VerificationLevel level) internal {
+        mockToken.mint(seller, MINIMUM_SELLER_STAKE * 2);
+        
+        vm.startPrank(seller);
+        mockToken.approve(address(marketplace), MINIMUM_SELLER_STAKE);
+        
+        // End genesis temporarily
+        vm.stopPrank();
+        marketplace.endGenesisProgram();
+        
+        vm.startPrank(seller);
+        marketplace.stakeToSell();
+        
+        // Create listing to set verification level
+        uint256 listingId = marketplace.createListing(
+            "Test",
+            "QmTest",
+            1_000_000 * 1e18,
+            level,
+            bytes32(uint256(1)),
+            hex"1234",
+            "build-123"
+        );
+        
+        // Cancel and withdraw
+        marketplace.cancelListing(listingId);
+        marketplace.withdrawStake(MINIMUM_SELLER_STAKE);
+        vm.stopPrank();
+        
+        // Restart genesis
+        vm.store(address(marketplace), bytes32(uint256(6)), bytes32(uint256(1)));
+        vm.store(address(marketplace), bytes32(uint256(7)), bytes32(uint256(0)));
+    }
+    
+    function testJoinGenesisSuccess() public {
+        address seller = address(0x100);
+        setVerificationLevel(seller, MarketplaceV1.VerificationLevel.STANDARD);
+        
+        vm.startPrank(seller);
+        
+        assertFalse(marketplace.isGenesisSeller(seller));
+        assertEq(marketplace.genesisSellersCount(), 0);
+        
+        vm.expectEmit(true, false, false, true);
+        emit MarketplaceV1.GenesisSellerJoined(seller, 1);
+        
+        marketplace.joinGenesis();
+        
+        vm.stopPrank();
+        
+        assertTrue(marketplace.isGenesisSeller(seller));
+        assertEq(marketplace.genesisSellersCount(), 1);
+    }
+    
+    function testJoinGenesisRevertsWhenProgramEnded() public {
+        address seller = address(0x101);
+        setVerificationLevel(seller, MarketplaceV1.VerificationLevel.STANDARD);
+        
+        marketplace.endGenesisProgram();
+        
+        vm.startPrank(seller);
+        vm.expectRevert("Genesis program has ended");
+        marketplace.joinGenesis();
+        vm.stopPrank();
+    }
+    
+    function testJoinGenesisRevertsWhenNotVerified() public {
+        address seller = address(0x102);
+        // Don't set verification level (defaults to BASIC)
+        
+        vm.startPrank(seller);
+        vm.expectRevert("Must be verified for Genesis");
+        marketplace.joinGenesis();
+        vm.stopPrank();
+    }
+    
+    function testJoinGenesisRevertsWhenAlreadyJoined() public {
+        address seller = address(0x103);
+        setVerificationLevel(seller, MarketplaceV1.VerificationLevel.STANDARD);
+        
+        vm.startPrank(seller);
+        marketplace.joinGenesis();
+        
+        vm.expectRevert("Already a Genesis Seller");
+        marketplace.joinGenesis();
+        vm.stopPrank();
+    }
+    
+    function testJoinGenesisWithEnhancedVerification() public {
+        address seller = address(0x300);
+        setVerificationLevel(seller, MarketplaceV1.VerificationLevel.ENHANCED);
+        
+        vm.prank(seller);
+        marketplace.joinGenesis();
+        
+        assertTrue(marketplace.isGenesisSeller(seller));
+    }
+}

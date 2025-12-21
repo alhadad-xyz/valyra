@@ -3,14 +3,24 @@
     "version": "0.0.0",
     "main": "./src/index.tsx",
     "types": "./src/index.tsx",
+    "exports": {
+        ".": "./src/index.tsx",
+        "./styles/tokens": "./src/styles/tokens.ts",
+        "./components/*": "./src/components/*"
+    },
     "license": "MIT",
+    "dependencies": {
+        "class-variance-authority": "^0.7.0",
+        "clsx": "^2.1.0",
+        "tailwind-merge": "^3.4.0"
+    },
     "devDependencies": {
+        "@types/react": "^18.0.0",
+        "@types/react-dom": "^18.0.0",
         "config": "workspace:*",
         "react": "^18.0.0",
         "react-dom": "^18.0.0",
-        "typescript": "^5.0.0",
-        "@types/react": "^18.0.0",
-        "@types/react-dom": "^18.0.0"
+        "typescript": "^5.0.0"
     },
     "peerDependencies": {
         "react": "^18.0.0",

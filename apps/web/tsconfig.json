@@ -1,11 +1,17 @@
 {
     "extends": "config/tsconfig.json",
     "compilerOptions": {
+        "moduleResolution": "bundler",
         "plugins": [
             {
                 "name": "next"
             }
-        ]
+        ],
+        "paths": {
+            "@/*": [
+                "./src/*"
+            ]
+        }
     },
     "include": [
         "next-env.d.ts",
