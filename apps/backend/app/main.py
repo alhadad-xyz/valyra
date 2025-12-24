@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routes import health_router, auth, listings_router
+from app.routes import health_router, auth, listings_router, users_router
 from app import __version__
 
 # Create FastAPI application
@@ -44,6 +44,7 @@ async def shutdown_event():
 app.include_router(health_router, prefix=settings.api_v1_prefix)
 app.include_router(auth.router, prefix=settings.api_v1_prefix)
 app.include_router(listings_router, prefix=settings.api_v1_prefix)
+app.include_router(users_router, prefix=settings.api_v1_prefix)
 
 
 # Root endpoint
