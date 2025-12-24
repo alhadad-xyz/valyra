@@ -43,6 +43,16 @@ class Settings(BaseSettings):
     base_rpc_url: str = "https://mainnet.base.org"
     base_chain_id: int = 8453
 
+    # Passkeys (WebAuthn)
+    rp_id: str = "localhost"
+    rp_name: str = "Valyra"
+    expected_origin: str = "http://localhost:3000"
+
+    # Google
+    google_client_id: Optional[str] = None
+    google_client_secret: Optional[SecretStr] = None
+    google_redirect_uri: Optional[str] = "http://localhost:8000/api/v1/auth/google/callback"
+
     # App Config
     environment: str = "development"
     cors_origins: str = "http://localhost:3000"

@@ -24,8 +24,11 @@ class User(Base):
     wallet_address = Column(String(42), unique=True, nullable=False, index=True)
     basename = Column(String(255), nullable=True)
     email = Column(String(255), nullable=True)
+    # stripe_account_id removed
+    google_id = Column(String(255), nullable=True)  # Zero-storage: Only ID stored
+    challenge = Column(String(1024), nullable=True) # WebAuthn challenge
     verification_level = Column(
-        Enum(VerificationLevel),
+        Enum(VerificationLevel, values_callable=lambda x: [e.value for e in x]),
         default=VerificationLevel.BASIC,
         nullable=False
     )
@@ -36,6 +39,7 @@ class User(Base):
     # Relationships
     listings = relationship("Listing", back_populates="seller", foreign_keys="Listing.seller_id")
     offers = relationship("Offer", back_populates="buyer", foreign_keys="Offer.buyer_id")
+    credentials = relationship("UserCredential", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<User {self.wallet_address[:10]}... (Score: {self.reputation_score})>"
