@@ -1,0 +1,81 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "listingId",
+        "type": "uint256"
+      }
+    ],
+    "name": "listings",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "seller",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "ipfsMetadata",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "askingPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "createdAt",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "verificationLevel",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum IMarketplace.ListingState",
+        "name": "state",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "ipAssignmentHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "sellerSignature",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint256",
+        "name": "ipSignedAt",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "buildId",
+        "type": "string"
+      },
+      {
+        "internalType": "bool",
+        "name": "buildIdVerified",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
