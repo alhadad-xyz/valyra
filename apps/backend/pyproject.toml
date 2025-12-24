@@ -27,6 +27,7 @@ supabase = "^2.3.0"
 redis = "^5.0.1"
 lighthouseweb3 = "0.1.4"
 webauthn = "^2.0.0"
+shortuuid = "^1.0.11"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.4"
