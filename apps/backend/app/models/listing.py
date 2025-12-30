@@ -48,6 +48,9 @@ class Listing(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     seller_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     
+    # Smart Contract ID
+    on_chain_id = Column(Integer, unique=True, nullable=True)
+    
     # Asset Information
     asset_name = Column(String(255), nullable=False)
     asset_type = Column(Enum(AssetType, values_callable=lambda x: [e.value for e in x]), nullable=False)

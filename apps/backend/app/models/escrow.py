@@ -27,7 +27,7 @@ class Escrow(Base):
     __tablename__ = "escrows"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    offer_id = Column(UUID(as_uuid=True), ForeignKey("offers.id"), nullable=False, unique=True)
+    offer_id = Column(UUID(as_uuid=True), ForeignKey("offers.id"), nullable=True, unique=True)
     
     # Smart Contract
     contract_address = Column(String(42), nullable=True, index=True)

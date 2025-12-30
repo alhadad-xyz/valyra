@@ -30,7 +30,8 @@ class ListingBase(BaseModel):
 
 class ListingCreate(ListingBase):
     """Schema for creating a listing."""
-    pass
+    ip_assignment_hash: Optional[str] = Field(None, max_length=66, description="Keccak256 hash of IP assignment agreement")
+    seller_signature: Optional[str] = Field(None, description="Wallet signature of IP assignment hash")
 
 
 class ListingUpdate(BaseModel):
@@ -52,6 +53,10 @@ class ListingUpdate(BaseModel):
     domain_included: Optional[bool] = None
     source_code_included: Optional[bool] = None
     customer_data_included: Optional[bool] = None
+    
+    ip_assignment_hash: Optional[str] = Field(None, max_length=66)
+    seller_signature: Optional[str] = None
+    
     status: Optional[ListingStatus] = None
 
 
