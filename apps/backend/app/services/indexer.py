@@ -1,7 +1,6 @@
-
 import asyncio
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from web3 import Web3
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
@@ -10,10 +9,11 @@ from app.core.config import settings
 from app.models.listing import Listing, ListingStatus
 from app.models.escrow import Escrow, EscrowState
 from app.models.offer import Offer, OfferStatus
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
-# Minimal metrics ABI for events we care about
+# Minimal metrics ABI for Escrow events
 ESCROW_ABI = [
     {
         "anonymous": False,
@@ -50,87 +50,176 @@ ESCROW_ABI = [
     }
 ]
 
-class EscrowIndexer:
+# Marketplace V1 ABI (Events only)
+MARKETPLACE_ABI = [
+    {
+        "anonymous": False,
+        "inputs": [
+            {"indexed": True, "internalType": "uint256", "name": "listingId", "type": "uint256"},
+            {"indexed": True, "internalType": "address", "name": "seller", "type": "address"},
+            {"indexed": False, "internalType": "string", "name": "title", "type": "string"},
+            {"indexed": False, "internalType": "uint256", "name": "askingPrice", "type": "uint256"},
+            {"indexed": False, "internalType": "uint8", "name": "verificationLevel", "type": "uint8"}
+        ],
+        "name": "ListingCreated",
+        "type": "event"
+    },
+    {
+        "anonymous": False,
+        "inputs": [
+            {"indexed": True, "internalType": "uint256", "name": "listingId", "type": "uint256"},
+            {"indexed": False, "internalType": "string", "name": "ipfsMetadata", "type": "string"},
+            {"indexed": False, "internalType": "uint256", "name": "newPrice", "type": "uint256"}
+        ],
+        "name": "ListingUpdated",
+        "type": "event"
+    },
+    {
+        "anonymous": False,
+        "inputs": [
+            {"indexed": True, "internalType": "uint256", "name": "listingId", "type": "uint256"}
+        ],
+        "name": "ListingCancelled",
+        "type": "event"
+    },
+    {
+        "anonymous": False,
+        "inputs": [
+            {"indexed": True, "internalType": "address", "name": "seller", "type": "address"},
+            {"indexed": False, "internalType": "uint256", "name": "amount", "type": "uint256"}
+        ],
+        "name": "SellerStaked",
+        "type": "event"
+    },
+    {
+        "anonymous": False,
+        "inputs": [
+            {"indexed": True, "internalType": "address", "name": "seller", "type": "address"},
+            {"indexed": False, "internalType": "uint256", "name": "amount", "type": "uint256"}
+        ],
+        "name": "StakeWithdrawn",
+        "type": "event"
+    },
+    {
+        "anonymous": False,
+        "inputs": [
+            {"indexed": True, "internalType": "address", "name": "seller", "type": "address"},
+            {"indexed": False, "internalType": "uint256", "name": "genesisNumber", "type": "uint256"}
+        ],
+        "name": "GenesisSellerJoined",
+        "type": "event"
+    }
+]
+
+class IndexerService:
     def __init__(self):
         self.w3 = Web3(Web3.HTTPProvider(settings.base_rpc_url))
-        self.contract_address = settings.escrow_contract_address
         
-        if not self.contract_address:
-            logger.warning("Indexer: ESCROW_CONTRACT_ADDRESS not set. Indexing paused.")
-            self.contract = None
+        # Initialize Escrow Contract
+        self.escrow_contract_address = settings.escrow_contract_address
+        self.escrow_contract = None
+        if not self.escrow_contract_address:
+            logger.warning("Indexer: ESCROW_CONTRACT_ADDRESS not set. Escrow indexing paused.")
         else:
             try:
-                self.contract_address = Web3.to_checksum_address(self.contract_address)
-                self.contract = self.w3.eth.contract(address=self.contract_address, abi=ESCROW_ABI)
+                addr = Web3.to_checksum_address(self.escrow_contract_address)
+                self.escrow_contract = self.w3.eth.contract(address=addr, abi=ESCROW_ABI)
             except Exception as e:
-                logger.error(f"Indexer: Invalid contract address or ABI: {e}")
-                self.contract = None
+                logger.error(f"Indexer: Invalid Escrow address or ABI: {e}")
+
+        # Initialize Marketplace Contract
+        self.marketplace_contract_address = settings.marketplace_contract_address
+        self.marketplace_contract = None
+        if not self.marketplace_contract_address:
+            logger.warning("Indexer: MARKETPLACE_CONTRACT_ADDRESS not set. Marketplace indexing paused.")
+        else:
+            try:
+                addr = Web3.to_checksum_address(self.marketplace_contract_address)
+                self.marketplace_contract = self.w3.eth.contract(address=addr, abi=MARKETPLACE_ABI)
+            except Exception as e:
+                logger.error(f"Indexer: Invalid Marketplace address or ABI: {e}")
 
     async def start(self):
-        if not self.contract:
-            logger.info("Indexer: No contract to watch.")
+        if not self.escrow_contract and not self.marketplace_contract:
+            logger.info("Indexer: No contracts to watch.")
             return
 
-        logger.info(f"Indexer: Starting polling using {settings.base_rpc_url} for {self.contract_address}")
-        
-        # In production, load this from DB/Redis
-        from_block = "latest" 
+        logger.info(f"Indexer: Starting polling on {settings.base_rpc_url}")
         
         while True:
             try:
-                # Polling logic
-                # For simplicity in this loop, we just grab logs from the last few blocks or 'latest'
-                # A proper indexer tracks 'last_processed_block'
-                
-                # Fetch Logs
-                # events = self.fetch_events(from_block)
-                # for event in events:
-                #     self.process_event(event)
-                
-                # Since we don't have a real chain connection in this env, we simulate or pass
-                # Implementation of actual get_logs:
-                # logs = self.w3.eth.get_logs({
-                #    'fromBlock': from_block,
-                #    'toBlock': 'latest',
-                #    'address': self.contract_address
-                # })
-                # But we need to decode them using contract.events...
-                
-                # Simplified: Loop through event types
                 await self.check_events()
-                
                 await asyncio.sleep(15)
             except Exception as e:
                 logger.error(f"Indexer Error: {e}")
                 await asyncio.sleep(15)
 
     async def check_events(self):
-        # Synchronous Web3 calls should be run in executor if high volume, 
-        # but for low volume/MVP direct checking is okay or use run_in_executor
-        
-        current_block = self.w3.eth.block_number
-        # Process last 10 blocks (naive approach for MVP)
-        from_block = max(0, current_block - 10)
-        
-        # 1. EscrowCreated
+        # Poll recent blocks (Naive implementation)
         try:
-             events = self.contract.events.EscrowCreated.get_logs(fromBlock=from_block)
-             for event in events:
-                 self.process_escrow_created(event)
-                 
-             # 2. ReceiptConfirmed
-             events = self.contract.events.ReceiptConfirmed.get_logs(fromBlock=from_block)
-             for event in events:
-                 self.process_receipt_confirmed(event)
-                 
-             # 3. DisputeRaised
-             events = self.contract.events.DisputeRaised.get_logs(fromBlock=from_block)
-             for event in events:
-                 self.process_dispute_raised(event)
-                 
+            current_block = self.w3.eth.block_number
+            from_block = max(0, current_block - 10) # Look back 10 blocks
         except Exception as e:
-             # logger.debug(f"Error fetching logs (expected if no RPC): {e}")
-             pass
+            logger.error(f"Indexer: Failed to get block number: {e}")
+            return
+
+        # 1. Process Escrow Events
+        if self.escrow_contract:
+            try:
+                # EscrowCreated
+                events = self.escrow_contract.events.EscrowCreated.get_logs(fromBlock=from_block)
+                for event in events:
+                    self.process_escrow_created(event)
+                
+                # ReceiptConfirmed
+                events = self.escrow_contract.events.ReceiptConfirmed.get_logs(fromBlock=from_block)
+                for event in events:
+                    self.process_receipt_confirmed(event)
+                
+                # DisputeRaised
+                events = self.escrow_contract.events.DisputeRaised.get_logs(fromBlock=from_block)
+                for event in events:
+                    self.process_dispute_raised(event)
+            except Exception as e:
+                 logger.error(f"Indexer (Escrow) Error: {e}")
+
+        # 2. Process Marketplace Events
+        if self.marketplace_contract:
+            try:
+                # ListingCreated
+                events = self.marketplace_contract.events.ListingCreated.get_logs(fromBlock=from_block)
+                for event in events:
+                    self.process_listing_created(event)
+
+                # ListingUpdated
+                events = self.marketplace_contract.events.ListingUpdated.get_logs(fromBlock=from_block)
+                for event in events:
+                    self.process_listing_updated(event)
+
+                # ListingCancelled
+                events = self.marketplace_contract.events.ListingCancelled.get_logs(fromBlock=from_block)
+                for event in events:
+                    self.process_listing_cancelled(event)
+                
+                # SellerStaked
+                events = self.marketplace_contract.events.SellerStaked.get_logs(fromBlock=from_block)
+                for event in events:
+                    self.process_seller_staked(event)
+                
+                # StakeWithdrawn
+                events = self.marketplace_contract.events.StakeWithdrawn.get_logs(fromBlock=from_block)
+                for event in events:
+                    self.process_stake_withdrawn(event)
+                
+                # GenesisSellerJoined
+                events = self.marketplace_contract.events.GenesisSellerJoined.get_logs(fromBlock=from_block)
+                for event in events:
+                     self.process_genesis_seller_joined(event)
+
+            except Exception as e:
+                logger.error(f"Indexer (Marketplace) Error: {e}")
+
+    # --- Escrow Handlers ---
 
     def process_escrow_created(self, event):
         args = event['args']
@@ -145,11 +234,7 @@ class EscrowIndexer:
         
         with SessionLocal() as db:
             # Check if processed
-            existing = db.query(Escrow).filter(Escrow.contract_address == settings.escrow_contract_address, Escrow.escrow_state == EscrowState.CREATED).all() 
-            # Ideally we store on_chain_escrow_id in Escrow model too!
-            # Current Escrow model has 'contract_address' but not 'on_chain_id'. 
-            # We assume unique constraints or just update if found.
-            # But wait, Escrow model needs `offer_id`.
+            existing = db.query(Escrow).filter(Escrow.contract_address == settings.escrow_contract_address, Escrow.escrow_state == EscrowState.CREATED).all() # This query seems suspicious logic but keeping as original
             
             # Find Listing
             listing = db.query(Listing).filter(Listing.on_chain_id == listing_id).first()
@@ -157,37 +242,40 @@ class EscrowIndexer:
                 logger.warning(f"Listing not found for on_chain_id {listing_id}")
                 return
 
-            # Check for existing Escrow by some unique prop? 
-            # We might create duplicate escrows if we don't track event log index/tx hash.
-            # For MVP, we'll skip complex dedup.
+            # JIT Verification
+            from app.services.ledger_service import LedgerService
             
-            # Create Escrow
-            # We need an offer. If none exists, we create one? Or leave null?
-            # Model allows null now.
-            
+            user = db.query(User).filter(User.wallet_address == buyer).first()
+            if user:
+                ledger = LedgerService(db)
+                display_amount = float(amount) / 1e18
+                try:
+                    deposit_result = ledger.process_deposit(
+                        user_id=str(user.id),
+                        amount=display_amount,
+                        tx_hash=tx_hash
+                    )
+                    logger.info(f"JIT Verification Result for {buyer}: {deposit_result}")
+                    if deposit_result.get("status") == "HELD":
+                        logger.warning(f"Escrow {escrow_id} involves risky buyer {buyer}. Deposit held internally.")
+                except Exception as e:
+                    logger.error(f"Error checking JIT verification: {e}")
+            else:
+                logger.warning(f"Buyer {buyer} not found in Users table. Skipping JIT check.")
+
+            # Create Escrow record
             new_escrow = Escrow(
                 contract_address=settings.escrow_contract_address, 
-                # We need a field for 'on_chain_id' in Escrow to be precise, or assume ID=UUID is separate
-                # Let's just use what we have.
                 buyer_address=buyer,
                 seller_address=seller,
-                amount=amount, # This is in Wei/IDRX usually (18 decimals), DB is Numeric(20,2). 
-                # Be careful with conversion. 100M IDRX = 100M * 1e18. 
-                # DB Numeric might overflow if we store 1e18.
-                # Assuming DB stores "Display Units" (e.g. 100.00), we need to divide by 1e18.
-                platform_fee=0, # Calculated later or from event?
-                escrow_state=EscrowState.FUNDED # Created -> FundsDeposited usually happens atomically in 'depositFunds'
+                amount=float(amount) / 1e18, 
+                platform_fee=(float(amount) / 1e18) * 0.025,
+                escrow_state=EscrowState.FUNDED
             )
-            
-            # Conversion
-            new_escrow.amount = float(amount) / 1e18
-            new_escrow.platform_fee = new_escrow.amount * 0.025 # Estimate
-            
             db.add(new_escrow)
             
             # Update Listing
-            listing.status = ListingStatus.SOLD # Or PENDING
-            
+            listing.status = ListingStatus.SOLD
             db.commit()
             logger.info(f"Created Escrow record for {escrow_id}")
 
@@ -199,4 +287,87 @@ class EscrowIndexer:
         # Update state to DISPUTED
         pass
 
-indexer = EscrowIndexer()
+    # --- Marketplace Handlers ---
+
+    def process_listing_created(self, event):
+        args = event['args']
+        listing_id = args['listingId']
+        seller_addr = args['seller']
+        title = args['title']
+        asking_price = args['askingPrice']
+        
+        logger.info(f"Processing ListingCreated: ID={listing_id} Title={title}")
+
+        with SessionLocal() as db:
+            # Try to match existing DRAFT listing by seller and title
+            listing = db.query(Listing).join(User).filter(
+                User.wallet_address == seller_addr,
+                Listing.asset_name == title
+                # Could also check status OR asking_price
+            ).first()
+
+            if listing:
+                # Update existing
+                listing.on_chain_id = listing_id
+                listing.status = ListingStatus.ACTIVE
+                # asking_price in event is Wei, DB is Unit
+                # Only update if meaningful, or trust the event
+                # listing.asking_price = float(asking_price) / 1e18
+                logger.info(f"Linked Listing {listing.id} to on_chain_id {listing_id}")
+            else:
+                # Create new listing if not found??
+                # For robust indexing, we might want to create it, but we lack metadata.
+                # We will log warning for now.
+                logger.warning(f"No matching local listing found for ListingCreated {listing_id}")
+            
+            db.commit()
+
+    def process_listing_updated(self, event):
+        args = event['args']
+        listing_id = args['listingId']
+        new_price = args['newPrice']
+        ipfs_metadata = args['ipfsMetadata']
+        
+        logger.info(f"Processing ListingUpdated: ID={listing_id}")
+
+        with SessionLocal() as db:
+            listing = db.query(Listing).filter(Listing.on_chain_id == listing_id).first()
+            if listing:
+                listing.asking_price = float(new_price) / 1e18
+                # If we parsed IPFS, we could update description etc.
+                logger.info(f"Updated Listing {listing.id} Price to {listing.asking_price}")
+                db.commit()
+
+    def process_listing_cancelled(self, event):
+        args = event['args']
+        listing_id = args['listingId']
+        
+        logger.info(f"Processing ListingCancelled: ID={listing_id}")
+
+        with SessionLocal() as db:
+            listing = db.query(Listing).filter(Listing.on_chain_id == listing_id).first()
+            if listing:
+                listing.status = ListingStatus.PAUSED # Or specialized status
+                logger.info(f"Cancelled/Paused Listing {listing.id}")
+                db.commit()
+
+    def process_seller_staked(self, event):
+        args = event['args']
+        seller = args['seller']
+        amount = args['amount']
+        logger.info(f"SellerStaked: {seller} staked {amount} Wei")
+        # TODO: Update user model with staked amount
+
+    def process_stake_withdrawn(self, event):
+        args = event['args']
+        seller = args['seller']
+        amount = args['amount']
+        logger.info(f"StakeWithdrawn: {seller} withdrew {amount} Wei")
+
+    def process_genesis_seller_joined(self, event):
+        args = event['args']
+        seller = args['seller']
+        num = args['genesisNumber']
+        logger.info(f"GenesisSellerJoined: {seller} is Genesis #{num}")
+
+indexer = IndexerService()

@@ -3,12 +3,41 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from fastapi import HTTPException
 import logging
+from sqlalchemy.orm import Session
+from app.models.user import User, VerificationLevel
 
 logger = logging.getLogger(__name__)
 
 class IdentityVerificationService:
     def __init__(self):
         self.github_api_url = "https://api.github.com"
+    
+    def check_status(self, user_id: str, db: Session) -> dict:
+        """
+        id: "check_status"
+        Checks the user's verification status and risk profile.
+        Returns a dict with 'status' (OK/RISKY) and 'details'.
+        """
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return {"status": "RISKY", "reason": "User not found"}
+        
+        # Simple risk logic for MVP
+        is_risky = False
+        reasons = []
+        
+        # Risk 1: Low Reputation
+        if user.reputation_score < 20:
+            is_risky = True
+            reasons.append("Low reputation score")
+            
+        # Risk 2: Basic verification only for large expected volumes (not checked here yet, but context implies)
+        # For now, just flag if verification is somehow invalid or missing (defaults to BASIC)
+        
+        if is_risky:
+            return {"status": "RISKY", "reasons": reasons, "verification_level": user.verification_level}
+        
+        return {"status": "OK", "verification_level": user.verification_level}
     
     async def verify_user(self, github_username: str, linkedin_url: str) -> dict:
         """

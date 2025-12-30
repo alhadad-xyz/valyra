@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     base_rpc_url: str = "https://mainnet.base.org"
     base_chain_id: int = 8453
     escrow_contract_address: Optional[str] = None
+    marketplace_contract_address: Optional[str] = None
 
     # Passkeys (WebAuthn)
     rp_id: str = "localhost"
