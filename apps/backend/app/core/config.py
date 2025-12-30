@@ -39,9 +39,16 @@ class Settings(BaseSettings):
     pinata_api_key: Optional[str] = None
     pinata_secret_key: Optional[str] = None
 
+    # AgentKit & CDP
+    cdp_api_key_name: Optional[str] = None
+    cdp_api_key_private_key: Optional[str] = None
+    openai_api_key: Optional[str] = None
+    admin_api_key: Optional[str] = None  # For securing the agent endpoint
+
     # Web3
     base_rpc_url: str = "https://mainnet.base.org"
     base_chain_id: int = 8453
+    escrow_contract_address: Optional[str] = None
 
     # Passkeys (WebAuthn)
     rp_id: str = "localhost"

@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routes import health_router, auth, listings_router, users_router
+from app.routes import health_router, auth, listings_router, users_router, upload, agent_router, valuation_router
 from app import __version__
 
 # Create FastAPI application
@@ -24,6 +24,9 @@ app.add_middleware(
 )
 
 
+import asyncio
+from app.services.indexer import indexer
+
 # Startup event
 @app.on_event("startup")
 async def startup_event():
@@ -31,6 +34,9 @@ async def startup_event():
     print(f"🚀 Valyra Backend API v{__version__} starting...")
     print(f"📊 Environment: {settings.environment}")
     print(f"🔗 Database: {str(settings.database_url).split('@')[1] if '@' in str(settings.database_url) else 'configured'}")
+    
+    # Start Indexer
+    asyncio.create_task(indexer.start())
 
 
 # Shutdown event
@@ -45,6 +51,9 @@ app.include_router(health_router, prefix=settings.api_v1_prefix)
 app.include_router(auth.router, prefix=settings.api_v1_prefix)
 app.include_router(listings_router, prefix=settings.api_v1_prefix)
 app.include_router(users_router, prefix=settings.api_v1_prefix)
+app.include_router(upload.router, prefix=settings.api_v1_prefix)
+app.include_router(agent_router, prefix=settings.api_v1_prefix)
+app.include_router(valuation_router, prefix=settings.api_v1_prefix)
 
 
 # Root endpoint
