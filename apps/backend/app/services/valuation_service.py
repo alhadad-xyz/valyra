@@ -12,7 +12,7 @@ class ValuationService:
     def __init__(self):
         if settings.gemini_api_key:
             genai.configure(api_key=settings.gemini_api_key.get_secret_value())
-            self.model = genai.GenerativeModel('gemini-pro')
+            self.model = genai.GenerativeModel('gemini-1.5-flash')
         else:
             self.model = None
             print("WARNING: GEMINI_API_KEY not set. Valuation service will not work.")
