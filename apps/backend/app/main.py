@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routes import health_router, auth, listings_router, users_router, upload, agent_router, valuation_router
+from app.routes import health_router, auth, listings_router, users_router, upload, agent_router, valuation_router, verification_router
 from app import __version__
 
 # Create FastAPI application
@@ -54,6 +54,7 @@ app.include_router(users_router, prefix=settings.api_v1_prefix)
 app.include_router(upload.router, prefix=settings.api_v1_prefix)
 app.include_router(agent_router, prefix=settings.api_v1_prefix)
 app.include_router(valuation_router, prefix=settings.api_v1_prefix)
+app.include_router(verification_router, prefix=settings.api_v1_prefix)
 
 
 # Root endpoint
