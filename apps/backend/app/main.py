@@ -2,8 +2,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routes import health_router, auth, listings_router, users_router, upload, agent_router, valuation_router, verification_router
+from app.routes import health_router, auth, listings_router, users_router, upload, agent_router, valuation_router, verification_router, disputes_router
+
 from app import __version__
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from app.core.rate_limiter import limiter
 
 # Create FastAPI application
 app = FastAPI(
@@ -11,8 +16,14 @@ app = FastAPI(
     description="AI-powered M&A marketplace for digital assets on Base L2",
     version=__version__,
     docs_url="/docs",
+
     redoc_url="/redoc",
 )
+
+# Initialize Rate Limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 # Configure CORS
 app.add_middleware(
@@ -55,7 +66,19 @@ app.include_router(upload.router, prefix=settings.api_v1_prefix)
 app.include_router(agent_router, prefix=settings.api_v1_prefix)
 app.include_router(valuation_router, prefix=settings.api_v1_prefix)
 app.include_router(verification_router, prefix=settings.api_v1_prefix)
+app.include_router(disputes_router, prefix=settings.api_v1_prefix)
 
+from fastapi import WebSocket, WebSocketDisconnect
+from app.websockets import manager
+
+@app.websocket("/ws/listings")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 # Root endpoint
 @app.get("/")

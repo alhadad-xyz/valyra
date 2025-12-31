@@ -19,6 +19,19 @@ services:
       timeout: 5s
       retries: 5
 
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: valyra-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   # Backend API
   backend:
     build:
@@ -30,6 +43,7 @@ services:
     environment:
       # Database
       DATABASE_URL: postgresql://valyra:valyra@postgres:5432/valyra_dev
+      REDIS_URL: redis://redis:6379
       
       # API Keys (replace with your actual values)
       GEMINI_API_KEY: ${GEMINI_API_KEY}
@@ -59,6 +73,8 @@ services:
       PINATA_SECRET_KEY: ${PINATA_SECRET_KEY:-}
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     volumes:
       # Mount source code for hot reload (optional, for development)

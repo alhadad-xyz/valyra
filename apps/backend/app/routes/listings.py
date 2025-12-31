@@ -7,6 +7,10 @@ from app.models.listing import Listing, ListingStatus
 from app.models.user import User
 from app.schemas.listing import ListingCreate, ListingUpdate, ListingResponse
 from app.dependencies import get_current_user
+from fastapi.encoders import jsonable_encoder
+from app.websockets import manager
+from app.core.rate_limiter import limiter
+from fastapi import Request
 
 router = APIRouter(prefix="/listings", tags=["Listings"])
 
@@ -26,11 +30,21 @@ async def create_listing(
     db.add(new_listing)
     db.commit()
     db.refresh(new_listing)
+    
+    # Broadcast new listing
+    listing_data = jsonable_encoder(new_listing)
+    await manager.broadcast({
+        "type": "listing.create",
+        "data": listing_data
+    })
+    
     return new_listing
 
 
 @router.get("/", response_model=List[ListingResponse])
+@limiter.limit("100/minute")
 async def get_listings(
+    request: Request,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     status: Optional[ListingStatus] = None,
@@ -79,4 +93,12 @@ async def update_listing(
         
     db.commit()
     db.refresh(listing)
+
+    # Broadcast listing update
+    listing_data = jsonable_encoder(listing)
+    await manager.broadcast({
+        "type": "listing.update",
+        "data": listing_data
+    })
+
     return listing

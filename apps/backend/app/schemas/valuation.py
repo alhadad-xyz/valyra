@@ -14,3 +14,8 @@ class ValuationRequest(BaseModel):
     growth_rate: float = Field(..., description="Year-over-Year Growth Rate (e.g., 0.5 for 50%)")
     industry: Optional[str] = Field(None, description="Industry sector (e.g., SaaS, E-commerce)")
     description: Optional[str] = Field(None, description="Brief description of the project")
+
+class AgentValuationResponse(ValuationResponse):
+    signature: str
+    attestation_message: str
+    warnings: list[str] = []

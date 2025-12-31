@@ -15,6 +15,13 @@ class VerificationLevel(PyEnum):
     ENHANCED = "enhanced"
 
 
+class UserRole(PyEnum):
+    """User roles."""
+    USER = "user"
+    ARBITRATOR = "arbitrator"
+    ADMIN = "admin"
+
+
 class User(Base):
     """User model representing platform users (buyers and sellers)."""
     
@@ -35,6 +42,11 @@ class User(Base):
     reputation_score = Column(Integer, default=50, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    role = Column(
+        Enum(UserRole, values_callable=lambda x: [e.value for e in x]),
+        default=UserRole.USER,
+        nullable=False
+    )
 
     # Relationships
     listings = relationship("Listing", back_populates="seller", foreign_keys="Listing.seller_id")

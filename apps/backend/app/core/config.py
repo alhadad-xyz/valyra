@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     supabase_url: str
     supabase_key: str
     supabase_service_key: str
+    
+    # Redis
+    redis_url: str = "redis://localhost:6379"
 
     @field_validator("database_url", mode="before")
     @classmethod
