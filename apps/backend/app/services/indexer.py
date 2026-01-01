@@ -265,7 +265,8 @@ class IndexerService:
 
             # Create Escrow record
             new_escrow = Escrow(
-                contract_address=settings.escrow_contract_address, 
+                contract_address=settings.escrow_contract_address,
+                on_chain_id=escrow_id,
                 buyer_address=buyer,
                 seller_address=seller,
                 amount=float(amount) / 1e18, 
@@ -280,12 +281,40 @@ class IndexerService:
             logger.info(f"Created Escrow record for {escrow_id}")
 
     def process_receipt_confirmed(self, event):
-        # Update state to RELEASED/TRANSITION
-        pass
+        args = event['args']
+        escrow_id = args['escrowId']
+        
+        logger.info(f"Processing ReceiptConfirmed: ID={escrow_id}")
+        
+        with SessionLocal() as db:
+            # Find Escrow by on_chain_id
+            escrow = db.query(Escrow).filter(Escrow.on_chain_id == escrow_id).first()
+            
+            if escrow:
+                escrow.escrow_state = EscrowState.CONFIRMED # or COMPLETED/RELEASED based on enum
+                db.commit()
+                logger.info(f"Escrow {escrow_id} confirmed and funds released.")
+            else:
+                logger.warning(f"Escrow record not found for ReceiptConfirmed {escrow_id}")
 
     def process_dispute_raised(self, event):
-        # Update state to DISPUTED
-        pass
+        args = event['args']
+        escrow_id = args['escrowId']
+        decision = args.get('disputeType', 0) # 0=General?
+        ipfs_hash = args.get('evidenceIpfs', '')
+        
+        logger.info(f"Processing DisputeRaised: ID={escrow_id}")
+        
+        with SessionLocal() as db:
+            escrow = db.query(Escrow).filter(Escrow.on_chain_id == escrow_id).first()
+            
+            if escrow:
+                escrow.escrow_state = EscrowState.DISPUTED
+                escrow.dispute_reason = f"Dispute raised on-chain. Evidence: {ipfs_hash}"
+                db.commit()
+                logger.info(f"Escrow {escrow_id} marked as DISPUTED.")
+            else:
+                logger.warning(f"Escrow record not found for DisputeRaised {escrow_id}")
 
     # --- Marketplace Handlers ---
 

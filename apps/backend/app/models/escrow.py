@@ -31,6 +31,7 @@ class Escrow(Base):
     
     # Smart Contract
     contract_address = Column(String(42), nullable=True, index=True)
+    on_chain_id = Column(Numeric(20, 0), nullable=True, index=True) # Using Numeric for uint256 safety, though Integer might suffice for small counts
     escrow_state = Column(Enum(EscrowState), default=EscrowState.CREATED, nullable=False)
     
     # Parties

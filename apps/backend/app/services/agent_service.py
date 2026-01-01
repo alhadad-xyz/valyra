@@ -52,26 +52,31 @@ class AgentService:
         # We need to verify the exact method name on CdpWalletProvider
         # From Coinbase AgentKit docs, it might be `sign_message(message)`
         
-        signature = "mock_signature_until_integration"
+        signature = ""
         try:
-             # Assuming standard interface, but wrapping in try/catch if method differs
-             # functionality implies agent acting as wallet
-             # The wallet provider usually returns an object with a signature
+             # Use the wallet provider to sign the message
              wallet = self.wallet_provider
-             # Use the first address or default address
-             # This depends on the CdpWalletProvider implementation details which are hidden
-             # For now we will try to sign if the method exists
+             
+             # Check if wallet provider is initialized
+             if not wallet:
+                 raise ValueError("Wallet provider not initialized")
+
+             # Attempt to sign the message
+             # Note: exact method depends on CdpWalletProvider version, assuming sign_message or similar
              if hasattr(wallet, "sign_message"):
                  signature = wallet.sign_message(attestation_message)
+                 # If the result is an object, try to extract signature string
+                 if hasattr(signature, "signature"):
+                     signature = signature.signature
              else:
-                 # Fallback: In many AgentKits, the wallet action is done via the agent tools
-                 # But we want direct access. 
-                 # If direct access isn't easy, we might need a workaround.
-                 # Let's assume for now we can access the underlying wallet or use a tool.
-                 pass
+                 # If specific method not found, try to use the agent logic or throw
+                 warnings.append("Wallet provider does not natively support 'sign_message'.")
+                 signature = "signature_failed"
+
         except Exception as e:
             print(f"Signing failed: {e}")
             warnings.append(f"Signing failed: {str(e)}")
+            signature = "signature_error"
 
         return {
             "valuation_range": valuation_data["valuation_range"],
