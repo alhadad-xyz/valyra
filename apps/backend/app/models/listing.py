@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum as PyEnum
-from sqlalchemy import Column, String, Text, Numeric, DateTime, Enum, ForeignKey, JSON
+from sqlalchemy import Column, String, Text, Numeric, DateTime, Enum, ForeignKey, JSON, Boolean, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -48,25 +48,34 @@ class Listing(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     seller_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     
+    # Smart Contract ID
+    on_chain_id = Column(Integer, unique=True, nullable=True)
+    
     # Asset Information
     asset_name = Column(String(255), nullable=False)
-    asset_type = Column(Enum(AssetType), nullable=False)
+    asset_type = Column(Enum(AssetType, values_callable=lambda x: [e.value for e in x]), nullable=False)
     business_url = Column(String(512), nullable=False)
     description = Column(Text, nullable=False)
     asking_price = Column(Numeric(20, 2), nullable=False)
     tech_stack = Column(JSON, nullable=True)
     build_id = Column(String(255), nullable=True)
     
+    # Included Assets/Stats
+    customer_count = Column(Integer, default=0)
+    domain_included = Column(Boolean, default=False, nullable=False)
+    source_code_included = Column(Boolean, default=False, nullable=False)
+    customer_data_included = Column(Boolean, default=False, nullable=False)
+    
     # Financial Metrics
     mrr = Column(Numeric(20, 2), nullable=False)
     annual_revenue = Column(Numeric(20, 2), nullable=False)
     monthly_profit = Column(Numeric(20, 2), nullable=False)
     monthly_expenses = Column(Numeric(20, 2), nullable=False)
-    revenue_trend = Column(Enum(RevenueTrend), nullable=False)
+    revenue_trend = Column(Enum(RevenueTrend, values_callable=lambda x: [e.value for e in x]), nullable=False)
     
     # Verification
     verification_status = Column(
-        Enum(VerificationStatus),
+        Enum(VerificationStatus, values_callable=lambda x: [e.value for e in x]),
         default=VerificationStatus.PENDING,
         nullable=False
     )
@@ -76,7 +85,7 @@ class Listing(Base):
     seller_signature = Column(Text, nullable=True)
     
     # Status
-    status = Column(Enum(ListingStatus), default=ListingStatus.DRAFT, nullable=False)
+    status = Column(Enum(ListingStatus, values_callable=lambda x: [e.value for e in x]), default=ListingStatus.DRAFT, nullable=False)
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: valyra-postgres
+    environment:
+      POSTGRES_USER: valyra
+      POSTGRES_PASSWORD: valyra
+      POSTGRES_DB: valyra_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U valyra"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: valyra-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ../..
+      dockerfile: apps/backend/Dockerfile
+    container_name: valyra-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Database
+      DATABASE_URL: postgresql://valyra:valyra@postgres:5432/valyra_dev
+      REDIS_URL: redis://redis:6379
+      
+      # API Keys (replace with your actual values)
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+      SECRET_KEY: ${SECRET_KEY}
+      
+      # Web3
+      BASE_RPC_URL: https://mainnet.base.org
+      BASE_CHAIN_ID: 8453
+      
+      # App Config
+      ENVIRONMENT: development
+      LOG_LEVEL: INFO
+      API_V1_PREFIX: /api/v1
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      PLATFORM_FEE_PERCENTAGE: 2.5
+      
+      # CORS (adjust as needed)
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3001
+      
+      # Optional
+      COINBASE_AGENTKIT_KEY: ${COINBASE_AGENTKIT_KEY:-}
+      PINATA_API_KEY: ${PINATA_API_KEY:-}
+      PINATA_SECRET_KEY: ${PINATA_SECRET_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      # Mount source code for hot reload (optional, for development)
+      - ../../apps/backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  postgres_data:

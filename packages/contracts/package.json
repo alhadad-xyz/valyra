@@ -2,12 +2,28 @@
     "name": "contracts",
     "version": "0.0.0",
     "private": true,
+    "type": "module",
     "scripts": {
-        "build": "echo 'Building contracts...'",
-        "test": "echo 'Testing contracts...'",
-        "deploy": "echo 'Deploying contracts...'"
+        "build": "hardhat compile && node scripts/export-abis.js",
+        "postbuild": "cd ../.. && pnpm sync-abis",
+        "test": "hardhat test",
+        "deploy": "hardhat run scripts/deploy.ts",
+        "clean": "hardhat clean",
+        "export-abis": "node scripts/export-abis.js"
     },
     "devDependencies": {
-        "config": "workspace:*"
+        "@nomicfoundation/hardhat-ignition": "^3.0.6",
+        "@nomicfoundation/hardhat-network-helpers": "^3.0.3",
+        "@nomicfoundation/hardhat-toolbox-viem": "^5.0.1",
+        "@nomicfoundation/hardhat-verify": "^3.0.8",
+        "@types/chai": "^5.2.3",
+        "@types/mocha": "^10.0.10",
+        "@types/node": "^22.8.5",
+        "chai": "^6.2.1",
+        "config": "workspace:*",
+        "dotenv": "^16.4.7",
+        "hardhat": "^3.1.0",
+        "typescript": "~5.8.0",
+        "viem": "^2.30.0"
     }
 }

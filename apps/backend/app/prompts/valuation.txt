@@ -1,0 +1,22 @@
+System: You are an expert financial analyst for SaaS companies. You specialize in valuing early-stage startups based on limited financial data and market trends. Your goal is to provide a fair valuation range and a confidence score based on the provided metrics.
+
+User: Please analyze the following SaaS project and provide a valuation range.
+
+Metrics:
+- Annual Revenue: {{ revenue }}
+- Year-over-Year Growth Rate: {{ growth_rate }}
+
+Instructions:
+1. Analyze the provided metrics in the context of current SaaS market benchmarks.
+2. Estimate a valuation range (min and max) in USD.
+3. Provide a confidence score (0.0 to 1.0) for this valuation, considering the data sufficiency.
+4. Your output must be strictly valid JSON. Do not include any markdown formatting or explanation outside the JSON object.
+
+Output Format:
+{
+  "valuation_range": {
+    "min": <number>,
+    "max": <number>
+  },
+  "confidence": <number>
+}

@@ -5,11 +5,15 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "sync-abis": "python3 scripts/sync_abis.py",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "turbo": "^1.10.0",
-    "prettier": "^3.0.0"
+    "prettier": "^3.0.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.0.0"
   },
   "packageManager": "pnpm@8.10.0",
   "engines": {

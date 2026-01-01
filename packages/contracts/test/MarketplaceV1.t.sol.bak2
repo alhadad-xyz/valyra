@@ -1,0 +1,918 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "forge-std/Test.sol";
+import "../contracts/MarketplaceV1.sol";
+import "../contracts/mocks/MockIDRX.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
+contract MarketplaceV1Test is Test {
+    MarketplaceV1 public implementation;
+    MarketplaceV1 public marketplace;
+    ERC1967Proxy public proxy;
+    
+    address public owner;
+    address public agent;
+    address public mockIdrxToken;
+    
+    uint256 constant MINIMUM_SELLER_STAKE = 750_000 * 1e18;
+    
+    function setUp() public {
+        owner = address(this);
+        agent = address(0x1);
+        mockIdrxToken = address(0x2);
+        
+        // Deploy implementation
+        implementation = new MarketplaceV1();
+        
+        // Deploy proxy and initialize
+        bytes memory initData = abi.encodeWithSelector(
+            MarketplaceV1.initialize.selector,
+            mockIdrxToken,
+            agent
+        );
+        proxy = new ERC1967Proxy(address(implementation), initData);
+        
+        // Wrap proxy in MarketplaceV1 interface
+        marketplace = MarketplaceV1(address(proxy));
+    }
+    
+    function testDeployment() public view {
+        assertEq(address(marketplace.idrxToken()), mockIdrxToken);
+        assertEq(marketplace.agentAddress(), agent);
+    }
+    
+    function testInitialization() public view {
+        assertEq(marketplace.owner(), owner);
+        assertTrue(marketplace.genesisProgram());
+        assertEq(marketplace.genesisSellersCount(), 0);
+    }
+    
+    function testPausable() public {
+        assertFalse(marketplace.paused());
+        
+        marketplace.pause();
+        assertTrue(marketplace.paused());
+        
+        marketplace.unpause();
+        assertFalse(marketplace.paused());
+    }
+    
+    function testCanJoinGenesisProgram() public view {
+        assertTrue(marketplace.canJoinGenesisProgram());
+    }
+    
+    function testEndGenesisProgram() public {
+        assertTrue(marketplace.genesisProgram());
+        
+        marketplace.endGenesisProgram();
+        assertFalse(marketplace.genesisProgram());
+        assertFalse(marketplace.canJoinGenesisProgram());
+    }
+    
+    function testSetAgentAddress() public {
+        address newAgent = address(0x3);
+        
+        vm.expectEmit(true, true, false, false);
+        emit MarketplaceV1.AgentAddressUpdated(agent, newAgent);
+        
+        marketplace.setAgentAddress(newAgent);
+        assertEq(marketplace.agentAddress(), newAgent);
+    }
+    
+    function testCheckSellerActivity() public view {
+        address seller = address(0x4);
+        (bool needsWarning, bool shouldPause) = marketplace.checkSellerActivity(seller);
+        
+        // New seller with no heartbeat record (lastHeartbeat = 0)
+        // timeSinceHeartbeat = block.timestamp - 0 = block.timestamp
+        // In test environment, block.timestamp is typically small, so it won't exceed HEARTBEAT_INTERVAL (30 days)
+        assertFalse(needsWarning);
+        assertFalse(shouldPause);
+    }
+    
+    function testConstants() public view {
+        assertEq(marketplace.MINIMUM_SELLER_STAKE(), 750_000 * 1e18);
+        assertEq(marketplace.SLASH_PENALTY(), 250_000 * 1e18);
+        assertEq(marketplace.GENESIS_SELLER_LIMIT(), 50);
+        assertEq(marketplace.HEARTBEAT_INTERVAL(), 30 days);
+        assertEq(marketplace.WARNING_PERIOD(), 7 days);
+        assertEq(marketplace.PAUSE_AFTER_WARNING(), 7 days);
+        assertEq(marketplace.MAX_IGNORED_OFFERS(), 3);
+    }
+    
+    // ============ Helper Functions ============
+    
+    function setupMarketplaceWithMockToken() internal returns (MarketplaceV1, MockIDRX) {
+        // Deploy mock IDRX
+        MockIDRX mockToken = new MockIDRX();
+        
+        // Deploy new marketplace implementation
+        MarketplaceV1 newImplementation = new MarketplaceV1();
+        
+        // Deploy proxy with mock token
+        bytes memory initData = abi.encodeWithSelector(
+            MarketplaceV1.initialize.selector,
+            address(mockToken),
+            agent
+        );
+        ERC1967Proxy newProxy = new ERC1967Proxy(address(newImplementation), initData);
+        
+        // Wrap proxy
+        MarketplaceV1 newMarketplace = MarketplaceV1(address(newProxy));
+        
+        // End genesis program to allow regular staking
+        newMarketplace.endGenesisProgram();
+        
+        return (newMarketplace, mockToken);
+    }
+    
+    function setupStakedSeller(MarketplaceV1 _marketplace, MockIDRX _mockToken, address seller) internal {
+        // Mint tokens to seller
+        _mockToken.mint(seller, MINIMUM_SELLER_STAKE);
+        
+        // Seller stakes
+        vm.startPrank(seller);
+        _mockToken.approve(address(_marketplace), MINIMUM_SELLER_STAKE);
+        _marketplace.stakeToSell();
+        vm.stopPrank();
+    }
+    
+    // ============ createListing() Tests ============
+    
+    function testCreateListingRevertsWhenNotStaked() public {
+        address seller = address(0x5);
+        
+        vm.startPrank(seller);
+        
+        vm.expectRevert("Must stake to list");
+        marketplace.createListing(
+            "Test Listing",
+            "QmTest123",
+            1_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(1)),
+            hex"1234",
+            "build-123"
+        );
+        
+        vm.stopPrank();
+    }
+    
+    function testCreateListingRevertsWhenTitleEmpty() public {
+        address seller = address(0x5);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        vm.startPrank(seller);
+        
+        vm.expectRevert("Title cannot be empty");
+        testMarketplace.createListing(
+            "",
+            "QmTest123",
+            1_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(1)),
+            hex"1234",
+            "build-123"
+        );
+        
+        vm.stopPrank();
+    }
+    
+    function testCreateListingRevertsWhenPriceZero() public {
+        address seller = address(0x5);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        vm.startPrank(seller);
+        
+        vm.expectRevert("Price must be greater than 0");
+        testMarketplace.createListing(
+            "Test Listing",
+            "QmTest123",
+            0,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(1)),
+            hex"1234",
+            "build-123"
+        );
+        
+        vm.stopPrank();
+    }
+    
+    function testCreateListingRevertsWhenPaused() public {
+        address seller = address(0x5);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        // Pause contract
+        testMarketplace.pause();
+        
+        vm.startPrank(seller);
+        
+        vm.expectRevert();
+        testMarketplace.createListing(
+            "Test Listing",
+            "QmTest123",
+            1_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(1)),
+            hex"1234",
+            "build-123"
+        );
+        
+        vm.stopPrank();
+    }
+    
+    function testCreateListingSuccess() public {
+        address seller = address(0x5);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        vm.startPrank(seller);
+        
+        string memory title = "Test SaaS Business";
+        string memory ipfsMetadata = "QmTest123456";
+        uint256 askingPrice = 5_000_000 * 1e18; // 5M IDRX
+        MarketplaceV1.VerificationLevel level = MarketplaceV1.VerificationLevel.STANDARD;
+        bytes32 ipAssignmentHash = keccak256("IP Assignment Template");
+        bytes memory sellerSignature = hex"1234567890abcdef";
+        string memory buildId = "build-abc123";
+        
+        // Expect event emission
+        vm.expectEmit(true, true, false, true);
+        emit MarketplaceV1.ListingCreated(
+            0, // First listing ID
+            seller,
+            title,
+            askingPrice,
+            level
+        );
+        
+        uint256 listingId = testMarketplace.createListing(
+            title,
+            ipfsMetadata,
+            askingPrice,
+            level,
+            ipAssignmentHash,
+            sellerSignature,
+            buildId
+        );
+        
+        vm.stopPrank();
+        
+        // Verify listing was created correctly
+        assertEq(listingId, 0);
+        
+        (
+            uint256 id,
+            address listedSeller,
+            string memory listedTitle,
+            string memory listedMetadata,
+            uint256 listedPrice,
+            uint256 createdAt,
+            MarketplaceV1.VerificationLevel listedLevel,
+            MarketplaceV1.ListingState state,
+            bytes32 listedIpHash,
+            bytes memory listedSignature,
+            uint256 ipSignedAt,
+            string memory listedBuildId,
+            bool buildIdVerified
+        ) = testMarketplace.listings(listingId);
+        
+        assertEq(id, listingId);
+        assertEq(listedSeller, seller);
+        assertEq(listedTitle, title);
+        assertEq(listedMetadata, ipfsMetadata);
+        assertEq(listedPrice, askingPrice);
+        assertGt(createdAt, 0);
+        assertEq(uint256(listedLevel), uint256(level));
+        assertEq(uint256(state), uint256(MarketplaceV1.ListingState.ACTIVE));
+        assertEq(listedIpHash, ipAssignmentHash);
+        assertEq(listedSignature, sellerSignature);
+        assertGt(ipSignedAt, 0);
+        assertEq(listedBuildId, buildId);
+        assertFalse(buildIdVerified);
+    }
+    
+    function testCreateMultipleListings() public {
+        address seller = address(0x5);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        vm.startPrank(seller);
+        
+        // Create first listing
+        uint256 listingId1 = testMarketplace.createListing(
+            "First Listing",
+            "QmFirst",
+            1_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(1)),
+            hex"1111",
+            "build-1"
+        );
+        
+        // Create second listing
+        uint256 listingId2 = testMarketplace.createListing(
+            "Second Listing",
+            "QmSecond",
+            2_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.STANDARD,
+            bytes32(uint256(2)),
+            hex"2222",
+            "build-2"
+        );
+        
+        vm.stopPrank();
+        
+        // Verify unique IDs
+        assertEq(listingId1, 0);
+        assertEq(listingId2, 1);
+        
+        // Verify both listings exist
+        (, address seller1, string memory title1, , , , , , , , , , ) = testMarketplace.listings(listingId1);
+        (, address seller2, string memory title2, , , , , , , , , , ) = testMarketplace.listings(listingId2);
+        
+        assertEq(seller1, seller);
+        assertEq(seller2, seller);
+        assertEq(title1, "First Listing");
+        assertEq(title2, "Second Listing");
+    }
+    
+    function testCreateListingUpdatesSellerActivity() public {
+        address seller = address(0x5);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        vm.startPrank(seller);
+        
+        testMarketplace.createListing(
+            "Test Listing",
+            "QmTest",
+            1_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(1)),
+            hex"1234",
+            "build-123"
+        );
+        
+        vm.stopPrank();
+        
+        // Verify seller activity was updated
+        (
+            address activitySeller,
+            uint256 lastHeartbeat,
+            ,
+            bool isActive,
+        ) = testMarketplace.sellerActivity(seller);
+        
+        assertEq(activitySeller, seller);
+        assertGt(lastHeartbeat, 0);
+        assertTrue(isActive);
+    }
+    
+    // ============ stakeToSell() Tests ============
+    
+    function testStakeToSellRegular() public {
+        address seller = address(0x7);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        
+        // Mint tokens to seller
+        mockToken.mint(seller, MINIMUM_SELLER_STAKE);
+        
+        vm.startPrank(seller);
+        mockToken.approve(address(testMarketplace), MINIMUM_SELLER_STAKE);
+        
+        vm.expectEmit(true, false, false, true);
+        emit MarketplaceV1.SellerStaked(seller, MINIMUM_SELLER_STAKE);
+        
+        testMarketplace.stakeToSell();
+        vm.stopPrank();
+        
+        // Verify stake was recorded
+        (
+            address stakeSeller,
+            uint256 stakeAmount,
+            uint256 stakedAt,
+            bool isActive,
+            uint256 slashCount
+        ) = testMarketplace.sellerStakes(seller);
+        
+        assertEq(stakeSeller, seller);
+        assertEq(stakeAmount, MINIMUM_SELLER_STAKE);
+        assertGt(stakedAt, 0);
+        assertTrue(isActive);
+        assertEq(slashCount, 0);
+    }
+    
+    function testStakeToSellRevertsIfAlreadyStaked() public {
+        address seller = address(0x8);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        // Try to stake again
+        mockToken.mint(seller, MINIMUM_SELLER_STAKE);
+        
+        vm.startPrank(seller);
+        mockToken.approve(address(testMarketplace), MINIMUM_SELLER_STAKE);
+        
+        vm.expectRevert("Already staked");
+        testMarketplace.stakeToSell();
+        
+        vm.stopPrank();
+    }
+    
+    // ============ withdrawStake() Tests ============
+    
+    function testWithdrawStakeSuccess() public {
+        address seller = address(0x9);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        // Verify seller has stake
+        (, uint256 stakeAmountBefore, , bool isActiveBefore, ) = testMarketplace.sellerStakes(seller);
+        assertEq(stakeAmountBefore, MINIMUM_SELLER_STAKE);
+        assertTrue(isActiveBefore);
+        
+        // Withdraw stake
+        vm.startPrank(seller);
+        
+        vm.expectEmit(true, false, false, true);
+        emit MarketplaceV1.StakeWithdrawn(seller, MINIMUM_SELLER_STAKE);
+        
+        testMarketplace.withdrawStake(MINIMUM_SELLER_STAKE);
+        vm.stopPrank();
+        
+        // Verify stake was withdrawn
+        (, uint256 stakeAmountAfter, , bool isActiveAfter, ) = testMarketplace.sellerStakes(seller);
+        assertEq(stakeAmountAfter, 0);
+        assertFalse(isActiveAfter); // Should be deactivated when below minimum
+        
+        // Verify tokens were returned
+        assertEq(mockToken.balanceOf(seller), MINIMUM_SELLER_STAKE);
+    }
+    
+    function testWithdrawStakePartial() public {
+        address seller = address(0xA);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        
+        // Stake the minimum amount
+        mockToken.mint(seller, MINIMUM_SELLER_STAKE);
+        
+        vm.startPrank(seller);
+        mockToken.approve(address(testMarketplace), MINIMUM_SELLER_STAKE);
+        testMarketplace.stakeToSell();
+        
+        // Withdraw half of the staked amount
+        uint256 withdrawAmount = MINIMUM_SELLER_STAKE / 2;
+        testMarketplace.withdrawStake(withdrawAmount);
+        vm.stopPrank();
+        
+        // Verify partial withdrawal
+        (, uint256 stakeAmountAfter, , bool isActiveAfter, ) = testMarketplace.sellerStakes(seller);
+        assertEq(stakeAmountAfter, MINIMUM_SELLER_STAKE - withdrawAmount);
+        assertFalse(isActiveAfter); // Below minimum, so deactivated
+        
+        // Verify tokens were returned
+        assertEq(mockToken.balanceOf(seller), withdrawAmount);
+    }
+    
+    function testWithdrawStakeRevertsWithActiveListings() public {
+        address seller = address(0xB);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        // Create a listing
+        vm.startPrank(seller);
+        testMarketplace.createListing(
+            "Test Listing",
+            "QmTest",
+            1_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(1)),
+            hex"1234",
+            "build-123"
+        );
+        
+        // Try to withdraw stake
+        vm.expectRevert("Cannot withdraw with active listings");
+        testMarketplace.withdrawStake(MINIMUM_SELLER_STAKE);
+        
+        vm.stopPrank();
+    }
+    
+    function testWithdrawStakeRevertsWithNoStake() public {
+        address seller = address(0xC);
+        
+        (MarketplaceV1 testMarketplace, ) = setupMarketplaceWithMockToken();
+        
+        vm.startPrank(seller);
+        
+        vm.expectRevert("No active stake");
+        testMarketplace.withdrawStake(MINIMUM_SELLER_STAKE);
+        
+        vm.stopPrank();
+    }
+    
+    function testWithdrawStakeRevertsWithZeroAmount() public {
+        address seller = address(0xD);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        vm.startPrank(seller);
+        
+        vm.expectRevert("Amount must be greater than 0");
+        testMarketplace.withdrawStake(0);
+        
+        vm.stopPrank();
+    }
+    
+    function testWithdrawStakeRevertsWithInsufficientBalance() public {
+        address seller = address(0xE);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        vm.startPrank(seller);
+        
+        vm.expectRevert("Insufficient stake balance");
+        testMarketplace.withdrawStake(MINIMUM_SELLER_STAKE + 1);
+        
+        vm.stopPrank();
+    }
+    
+    // ============ Active Listings Counter Tests ============
+    
+    function testActiveListingsCounterIncrementsOnCreate() public {
+        address seller = address(0xF);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        // Verify initial count is 0
+        assertEq(testMarketplace.activeListingsCount(seller), 0);
+        
+        // Create first listing
+        vm.startPrank(seller);
+        testMarketplace.createListing(
+            "First Listing",
+            "QmFirst",
+            1_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(1)),
+            hex"1111",
+            "build-1"
+        );
+        
+        assertEq(testMarketplace.activeListingsCount(seller), 1);
+        
+        // Create second listing
+        testMarketplace.createListing(
+            "Second Listing",
+            "QmSecond",
+            2_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(2)),
+            hex"2222",
+            "build-2"
+        );
+        
+        assertEq(testMarketplace.activeListingsCount(seller), 2);
+        
+        vm.stopPrank();
+    }
+    
+    function testActiveListingsCounterDecrementsOnCancel() public {
+        address seller = address(0x10);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        // Create two listings
+        vm.startPrank(seller);
+        uint256 listingId1 = testMarketplace.createListing(
+            "First Listing",
+            "QmFirst",
+            1_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(1)),
+            hex"1111",
+            "build-1"
+        );
+        
+        testMarketplace.createListing(
+            "Second Listing",
+            "QmSecond",
+            2_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(2)),
+            hex"2222",
+            "build-2"
+        );
+        
+        assertEq(testMarketplace.activeListingsCount(seller), 2);
+        
+        // Cancel first listing
+        vm.expectEmit(true, false, false, false);
+        emit MarketplaceV1.ListingCancelled(listingId1);
+        
+        testMarketplace.cancelListing(listingId1);
+        
+        assertEq(testMarketplace.activeListingsCount(seller), 1);
+        
+        vm.stopPrank();
+    }
+    
+    function testCancelListingRevertsIfNotActive() public {
+        address seller = address(0x11);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        // Create and cancel a listing
+        vm.startPrank(seller);
+        uint256 listingId = testMarketplace.createListing(
+            "Test Listing",
+            "QmTest",
+            1_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(1)),
+            hex"1234",
+            "build-123"
+        );
+        
+        testMarketplace.cancelListing(listingId);
+        
+        // Try to cancel again
+        vm.expectRevert("Listing not active");
+        testMarketplace.cancelListing(listingId);
+        
+        vm.stopPrank();
+    }
+    
+    function testWithdrawStakeAfterCancellingAllListings() public {
+        address seller = address(0x12);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        // Create two listings
+        vm.startPrank(seller);
+        uint256 listingId1 = testMarketplace.createListing(
+            "First Listing",
+            "QmFirst",
+            1_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(1)),
+            hex"1111",
+            "build-1"
+        );
+        
+        uint256 listingId2 = testMarketplace.createListing(
+            "Second Listing",
+            "QmSecond",
+            2_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(2)),
+            hex"2222",
+            "build-2"
+        );
+        
+        // Cannot withdraw with active listings
+        vm.expectRevert("Cannot withdraw with active listings");
+        testMarketplace.withdrawStake(MINIMUM_SELLER_STAKE);
+        
+        // Cancel both listings
+        testMarketplace.cancelListing(listingId1);
+        testMarketplace.cancelListing(listingId2);
+        
+        assertEq(testMarketplace.activeListingsCount(seller), 0);
+        
+        // Now withdrawal should succeed
+        testMarketplace.withdrawStake(MINIMUM_SELLER_STAKE);
+        
+        vm.stopPrank();
+        
+        // Verify withdrawal
+        (, uint256 stakeAmount, , bool isActive, ) = testMarketplace.sellerStakes(seller);
+        assertEq(stakeAmount, 0);
+        assertFalse(isActive);
+    }
+    
+    // ============ canWithdrawStake() Helper Tests ============
+    
+    function testCanWithdrawStakeWithNoStake() public view {
+        address seller = address(0x13);
+        
+        (bool canWithdraw, string memory reason) = marketplace.canWithdrawStake(seller);
+        
+        assertFalse(canWithdraw);
+        assertEq(reason, "No active stake");
+    }
+    
+    function testCanWithdrawStakeWithActiveListings() public {
+        address seller = address(0x14);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        // Create a listing
+        vm.startPrank(seller);
+        testMarketplace.createListing(
+            "Test Listing",
+            "QmTest",
+            1_000_000 * 1e18,
+            MarketplaceV1.VerificationLevel.BASIC,
+            bytes32(uint256(1)),
+            hex"1234",
+            "build-123"
+        );
+        vm.stopPrank();
+        
+        (bool canWithdraw, string memory reason) = testMarketplace.canWithdrawStake(seller);
+        
+        assertFalse(canWithdraw);
+        assertEq(reason, "Has active listings");
+    }
+    
+    function testCanWithdrawStakeSuccess() public {
+        address seller = address(0x15);
+        
+        (MarketplaceV1 testMarketplace, MockIDRX mockToken) = setupMarketplaceWithMockToken();
+        setupStakedSeller(testMarketplace, mockToken, seller);
+        
+        (bool canWithdraw, string memory reason) = testMarketplace.canWithdrawStake(seller);
+        
+        assertTrue(canWithdraw);
+        assertEq(reason, "");
+    }
+
+    
+    // ============ joinGenesis() Tests ============
+    
+    function testJoinGenesisSuccess() public {
+        address seller = address(0x16);
+        
+        // Set verification level to STANDARD using vm.store
+        vm.store(
+            address(marketplace),
+            keccak256(abi.encode(seller, uint256(5))),
+            bytes32(uint256(1))
+        );
+        
+        vm.startPrank(seller);
+        
+        // Verify initial state
+        assertFalse(marketplace.isGenesisSeller(seller));
+        assertEq(marketplace.genesisSellersCount(), 0);
+        
+        // Expect event emission
+        vm.expectEmit(true, false, false, true);
+        emit MarketplaceV1.GenesisSellerJoined(seller, 1);
+        
+        marketplace.joinGenesis();
+        
+        vm.stopPrank();
+        
+        // Verify Genesis Seller was registered
+        assertTrue(marketplace.isGenesisSeller(seller));
+        assertEq(marketplace.genesisSellersCount(), 1);
+    }
+    
+    function testJoinGenesisIncrementsCounter() public {
+        address seller1 = address(0x17);
+        address seller2 = address(0x18);
+        
+        // Set verification levels
+        vm.store(address(marketplace), keccak256(abi.encode(seller1, uint256(5))), bytes32(uint256(1)));
+        vm.store(address(marketplace), keccak256(abi.encode(seller2, uint256(5))), bytes32(uint256(1)));
+        
+        vm.prank(seller1);
+        marketplace.joinGenesis();
+        assertEq(marketplace.genesisSellersCount(), 1);
+        
+        vm.prank(seller2);
+        marketplace.joinGenesis();
+        assertEq(marketplace.genesisSellersCount(), 2);
+    }
+    
+    function testJoinGenesisEmitsCorrectEvent() public {
+        address seller = address(0x19);
+        
+        vm.store(address(marketplace), keccak256(abi.encode(seller, uint256(5))), bytes32(uint256(1)));
+        
+        vm.startPrank(seller);
+        vm.expectEmit(true, false, false, true);
+        emit MarketplaceV1.GenesisSellerJoined(seller, 1);
+        marketplace.joinGenesis();
+        vm.stopPrank();
+    }
+    
+    function testJoinGenesisRevertsWhenProgramEnded() public {
+        address seller = address(0x1A);
+        
+        vm.store(address(marketplace), keccak256(abi.encode(seller, uint256(5))), bytes32(uint256(1)));
+        
+        marketplace.endGenesisProgram();
+        
+        vm.startPrank(seller);
+        vm.expectRevert("Genesis program has ended");
+        marketplace.joinGenesis();
+        vm.stopPrank();
+    }
+    
+    function testJoinGenesisRevertsWhenFull() public {
+        address seller = address(0x1B);
+        
+        vm.store(address(marketplace), keccak256(abi.encode(seller, uint256(5))), bytes32(uint256(1)));
+        vm.store(address(marketplace), bytes32(uint256(7)), bytes32(uint256(50)));
+        
+        vm.startPrank(seller);
+        vm.expectRevert("Genesis program is full");
+        marketplace.joinGenesis();
+        vm.stopPrank();
+    }
+    
+    function testJoinGenesisRevertsWhenAlreadyJoined() public {
+        address seller = address(0x1C);
+        
+        vm.store(address(marketplace), keccak256(abi.encode(seller, uint256(5))), bytes32(uint256(1)));
+        
+        vm.startPrank(seller);
+        marketplace.joinGenesis();
+        
+        vm.expectRevert("Already a Genesis Seller");
+        marketplace.joinGenesis();
+        vm.stopPrank();
+    }
+    
+    function testJoinGenesisRevertsWhenNotVerified() public {
+        address seller = address(0x1D);
+        
+        vm.store(address(marketplace), keccak256(abi.encode(seller, uint256(5))), bytes32(uint256(0)));
+        
+        vm.startPrank(seller);
+        vm.expectRevert("Must be verified for Genesis");
+        marketplace.joinGenesis();
+        vm.stopPrank();
+    }
+    
+    function testJoinGenesisMultipleSellers() public {
+        for (uint i = 0; i < 5; i++) {
+            address seller = address(uint160(0x1E + i));
+            vm.store(address(marketplace), keccak256(abi.encode(seller, uint256(5))), bytes32(uint256(1)));
+            
+            vm.prank(seller);
+            marketplace.joinGenesis();
+            
+            assertTrue(marketplace.isGenesisSeller(seller));
+            assertEq(marketplace.genesisSellersCount(), i + 1);
+        }
+    }
+    
+    function testJoinGenesisWithEnhancedVerification() public {
+        address seller = address(0x23);
+        
+        vm.store(address(marketplace), keccak256(abi.encode(seller, uint256(5))), bytes32(uint256(2)));
+        
+        vm.prank(seller);
+        marketplace.joinGenesis();
+        
+        assertTrue(marketplace.isGenesisSeller(seller));
+    }
+    
+    function testJoinGenesisReachesLimit() public {
+        // Test that exactly 50 sellers can join
+        for (uint i = 0; i < 50; i++) {
+            address seller = address(uint160(0x1000 + i));
+            vm.store(address(marketplace), keccak256(abi.encode(seller, uint256(5))), bytes32(uint256(1)));
+            
+            vm.prank(seller);
+            marketplace.joinGenesis();
+        }
+        
+        assertEq(marketplace.genesisSellersCount(), 50);
+        
+        // 51st seller should fail
+        address seller51 = address(0x2000);
+        vm.store(address(marketplace), keccak256(abi.encode(seller51, uint256(5))), bytes32(uint256(1)));
+        
+        vm.prank(seller51);
+        vm.expectRevert("Genesis program is full");
+        marketplace.joinGenesis();
+    }
+}

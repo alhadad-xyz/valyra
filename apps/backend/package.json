@@ -8,6 +8,7 @@
         "migrate": "alembic upgrade head",
         "migrate:create": "alembic revision --autogenerate",
         "lint": "ruff check app tests",
-        "format": "black app tests"
+        "format": "black app tests",
+        "sync-abis": "python3 ../../scripts/sync_abis.py"
     }
 }
