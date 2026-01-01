@@ -12,7 +12,7 @@ class TestIPFSClient:
     def test_init_default_gateway(self):
         """Test initialization with default gateway."""
         client = IPFSClient()
-        assert "cloudflare-ipfs.com" in client.gateway_url
+        assert "https://gateway.lighthouse.storage/ipfs" in client.gateway_url
 
     def test_init_custom_gateway(self):
         """Test initialization with custom gateway."""

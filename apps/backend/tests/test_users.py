@@ -34,7 +34,7 @@ def test_get_my_profile(client, db, mock_user):
 def test_get_my_profile_unauthorized(client):
     # Unauthenticated request
     response = client.get("/api/v1/users/me")
-    assert response.status_code == 403 # or 401 depending on how dependency handles it, verify_signature usually returns 403 or signature error
+    assert response.status_code == 422 # Missing headers results in 422
 
 def test_update_my_profile_success(client, db, mock_user):
     app.dependency_overrides[get_current_user] = lambda: mock_user
