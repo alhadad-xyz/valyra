@@ -42,6 +42,12 @@ def db() -> Generator[Session, None, None]:
 
 
 @pytest.fixture(scope="function")
+def test_db(db: Session) -> Session:
+    """Alias for db fixture to match requirement."""
+    return db
+
+
+@pytest.fixture(scope="function")
 def client(db: Session) -> Generator[TestClient, None, None]:
     """Create a test client with database dependency override."""
     def override_get_db():

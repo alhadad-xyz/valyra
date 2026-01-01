@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     openai_api_key: Optional[str] = None
     admin_api_key: Optional[str] = None  # For securing the agent endpoint
 
+    # Sentry
+    sentry_dsn: Optional[str] = None
+
     # Web3
     base_rpc_url: str = "https://mainnet.base.org"
     base_chain_id: int = 8453

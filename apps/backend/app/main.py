@@ -8,7 +8,24 @@ from app import __version__
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from app.core.rate_limiter import limiter
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+
+# Initialize Sentry
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        traces_sample_rate=1.0,
+        integrations=[
+            FastApiIntegration(transaction_style="url"),
+            SqlalchemyIntegration(),
+        ],
+        environment=settings.environment,
+    )
 
 # Create FastAPI application
 app = FastAPI(
@@ -67,6 +84,9 @@ app.include_router(agent_router, prefix=settings.api_v1_prefix)
 app.include_router(valuation_router, prefix=settings.api_v1_prefix)
 app.include_router(verification_router, prefix=settings.api_v1_prefix)
 app.include_router(disputes_router, prefix=settings.api_v1_prefix)
+
+from app.routes import debug_router
+app.include_router(debug_router, prefix=settings.api_v1_prefix, tags=["debug"])
 
 from fastapi import WebSocket, WebSocketDisconnect
 from app.websockets import manager
