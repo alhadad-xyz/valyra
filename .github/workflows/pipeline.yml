@@ -40,8 +40,13 @@ jobs:
       run: poetry install --no-interaction --no-root
 
     - name: Run Tests
-      # Assuming tests don't require external services or env vars are mocked.
-      # If .env is needed, we might need to create a dummy one or use variables.
+      env:
+        DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/valyra_test"
+        SUPABASE_URL: "https://example.supabase.co"
+        SUPABASE_KEY: "dummy_key"
+        SUPABASE_SERVICE_KEY: "dummy_service_key"
+        GEMINI_API_KEY: "dummy_api_key"
+        SECRET_KEY: "supersecret_testing_key"
       run: poetry run pytest
 
   build-and-deploy:
