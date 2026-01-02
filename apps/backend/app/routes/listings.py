@@ -43,7 +43,7 @@ async def create_listing(
 
 
 @router.get("/", response_model=List[ListingResponse])
-@limiter.limit("100/minute")
+# @limiter.limit("100/minute")  # Temporarily disabled due to Redis connection issues on Koyeb
 async def get_listings(
     request: Request,
     skip: int = Query(0, ge=0),
