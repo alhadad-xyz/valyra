@@ -1,9 +1,10 @@
 from typing import List, Optional
 from uuid import UUID
+from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models.listing import Listing, ListingStatus
+from app.models.listing import Listing, ListingStatus, AssetType
 from app.models.user import User
 from app.schemas.listing import ListingCreate, ListingUpdate, ListingResponse
 from app.dependencies import get_current_user
@@ -48,6 +49,9 @@ async def get_listings(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     status: Optional[ListingStatus] = None,
+    asset_type: Optional[AssetType] = None,
+    min_price: Optional[Decimal] = None,
+    max_price: Optional[Decimal] = None,
     db: Session = Depends(get_db)
 ):
     """
@@ -57,6 +61,12 @@ async def get_listings(
     
     if status:
         query = query.filter(Listing.status == status)
+    if asset_type:
+        query = query.filter(Listing.asset_type == asset_type)
+    if min_price:
+        query = query.filter(Listing.asking_price >= min_price)
+    if max_price:
+        query = query.filter(Listing.asking_price <= max_price)
         
     listings = query.offset(skip).limit(limit).all()
     return listings
