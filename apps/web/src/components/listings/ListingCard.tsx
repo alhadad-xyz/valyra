@@ -2,14 +2,15 @@
 
 import Image from "next/image";
 import { Button, Badge } from "ui";
+import { formatCurrency } from "@/utils/format";
 
 interface ListingCardProps {
     image: string;
     category: string;
     title: string;
     description: string;
-    askingPrice: string;
-    mrr: string;
+    askingPrice: string | number;
+    mrr: string | number;
     aiValue: string;
     aiValueStatus: "good" | "fair" | "warning";
     trustScore: number;
@@ -21,6 +22,8 @@ interface ListingCardProps {
     verificationLevel?: "Basic" | "Standard" | "Enhanced";
     sellerActivity?: string;
     platformFee?: string;
+    viewCount?: number;
+    showViews?: boolean;
 }
 
 export function ListingCard({
@@ -41,6 +44,8 @@ export function ListingCard({
     verificationLevel,
     sellerActivity,
     platformFee,
+    viewCount,
+    showViews = false,
 }: ListingCardProps) {
     const getAIValueColor = () => {
         switch (aiValueStatus) {
@@ -120,7 +125,7 @@ export function ListingCard({
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-lg font-bold text-text-main dark:text-white">{askingPrice}</p>
+                                <p className="text-lg font-bold text-text-main dark:text-white">{formatCurrency(askingPrice)}</p>
                                 <div className={`inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded text-[10px] font-bold border ${getAIValueColor()}`}>
                                     <span className="material-symbols-outlined text-[12px] filled">smart_toy</span>
                                     AI Value: {aiValue}
@@ -128,7 +133,7 @@ export function ListingCard({
                             </div>
                             <div className="text-right">
                                 <p className="text-xs text-text-muted mb-0.5">Monthly Revenue</p>
-                                <p className="text-lg font-bold text-text-main dark:text-white">{mrr}</p>
+                                <p className="text-lg font-bold text-text-main dark:text-white">{formatCurrency(mrr)}</p>
                             </div>
                         </div>
                         <div className="flex gap-2 flex-wrap">
@@ -153,7 +158,13 @@ export function ListingCard({
     return (
         <div className="bg-white dark:bg-background-dark-elevated rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
             <div className="h-40 relative">
-                <Image fill className="object-cover" src={image} alt={title} />
+                {image ? (
+                    <Image fill className="object-cover" src={image} alt={title} />
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-gray-400 dark:text-gray-600 text-5xl">image</span>
+                    </div>
+                )}
                 <span className="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur text-[10px] font-bold px-2 py-1 rounded text-text-main dark:text-white">
                     {category}
                 </span>
@@ -179,10 +190,10 @@ export function ListingCard({
                 <div className="flex flex-col gap-1 mb-3">
                     <div className="flex justify-between items-center text-sm">
                         <div className="flex flex-col">
-                            <span className="font-bold text-text-main dark:text-white">{askingPrice}</span>
+                            <span className="font-bold text-text-main dark:text-white">{formatCurrency(askingPrice)}</span>
                             {platformFee && <span className="text-[9px] text-primary">+2.5% fee</span>}
                         </div>
-                        <span className="text-text-muted text-xs">MRR: {mrr}</span>
+                        <span className="text-text-muted text-xs">MRR: {formatCurrency(mrr)}</span>
                     </div>
                     <div className="flex justify-start">
                         <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium border ${getAIValueColor()}`}>
@@ -191,7 +202,7 @@ export function ListingCard({
                     </div>
                 </div>
                 <div className="flex gap-1 mb-3 mt-auto flex-wrap">
-                    {techStack.slice(0, 2).map((tech, index) => (
+                    {(techStack || []).slice(0, 2).map((tech, index) => (
                         <span
                             key={index}
                             className="px-1.5 py-0.5 bg-gray-50 dark:bg-gray-800 rounded text-[9px] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700"
@@ -200,6 +211,12 @@ export function ListingCard({
                         </span>
                     ))}
                 </div>
+                {showViews && viewCount !== undefined && viewCount > 0 && (
+                    <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 mb-2">
+                        <span className="material-symbols-outlined text-sm">visibility</span>
+                        {viewCount.toLocaleString()} views
+                    </div>
+                )}
                 <Button variant="outline" fullWidth size="sm" className="mt-auto">
                     View Details
                 </Button>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valyra Auth Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        input {
+            padding: 8px;
+            width: 300px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #0070f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            display: block;
+            margin: 10px 0;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #0051a2;
+        }
+
+        .section {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        code {
+            background: #eee;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        #log {
+            white-space: pre-wrap;
+            background: #333;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            min-height: 200px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Auth Test Harness</h1>
+
+    <div>
+        <label>Current User ID:</label><br>
+        <input type="text" id="userId" placeholder="Enter UUID from create_test_user.py">
+    </div>
+
+    <div class="section">
+        <h3>🔑 Passkey (WebAuthn)</h3>
+        <button onclick="registerPasskey()">Register New Passkey</button>
+        <button onclick="loginPasskey()">Login with Passkey</button>
+    </div>
+
+    <div class="section">
+        <h3>🦆 Google OAuth</h3>
+        <button onclick="loginGoogle()">Login with Google</button>
+    </div>
+
+    <div id="log">Log output...</div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api/v1';
+
+        function log(msg, error = false) {
+            const el = document.getElementById('log');
+            const color = error ? '#ff5555' : '#00ff00';
+            el.innerHTML += `<div style="color:${color}">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+            el.scrollTop = el.scrollHeight;
+            console.log(msg);
+        }
+
+        function getUserID() {
+            const id = document.getElementById('userId').value.trim();
+            if (!id) {
+                log('❌ Please enter a User ID first.', true);
+                return null;
+            }
+            return id;
+        }
+
+        // --- Helpers for Base64URL Conversion ---
+        function bufferToBase64URL(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let string = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                string += String.fromCharCode(bytes[i]);
+            }
+            return btoa(string)
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=/g, '');
+        }
+
+        function base64URLToBuffer(base64URL) {
+            const base64 = base64URL.replace(/-/g, '+').replace(/_/g, '/');
+            const padLen = (4 - (base64.length % 4)) % 4;
+            const padded = base64 + '='.repeat(padLen);
+            const binary = atob(padded);
+            const buffer = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                buffer[i] = binary.charCodeAt(i);
+            }
+            return buffer.buffer;
+        }
+
+        // --- Passkey Registration ---
+        async function registerPasskey() {
+            const userId = getUserID();
+            if (!userId) return;
+
+            try {
+                log('🚀 Starting Registration...');
+                // 1. Get Options
+                const optsRes = await fetch(`${API_BASE}/auth/passkey/register/options`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId })
+                });
+
+                if (!optsRes.ok) throw new Error(await optsRes.text());
+                const options = await optsRes.json();
+
+                // Convert Base64URL to Buffer for WebAuthn API
+                options.user.id = base64URLToBuffer(options.user.id);
+                options.challenge = base64URLToBuffer(options.challenge);
+                if (options.excludeCredentials) {
+                    options.excludeCredentials.forEach(cre => {
+                        cre.id = base64URLToBuffer(cre.id);
+                    });
+                }
+
+                log('📲 Prompting Authenticator...');
+                const credential = await navigator.credentials.create({ publicKey: options });
+
+                // 2. Send Response
+                const credentialData = {
+                    id: credential.id,
+                    rawId: bufferToBase64URL(credential.rawId),
+                    type: credential.type,
+                    response: {
+                        attestationObject: bufferToBase64URL(credential.response.attestationObject),
+                        clientDataJSON: bufferToBase64URL(credential.response.clientDataJSON)
+                    }
+                };
+
+                const verifyRes = await fetch(`${API_BASE}/auth/passkey/register/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        response: credentialData
+                    })
+                });
+
+                if (!verifyRes.ok) throw new Error(await verifyRes.text());
+                const result = await verifyRes.json();
+
+                log(`✅ Registration Successful! ${JSON.stringify(result)}`);
+
+            } catch (e) {
+                log(`❌ Registration Failed: ${e.message}`, true);
+            }
+        }
+
+        // --- Passkey Login ---
+        async function loginPasskey() {
+            const userId = getUserID();
+            if (!userId) return;
+
+            try {
+                log('🚀 Starting Login...');
+                // 1. Get Options
+                const optsRes = await fetch(`${API_BASE}/auth/passkey/login/options`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId })
+                });
+
+                if (!optsRes.ok) throw new Error(await optsRes.text());
+                const options = await optsRes.json();
+
+                options.challenge = base64URLToBuffer(options.challenge);
+                if (options.allowCredentials) {
+                    options.allowCredentials.forEach(cre => {
+                        cre.id = base64URLToBuffer(cre.id);
+                    });
+                }
+
+                log('📲 Prompting Authenticator...');
+                const credential = await navigator.credentials.get({ publicKey: options });
+
+                // 2. Send Response
+                const credentialData = {
+                    id: credential.id,
+                    rawId: bufferToBase64URL(credential.rawId),
+                    type: credential.type,
+                    response: {
+                        authenticatorData: bufferToBase64URL(credential.response.authenticatorData),
+                        clientDataJSON: bufferToBase64URL(credential.response.clientDataJSON),
+                        signature: bufferToBase64URL(credential.response.signature),
+                        userHandle: credential.response.userHandle ? bufferToBase64URL(credential.response.userHandle) : null
+                    }
+                };
+
+                const verifyRes = await fetch(`${API_BASE}/auth/passkey/login/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        response: credentialData
+                    })
+                });
+
+                if (!verifyRes.ok) throw new Error(await verifyRes.text());
+                const result = await verifyRes.json();
+
+                log(`✅ Login Successful! ${JSON.stringify(result)}`);
+
+            } catch (e) {
+                log(`❌ Login Failed: ${e.message}`, true);
+            }
+        }
+
+        // --- Google Login ---
+        async function loginGoogle() {
+            const userId = getUserID();
+            if (!userId) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/auth/google/login?user_id=${userId}`);
+                if (!res.ok) throw new Error(await res.text());
+                const data = await res.json();
+
+                log(`🔗 Redirecting to Google...`);
+                window.location.href = data.url;
+            } catch (e) {
+                log(`❌ Google Login Failed: ${e.message}`, true);
+            }
+        }
+    </script>
+</body>
+
+</html>

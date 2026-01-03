@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -12,7 +13,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @dev Core marketplace contract for managing listings, seller registration, and IP assignment
  * @notice This is a skeleton implementation with function signatures for the Valyra marketplace
  */
-contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable {
+contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuard, UUPSUpgradeable {
     
     // ============ Enums ============
     
@@ -190,7 +191,7 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
         bytes32 ipAssignmentHash,
         bytes memory sellerSignature,
         string memory buildId
-    ) external whenNotPaused returns (uint256 listingId) {
+    ) external whenNotPaused nonReentrant returns (uint256 listingId) {
         require(sellerStakes[msg.sender].isActive, "Must stake to list");
         require(bytes(title).length > 0, "Title cannot be empty");
         require(askingPrice > 0, "Price must be greater than 0");
@@ -249,7 +250,20 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
         uint256 newPrice
     ) external onlySeller(listingId) whenNotPaused {
         require(listings[listingId].state == ListingState.ACTIVE, "Listing not active");
-        // Implementation to be added
+        
+        Listing storage listing = listings[listingId];
+        
+        // Update metadata if provided
+        if (bytes(ipfsMetadata).length > 0) {
+            listing.ipfsMetadata = ipfsMetadata;
+        }
+        
+        // Update price if provided and valid
+        if (newPrice > 0) {
+            listing.askingPrice = newPrice;
+        }
+        
+        emit ListingUpdated(listingId, ipfsMetadata, newPrice);
     }
     
     /**
@@ -276,7 +290,15 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
      */
     function pauseListing(uint256 listingId) external onlyAgent {
         require(listings[listingId].state == ListingState.ACTIVE, "Listing not active");
-        // Implementation to be added
+        
+        listings[listingId].state = ListingState.PAUSED;
+        
+        // Decrement active listings count
+        if (activeListingsCount[listings[listingId].seller] > 0) {
+            activeListingsCount[listings[listingId].seller]--;
+        }
+        
+        emit ListingPaused(listingId, "Health check failed");
     }
     
     /**
@@ -285,7 +307,11 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
      */
     function resumeListing(uint256 listingId) external onlySeller(listingId) {
         require(listings[listingId].state == ListingState.PAUSED, "Listing not paused");
-        // Implementation to be added
+        
+        listings[listingId].state = ListingState.ACTIVE;
+        activeListingsCount[msg.sender]++;
+        
+        emit ListingResumed(listingId);
     }
     
     /**
@@ -298,8 +324,35 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
         uint256 offset,
         uint256 limit
     ) external view returns (Listing[] memory activeListings) {
-        // Implementation to be added
-        activeListings = new Listing[](0);
+        uint256 total = _listingIdCounter;
+        uint256 count = 0;
+        
+        // First pass: count active listings
+        for (uint256 i = 0; i < total; i++) {
+            if (listings[i].state == ListingState.ACTIVE) {
+                count++;
+            }
+        }
+        
+        // Adjust limit if needed
+        if (limit > count - offset) {
+            limit = count - offset;
+        }
+        
+        activeListings = new Listing[](limit);
+        uint256 added = 0;
+        uint256 skipped = 0;
+        
+        for (uint256 i = 0; i < total && added < limit; i++) {
+            if (listings[i].state == ListingState.ACTIVE) {
+                if (skipped < offset) {
+                    skipped++;
+                } else {
+                    activeListings[added] = listings[i];
+                    added++;
+                }
+            }
+        }
     }
     
     /**
@@ -309,14 +362,26 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
      */
     function verifyBuildId(uint256 listingId, bool verified) external onlyAgent {
         require(listings[listingId].id == listingId, "Listing does not exist");
-        // Implementation to be added
+        
+        listings[listingId].buildIdVerified = verified;
+        
+        if (verified && listings[listingId].verificationLevel == VerificationLevel.STANDARD) {
+             listings[listingId].verificationLevel = VerificationLevel.ENHANCED;
+        }
+        
+        emit BuildIdVerified(listingId, verified);
     }
     
     /**
      * @dev Records a heartbeat for seller activity tracking
      */
     function recordHeartbeat() external {
-        // Implementation to be added
+        SellerActivity storage activity = sellerActivity[msg.sender];
+        activity.lastHeartbeat = block.timestamp;
+        activity.seller = msg.sender; // Ensure seller address is set
+        activity.isActive = true;
+        
+        emit HeartbeatRecorded(msg.sender, block.timestamp);
     }
     
     /**
@@ -338,7 +403,7 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     /**
      * @dev Stakes IDRX to become a seller
      */
-    function stakeToSell() external {
+    function stakeToSell() external nonReentrant {
         require(sellerStakes[msg.sender].stakeAmount == 0, "Already staked");
         
         // Genesis Seller Program: First 50 verified sellers (Level 2+) get free listing
@@ -372,13 +437,21 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
             
             emit SellerStaked(msg.sender, MINIMUM_SELLER_STAKE);
         }
+        
+        // Initialize seller activity
+        SellerActivity storage activity = sellerActivity[msg.sender];
+        activity.seller = msg.sender;
+        activity.lastHeartbeat = block.timestamp;
+        activity.isActive = true;
+        
+        emit HeartbeatRecorded(msg.sender, block.timestamp);
     }
     
     /**
      * @dev Withdraws staked IDRX (only if no active listings)
      * @param amount Amount to withdraw
      */
-    function withdrawStake(uint256 amount) external {
+    function withdrawStake(uint256 amount) external nonReentrant {
         require(sellerStakes[msg.sender].isActive, "No active stake");
         require(activeListingsCount[msg.sender] == 0, "Cannot withdraw with active listings");
         require(amount > 0, "Amount must be greater than 0");
@@ -406,7 +479,18 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
      * @param seller Address of the seller to pause
      */
     function pauseInactiveSeller(address seller) external onlyAgent {
-        // Implementation to be added
+        (bool needsWarning, bool shouldPause) = checkSellerActivity(seller);
+        
+        if (shouldPause) {
+            SellerActivity storage activity = sellerActivity[seller];
+            activity.isPaused = true;
+            activity.isActive = false;
+            
+            // Should also potentially pause their listings
+            // For MVP we just mark them as paused seller
+            
+            emit SellerPaused(seller);
+        }
     }
     
     /**

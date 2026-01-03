@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Valyra - Escrow Transaction Tracker</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Theme Configuration -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f9f506",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#23220f",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#2c2b1b",
+                        "text-main": "#181811",
+                        "text-muted": "#8c8b5f",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "1.5rem", "xl": "2rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: "Spline Sans", "Noto Sans", sans-serif;
+        }
+
+        /* Custom scrollbar for sidebar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #e6e6db;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-text-main dark:text-white transition-colors duration-200 min-h-screen flex flex-col">
+    <!-- Top Navigation -->
+    <header
+        class="flex items-center justify-between border-b border-solid border-[#e6e6db] dark:border-[#3a392a] px-6 py-4 bg-surface-light dark:bg-surface-dark sticky top-0 z-50">
+        <div class="flex items-center gap-4">
+            <div class="size-8 rounded-lg bg-primary flex items-center justify-center text-text-main">
+                <span class="material-symbols-outlined font-bold">token</span>
+            </div>
+            <h2 class="text-text-main dark:text-white text-xl font-bold tracking-tight">Valyra</h2>
+        </div>
+        <div class="hidden md:flex items-center gap-8">
+            <a class="text-text-main dark:text-white text-sm font-medium hover:text-primary transition-colors"
+                href="#">Marketplace</a>
+            <a class="text-text-main dark:text-white text-sm font-medium hover:text-primary transition-colors"
+                href="#">My Deals</a>
+            <a class="text-text-main dark:text-white text-sm font-medium hover:text-primary transition-colors"
+                href="#">Wallet</a>
+            <a class="text-text-main dark:text-white text-sm font-medium hover:text-primary transition-colors"
+                href="#">Governance</a>
+        </div>
+        <div class="flex gap-3">
+            <button
+                class="flex items-center justify-center rounded-full h-10 w-10 bg-background-light dark:bg-[#3a392a] hover:bg-primary/20 transition-colors">
+                <span class="material-symbols-outlined text-text-main dark:text-white text-[20px]">notifications</span>
+            </button>
+            <button
+                class="hidden sm:flex items-center justify-center rounded-full h-10 px-5 bg-primary text-text-main text-sm font-bold tracking-wide hover:brightness-105 transition-all">
+                <span>Connect Wallet</span>
+            </button>
+        </div>
+    </header>
+    <!-- Main Content Layout -->
+    <main class="flex-1 w-full max-w-[1440px] mx-auto p-4 md:p-6 lg:p-10">
+        <!-- Transaction Header & Stepper -->
+        <div class="mb-10 flex flex-col gap-8">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-3">
+                        <h1 class="text-3xl md:text-4xl font-black tracking-tight text-text-main dark:text-white">
+                            Transaction #VLY-8842
+                        </h1>
+                        <span
+                            class="inline-flex items-center px-3 py-1 rounded-full bg-primary/20 text-text-main dark:text-primary text-xs font-bold uppercase tracking-wider border border-primary/30">
+                            Verification Active
+                        </span>
+                    </div>
+                    <p class="text-text-muted dark:text-gray-400 text-sm font-medium">Started on Oct 24, 2023 • Smart
+                        Contract: 0x8f...3a21</p>
+                </div>
+                <div class="flex gap-2">
+                    <button
+                        class="flex items-center gap-2 px-4 h-10 rounded-full border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-900/20 text-sm font-bold transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">gavel</span>
+                        Raise Dispute
+                    </button>
+                </div>
+            </div>
+            <!-- Visual Stepper -->
+            <div class="w-full overflow-x-auto pb-4">
+                <div class="min-w-[768px] flex items-center justify-between relative px-4">
+                    <!-- Progress Line Background -->
+                    <div
+                        class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-[#e6e6db] dark:bg-[#3a392a] -z-10 rounded-full">
+                    </div>
+                    <!-- Step 1: Funded -->
+                    <div class="flex flex-col items-center gap-2 group">
+                        <div
+                            class="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-4 border-white dark:border-background-dark shadow-sm">
+                            <span class="material-symbols-outlined text-text-main text-sm font-bold">check</span>
+                        </div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-text-main dark:text-white">Funded</p>
+                    </div>
+                    <!-- Step 2: Delivered -->
+                    <div class="flex flex-col items-center gap-2 group">
+                        <div
+                            class="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-4 border-white dark:border-background-dark shadow-sm">
+                            <span class="material-symbols-outlined text-text-main text-sm font-bold">check</span>
+                        </div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-text-main dark:text-white">Delivered
+                        </p>
+                    </div>
+                    <!-- Step 3: Verified (Active) -->
+                    <div class="flex flex-col items-center gap-2 relative">
+                        <div
+                            class="absolute -top-12 bg-text-main text-white dark:bg-primary dark:text-text-main text-[10px] font-bold px-2 py-1 rounded mb-1 animate-bounce">
+                            Current Step
+                        </div>
+                        <div
+                            class="w-10 h-10 rounded-full bg-white dark:bg-background-dark border-[3px] border-primary flex items-center justify-center z-10 shadow-[0_0_15px_rgba(249,245,6,0.4)]">
+                            <div class="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+                        </div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-primary">Verified</p>
+                    </div>
+                    <!-- Step 4: Released -->
+                    <div class="flex flex-col items-center gap-2 group opacity-50">
+                        <div
+                            class="w-10 h-10 rounded-full bg-[#e6e6db] dark:bg-[#3a392a] flex items-center justify-center border-4 border-white dark:border-background-dark">
+                            <span class="text-xs font-bold text-text-muted">4</span>
+                        </div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-text-muted">Released</p>
+                    </div>
+                    <!-- Step 5: Transition -->
+                    <div class="flex flex-col items-center gap-2 group opacity-50">
+                        <div
+                            class="w-10 h-10 rounded-full bg-[#e6e6db] dark:bg-[#3a392a] flex items-center justify-center border-4 border-white dark:border-background-dark">
+                            <span class="text-xs font-bold text-text-muted">5</span>
+                        </div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-text-muted">Transition</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- LEFT COLUMN: Main Workspace (8 cols) -->
+            <div class="lg:col-span-8 flex flex-col gap-6">
+                <!-- Main Action: Credential Vault -->
+                <div
+                    class="bg-surface-light dark:bg-surface-dark rounded-xl p-6 shadow-sm border border-[#e6e6db] dark:border-[#3a392a] relative overflow-hidden group">
+                    <!-- Decorative background element -->
+                    <div
+                        class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none">
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-center relative z-10">
+                        <!-- Visual Indicator -->
+                        <div class="w-full md:w-48 h-32 md:h-48 rounded-lg bg-cover bg-center shrink-0 border border-[#e6e6db] dark:border-[#3a392a]"
+                            data-alt="Abstract block chain security visualization with lock and digital patterns"
+                            style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDiBAR3wE6bVUSbl7eMhZC7_PEwtvbSf_MitGWcRgZsH2jPVyX7rpa3uBSp3dWKu-EFuAQYTWKuoBiSaH0yMWr_NolpkBp2p-G-lxnyr3pN3vKXL-D_91xlaA8UUpael5ATyJ6m0k34FBGQ7krOYU4_s4ofvI2KbFB20F6yAzE9PvY78NT3hDs4aBd4eY1NeNnSlAEKyDsq4faMW-yYg39lxOCcrv5aOG5WjEZx-NepwcWSM0wrdUc0BzNemO69-raYCValtSNXbaYd');">
+                        </div>
+                        <div class="flex-1 flex flex-col gap-4 w-full">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-xl font-bold text-text-main dark:text-white leading-tight">
+                                        Credential Vault</h3>
+                                    <p class="text-text-muted text-sm mt-1">Encrypted on-chain storage. Seller has
+                                        uploaded assets.</p>
+                                </div>
+                                <div
+                                    class="bg-primary/10 text-text-main dark:text-primary px-3 py-1.5 rounded-lg text-sm font-mono font-bold flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px]">timer</span>
+                                    71:59:42
+                                </div>
+                            </div>
+                            <div
+                                class="p-3 rounded-lg bg-background-light dark:bg-background-dark border border-[#e6e6db] dark:border-[#3a392a] text-sm text-text-muted">
+                                <div class="flex items-center gap-2 text-text-main dark:text-gray-200 font-medium mb-1">
+                                    <span class="material-symbols-outlined text-[16px] text-primary">lock</span>
+                                    Assets Locked
+                                </div>
+                                Contains: AWS Root Access keys, Domain Transfer Auth Code, Stripe Account Ownership
+                                Transfer.
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-4 mt-2">
+                                <button
+                                    class="flex-1 h-12 bg-primary hover:bg-[#e4e005] text-text-main font-bold rounded-full flex items-center justify-center gap-2 transition-all shadow-[0_4px_0_rgba(200,196,5,0.4)] active:shadow-none active:translate-y-1">
+                                    <span class="material-symbols-outlined">vpn_key</span>
+                                    Decrypt Credentials
+                                </button>
+                                <button
+                                    class="px-6 h-12 bg-transparent hover:bg-background-light dark:hover:bg-[#3a392a] text-text-muted hover:text-text-main dark:hover:text-white font-medium rounded-full transition-colors text-sm">
+                                    Request Extension
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Secondary Actions Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Transition Hold Panel -->
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark rounded-xl p-5 shadow-sm border border-[#e6e6db] dark:border-[#3a392a] flex flex-col h-full justify-between">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="p-2 rounded-lg bg-background-light dark:bg-background-dark">
+                                <span
+                                    class="material-symbols-outlined text-text-main dark:text-white">account_balance_wallet</span>
+                            </div>
+                            <span
+                                class="text-xs font-bold text-text-muted bg-background-light dark:bg-background-dark px-2 py-1 rounded">Smart
+                                Contract</span>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-text-main dark:text-white mb-1">Transition Hold</h4>
+                            <p class="text-sm text-text-muted mb-4">Funds distribution logic</p>
+                            <div class="flex items-center gap-2 mb-2">
+                                <div
+                                    class="flex-1 h-3 bg-[#e6e6db] dark:bg-[#3a392a] rounded-full overflow-hidden flex">
+                                    <div class="h-full bg-primary w-[90%]"></div>
+                                </div>
+                                <span class="text-xs font-bold text-text-main dark:text-white">90%</span>
+                            </div>
+                            <div class="flex justify-between text-xs text-text-muted font-medium">
+                                <span>Immediate Release</span>
+                                <span>10% Retained (30d)</span>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-[#e6e6db] dark:border-[#3a392a]">
+                            <button
+                                class="w-full text-left text-sm font-bold text-text-main dark:text-white hover:text-primary transition-colors flex items-center justify-between group">
+                                View Hold Conditions
+                                <span
+                                    class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Legal Module -->
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark rounded-xl p-5 shadow-sm border border-[#e6e6db] dark:border-[#3a392a] flex flex-col h-full justify-between">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="p-2 rounded-lg bg-background-light dark:bg-background-dark">
+                                <span
+                                    class="material-symbols-outlined text-text-main dark:text-white">verified_user</span>
+                            </div>
+                            <span
+                                class="text-xs font-bold text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded">Signed</span>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-text-main dark:text-white mb-1">e-Meterai Agreement</h4>
+                            <p class="text-sm text-text-muted mb-4">Legally binding acquisition contract</p>
+                            <div
+                                class="flex items-center gap-3 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-[#e6e6db] dark:border-[#3a392a]">
+                                <span class="material-symbols-outlined text-red-500">picture_as_pdf</span>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-bold text-text-main dark:text-white truncate">
+                                        Acquisition_Contract_v2.pdf</p>
+                                    <p class="text-xs text-text-muted">2.4 MB • Signed Oct 23</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-[#e6e6db] dark:border-[#3a392a]">
+                            <button
+                                class="w-full text-center py-2 text-sm font-bold text-text-main dark:text-white border border-[#e6e6db] dark:border-[#3a392a] rounded-full hover:bg-background-light dark:hover:bg-[#3a392a] transition-colors flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-[18px]">download</span>
+                                Download Agreement
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- RIGHT COLUMN: Sidebar (4 cols) -->
+            <div class="lg:col-span-4 flex flex-col gap-6 h-full">
+                <!-- Sidebar Container -->
+                <div
+                    class="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-[#e6e6db] dark:border-[#3a392a] flex flex-col h-[600px] overflow-hidden">
+                    <!-- Sidebar Tabs -->
+                    <div class="flex border-b border-[#e6e6db] dark:border-[#3a392a]">
+                        <button
+                            class="flex-1 py-3 text-sm font-bold text-text-main dark:text-white border-b-2 border-primary bg-primary/5">
+                            Activity Log
+                        </button>
+                        <button
+                            class="flex-1 py-3 text-sm font-medium text-text-muted hover:text-text-main dark:hover:text-white transition-colors">
+                            Secure Chat
+                        </button>
+                    </div>
+                    <!-- Scrollable Content Area -->
+                    <div class="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-6">
+                        <!-- Event Item 1 -->
+                        <div class="flex gap-3">
+                            <div class="flex flex-col items-center">
+                                <div class="w-2 h-2 rounded-full bg-primary mt-2"></div>
+                                <div class="w-px h-full bg-[#e6e6db] dark:bg-[#3a392a] my-1"></div>
+                            </div>
+                            <div class="pb-2">
+                                <p class="text-xs font-bold text-text-muted mb-1">Today, 10:42 AM</p>
+                                <p class="text-sm font-medium text-text-main dark:text-white">Credentials Encrypted
+                                    &amp; Uploaded</p>
+                                <p class="text-xs text-text-muted mt-1 font-mono">Tx: 0x4a...99b2</p>
+                            </div>
+                        </div>
+                        <!-- Event Item 2 -->
+                        <div class="flex gap-3">
+                            <div class="flex flex-col items-center">
+                                <div class="w-2 h-2 rounded-full bg-green-500 mt-2"></div>
+                                <div class="w-px h-full bg-[#e6e6db] dark:bg-[#3a392a] my-1"></div>
+                            </div>
+                            <div class="pb-2">
+                                <p class="text-xs font-bold text-text-muted mb-1">Yesterday, 4:15 PM</p>
+                                <p class="text-sm font-medium text-text-main dark:text-white">Legal Agreement Signed</p>
+                                <div class="flex gap-1 mt-1">
+                                    <span
+                                        class="px-1.5 py-0.5 rounded bg-background-light dark:bg-background-dark border border-[#e6e6db] dark:border-[#3a392a] text-[10px] text-text-muted">Buyer</span>
+                                    <span
+                                        class="px-1.5 py-0.5 rounded bg-background-light dark:bg-background-dark border border-[#e6e6db] dark:border-[#3a392a] text-[10px] text-text-muted">Seller</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Event Item 3 -->
+                        <div class="flex gap-3">
+                            <div class="flex flex-col items-center">
+                                <div class="w-2 h-2 rounded-full bg-green-500 mt-2"></div>
+                                <div class="w-px h-full bg-[#e6e6db] dark:bg-[#3a392a] my-1"></div>
+                            </div>
+                            <div class="pb-2">
+                                <p class="text-xs font-bold text-text-muted mb-1">Oct 24, 09:30 AM</p>
+                                <p class="text-sm font-medium text-text-main dark:text-white">Escrow Funded (15.4 ETH)
+                                </p>
+                            </div>
+                        </div>
+                        <!-- Event Item 4 -->
+                        <div class="flex gap-3">
+                            <div class="flex flex-col items-center">
+                                <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 mt-2"></div>
+                            </div>
+                            <div class="pb-2">
+                                <p class="text-xs font-bold text-text-muted mb-1">Oct 23, 11:20 PM</p>
+                                <p class="text-sm font-medium text-text-main dark:text-white">Transaction Created</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Chat Input Placeholder (Sticky Bottom) -->
+                    <div
+                        class="p-3 bg-background-light dark:bg-background-dark border-t border-[#e6e6db] dark:border-[#3a392a]">
+                        <div class="relative">
+                            <input
+                                class="w-full h-10 pl-4 pr-10 rounded-full border border-[#e6e6db] dark:border-[#3a392a] bg-surface-light dark:bg-surface-dark text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-text-main dark:text-white"
+                                placeholder="Message Seller..." type="text" />
+                            <button
+                                class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-primary hover:text-primary/80">
+                                <span class="material-symbols-outlined text-[20px]">send</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Support Card -->
+                <div class="bg-primary/10 rounded-xl p-4 flex items-center gap-4 border border-primary/20">
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-text-main">
+                        <span class="material-symbols-outlined">smart_toy</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-text-main dark:text-white">AI Broker Assistant</p>
+                        <p class="text-xs text-text-muted">Active and monitoring transaction</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

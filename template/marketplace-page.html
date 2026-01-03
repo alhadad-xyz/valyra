@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Valyra - Marketplace Feed</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f9f506",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#1a1a18",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#232320",
+                        "border-light": "#e6e6db",
+                        "border-dark": "#333330",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "1.5rem", "xl": "2rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen flex flex-col">
+    <div class="bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark px-6 py-2">
+        <div
+            class="max-w-[1440px] mx-auto flex justify-end gap-6 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <a class="hover:text-primary transition-colors" href="#">Support</a>
+            <a class="hover:text-primary transition-colors" href="#">Docs</a>
+            <button class="flex items-center gap-1 hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-[16px]">language</span>
+                <span>English (US)</span>
+            </button>
+        </div>
+    </div>
+    <header
+        class="bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark sticky top-0 z-50">
+        <div class="max-w-[1440px] mx-auto px-6 py-4 flex items-center justify-between gap-8">
+            <a class="flex items-center gap-3 group" href="#">
+                <div class="size-10 bg-primary rounded-xl flex items-center justify-center text-black">
+                    <span class="material-symbols-outlined filled text-2xl font-bold">token</span>
+                </div>
+                <h1
+                    class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white group-hover:text-primary/90 transition-colors">
+                    Valyra</h1>
+            </a>
+            <div class="flex-1 max-w-2xl hidden md:block">
+                <div
+                    class="flex items-center w-full h-12 bg-background-light dark:bg-background-dark rounded-full border border-border-light dark:border-border-dark focus-within:border-primary focus-within:ring-1 focus-within:ring-primary overflow-hidden pl-2">
+                    <button
+                        class="flex items-center gap-1 px-4 py-1.5 h-8 bg-white dark:bg-surface-dark rounded-full text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors border border-border-light dark:border-border-dark">
+                        All Categories
+                        <span class="material-symbols-outlined text-[16px]">expand_more</span>
+                    </button>
+                    <input
+                        class="flex-1 bg-transparent border-none focus:ring-0 text-sm px-4 placeholder:text-slate-400 dark:placeholder:text-slate-500 dark:text-white h-full"
+                        placeholder="Search for micro-startups, SaaS, AI agents..." type="text" />
+                    <button
+                        class="size-10 flex items-center justify-center bg-primary rounded-full mr-1 hover:brightness-95 transition-all">
+                        <span class="material-symbols-outlined text-black">search</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button
+                    class="size-10 rounded-full bg-background-light dark:bg-background-dark hover:bg-slate-200 dark:hover:bg-zinc-700 flex items-center justify-center text-slate-700 dark:text-slate-300 transition-colors relative">
+                    <span class="material-symbols-outlined">visibility</span>
+                </button>
+                <button
+                    class="size-10 rounded-full bg-background-light dark:bg-background-dark hover:bg-slate-200 dark:hover:bg-zinc-700 flex items-center justify-center text-slate-700 dark:text-slate-300 transition-colors relative">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span
+                        class="absolute top-2 right-2 size-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-surface-dark"></span>
+                </button>
+                <button
+                    class="flex items-center gap-2 pl-1 pr-3 py-1 bg-background-light dark:bg-background-dark rounded-full hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors border border-transparent hover:border-border-light dark:hover:border-zinc-600">
+                    <img class="size-8 rounded-full object-cover" data-alt="User profile avatar"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKNBrKfefKCH-GjvJuWlsi6TN_keS5bYF3P2y4lR-00Eoc3WBHjaZYGHdbS_TCWRQTygineD5dmozKpMRE2rrfzJZylWakYjQtQEJ3V_8Xkct8YByAPoIffEhri7iv0gSHCJ3GPafO6vjAH1pMZzOxYDYs6KPUvIcwnLDqJO5jbNqV4KNzfOaj4O0Cu6TmyBwm5PgsZh7XNzTx5NOAL0F16meZVVNNU6FDxKbk9E0UrvgwtCxnn2Jwd79p-ywelzuGJpMBcNTDKSa8" />
+                    <div class="flex flex-col items-start leading-none">
+                        <span class="text-xs font-bold text-slate-900 dark:text-white">0x84...9a2</span>
+                        <span class="text-[10px] font-medium text-slate-500">Connected</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </header>
+    <div class="bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark">
+        <div class="max-w-[1440px] mx-auto px-6 py-3 flex items-center gap-8 overflow-x-auto no-scrollbar">
+            <button
+                class="flex items-center gap-2 bg-primary text-black px-5 py-2.5 rounded-full text-sm font-bold hover:brightness-105 transition-all whitespace-nowrap shadow-sm shadow-primary/20">
+                <span class="material-symbols-outlined">grid_view</span>
+                Browse Categories
+            </button>
+            <nav class="flex items-center gap-6">
+                <a class="text-sm font-bold text-slate-900 dark:text-white border-b-2 border-slate-900 dark:border-primary pb-0.5"
+                    href="#">Genesis Listings</a>
+                <a class="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-b-2 hover:border-slate-300 transition-all pb-0.5 whitespace-nowrap"
+                    href="#">Under $5k</a>
+                <a class="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-b-2 hover:border-slate-300 transition-all pb-0.5 whitespace-nowrap"
+                    href="#">High MRR</a>
+                <a class="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-b-2 hover:border-slate-300 transition-all pb-0.5 whitespace-nowrap"
+                    href="#">Recent Sold</a>
+                <a class="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-b-2 hover:border-slate-300 transition-all pb-0.5 whitespace-nowrap"
+                    href="#">Recently Viewed</a>
+            </nav>
+        </div>
+    </div>
+    <main class="flex-1 max-w-[1440px] mx-auto w-full px-6 py-8 space-y-12">
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-[420px]">
+            <div class="lg:col-span-8 relative rounded-3xl overflow-hidden group">
+                <img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    data-alt="Abstract futuristic dashboard visualization with glowing data nodes"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo5K864hu0-5zBXWxJzZdvgtEI5po9g0-Se1LsMowAmfiiNGwbetHD5rNj35d9IOaG7A7_NaBXGjvL46kav1TIr73TTMyoNf_CjkX4bcnByWpAbodVc_WTTzWDPGntQ3oG-krDZUh8etSlBgcpzKmg57Kqj_MWJ61AfkNihxIuIk_SK7zQLCa6zqdpFomHlJCz3PxPrZ7JCqGMJn75_-W-kh1T2kPvkCO3Hj1MDBNoZeewOULbrXc7UiaIDSySd7_NMgU-IJGHh1bj" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                <div class="relative h-full flex flex-col justify-end p-8 md:p-12 items-start">
+                    <span
+                        class="px-3 py-1 bg-primary text-black text-xs font-bold uppercase tracking-wider rounded-full mb-4">Featured
+                        Asset of the Week</span>
+                    <h2 class="text-3xl md:text-5xl font-bold text-white mb-2 leading-tight flex items-center gap-3">
+                        AI Copywriter SaaS
+                        <span class="size-3 bg-green-500 rounded-full border-2 border-white/20 shadow-sm"
+                            title="Active &lt;24h"></span>
+                    </h2>
+                    <p class="text-slate-200 text-lg md:text-xl mb-6 max-w-xl">Fully autonomous content generation
+                        engine running on Base L2. Verified revenue streams and community governance ready.</p>
+                    <div class="flex flex-wrap items-center gap-6 mb-8">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-green-400 filled">verified</span>
+                            <span class="text-white font-medium">Code Verified</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">trending_up</span>
+                            <span class="text-white font-medium">$12k MRR</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-yellow-400">star</span>
+                            <span class="text-white font-medium">9.8 Trust Score</span>
+                        </div>
+                        <div class="hidden sm:flex items-center gap-2 ml-4 border-l border-white/20 pl-4">
+                            <span
+                                class="text-[10px] font-bold text-white/70 uppercase tracking-widest mr-1">Stack</span>
+                            <span
+                                class="px-2 py-0.5 bg-white/10 rounded text-xs text-white border border-white/20">Next.js</span>
+                            <span
+                                class="px-2 py-0.5 bg-white/10 rounded text-xs text-white border border-white/20">Solidity</span>
+                        </div>
+                    </div>
+                    <button
+                        class="bg-white text-black px-8 py-3 rounded-full font-bold hover:bg-primary transition-colors flex items-center gap-2">
+                        View Listing
+                        <span class="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+            <div
+                class="lg:col-span-4 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-3xl p-8 flex flex-col relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-32 bg-primary/20 blur-[80px] rounded-full -mr-16 -mt-16"></div>
+                <div class="relative z-10 flex-1 flex flex-col">
+                    <div class="mb-4">
+                        <span
+                            class="inline-flex items-center justify-center size-12 rounded-full bg-slate-900 text-white mb-4">
+                            <span class="material-symbols-outlined">rocket_launch</span>
+                        </span>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Genesis Program</h3>
+                        <p class="text-slate-500 dark:text-slate-400 leading-relaxed">Join the cohort of builders
+                            launching micro-startups directly on Valyra. Get audit support and featured placement.</p>
+                    </div>
+                    <div class="mt-auto space-y-4">
+                        <div class="flex -space-x-3 items-center mb-2">
+                            <img class="inline-block size-10 rounded-full ring-2 ring-white dark:ring-surface-dark object-cover"
+                                data-alt="Portrait of a program participant"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDm4aMZUAqnSugB57QmiFSdGiP_R1n1pfO3KzHdmqPz2iFsbScqaCsRbrMdvjgX5RW4yfP8J_4lSEbw8pDeAjd_tpo24WWD3AyvGT483SsKmgXMbaK6C-LSD1gmz_jU0YieowlWrDcLj5aY2zLfvtX43Uc5gjmpO5g0gIsaR99ZUHwhtoeXwwf6B4uXkpCSq0l1xjYwwvbLwAWNSQ8SvroBeJu7Slarwy_KstZnXFFdcVN8aVv9vGQNc7aZReEmftytTWZ5uUz8I2Pa" />
+                            <img class="inline-block size-10 rounded-full ring-2 ring-white dark:ring-surface-dark object-cover"
+                                data-alt="Portrait of a program participant"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAACq2mdjxFRXYRZpCxDmQzrY7-hFQRyU4h-_3aCkpq6f30mB-daaL2LZrv_Ox3GGUUZEX-D85PduHDoIIrVXDTJAxoocglBNSJ36ZVHk7ULnVNkKXOka7NZgW9LziXswMuYoapobGOaDtGW2LhYDTnHqigP7GXlv7jk51EhAfaDI-hFA8yATW4Cyw25n32f6I4vs7J70ksYxObCDj8Eev9WTmmD08POAS6ORi_cs8QbcSgNiAUXRAeCiD2BYGqvaUpiFgjBMSzlOKk" />
+                            <img class="inline-block size-10 rounded-full ring-2 ring-white dark:ring-surface-dark object-cover"
+                                data-alt="Portrait of a program participant"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDk8FlcDBmYbTZyh-dQiUTChDuZnMkibVDohWkRuedzZhRiyhyx5XgwZZ48QQ7vS7IEOtHAhpnL_BvEZN6s0EvQa6-7t5ZGVI7tD-tbbG_f4-Kqwr7Dx4wETOpH5sU_20eh9IoDAduh8uqIuR2KBhdn0GpXa6yQPyiacNcatgMCUMlah0NBMy2625S5zcsXJYNd10wNxrVRB7in0hyhp-SR7Wo_LfS37INH9oIfjhIRe-6-P62mez4MOFivg3SqOZ0h4xAZwapOHl15" />
+                            <div
+                                class="size-10 rounded-full ring-2 ring-white dark:ring-surface-dark bg-slate-100 dark:bg-zinc-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300">
+                                +42</div>
+                        </div>
+                        <button
+                            class="w-full bg-slate-900 dark:bg-white text-white dark:text-black py-3 rounded-full font-bold hover:opacity-90 transition-opacity">
+                            Apply for Cohort 3
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Browse by Niche</h3>
+                <div class="flex gap-2">
+                    <button
+                        class="size-8 rounded-full border border-border-light dark:border-border-dark flex items-center justify-center hover:bg-slate-100 dark:hover:bg-zinc-800"><span
+                            class="material-symbols-outlined text-sm">arrow_back</span></button>
+                    <button
+                        class="size-8 rounded-full border border-border-light dark:border-border-dark flex items-center justify-center hover:bg-slate-100 dark:hover:bg-zinc-800"><span
+                            class="material-symbols-outlined text-sm">arrow_forward</span></button>
+                </div>
+            </div>
+            <div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                <a class="flex flex-col items-center gap-3 min-w-[100px] group" href="#">
+                    <div
+                        class="size-20 rounded-full bg-slate-100 dark:bg-surface-dark border border-border-light dark:border-border-dark flex items-center justify-center group-hover:border-primary group-hover:bg-primary/10 transition-all">
+                        <span
+                            class="material-symbols-outlined text-3xl text-slate-700 dark:text-slate-300 group-hover:text-primary">smart_toy</span>
+                    </div>
+                    <span
+                        class="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">AI
+                        Tools</span>
+                </a>
+                <a class="flex flex-col items-center gap-3 min-w-[100px] group" href="#">
+                    <div
+                        class="size-20 rounded-full bg-slate-100 dark:bg-surface-dark border border-border-light dark:border-border-dark flex items-center justify-center group-hover:border-primary group-hover:bg-primary/10 transition-all">
+                        <span
+                            class="material-symbols-outlined text-3xl text-slate-700 dark:text-slate-300 group-hover:text-primary">shopping_bag</span>
+                    </div>
+                    <span
+                        class="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">E-comm</span>
+                </a>
+                <a class="flex flex-col items-center gap-3 min-w-[100px] group" href="#">
+                    <div
+                        class="size-20 rounded-full bg-slate-100 dark:bg-surface-dark border border-border-light dark:border-border-dark flex items-center justify-center group-hover:border-primary group-hover:bg-primary/10 transition-all">
+                        <span
+                            class="material-symbols-outlined text-3xl text-slate-700 dark:text-slate-300 group-hover:text-primary">cloud</span>
+                    </div>
+                    <span
+                        class="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">SaaS</span>
+                </a>
+                <a class="flex flex-col items-center gap-3 min-w-[100px] group" href="#">
+                    <div
+                        class="size-20 rounded-full bg-slate-100 dark:bg-surface-dark border border-border-light dark:border-border-dark flex items-center justify-center group-hover:border-primary group-hover:bg-primary/10 transition-all">
+                        <span
+                            class="material-symbols-outlined text-3xl text-slate-700 dark:text-slate-300 group-hover:text-primary">currency_bitcoin</span>
+                    </div>
+                    <span
+                        class="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">DeFi</span>
+                </a>
+                <a class="flex flex-col items-center gap-3 min-w-[100px] group" href="#">
+                    <div
+                        class="size-20 rounded-full bg-slate-100 dark:bg-surface-dark border border-border-light dark:border-border-dark flex items-center justify-center group-hover:border-primary group-hover:bg-primary/10 transition-all">
+                        <span
+                            class="material-symbols-outlined text-3xl text-slate-700 dark:text-slate-300 group-hover:text-primary">newspaper</span>
+                    </div>
+                    <span
+                        class="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">Newsletter</span>
+                </a>
+                <a class="flex flex-col items-center gap-3 min-w-[100px] group" href="#">
+                    <div
+                        class="size-20 rounded-full bg-slate-100 dark:bg-surface-dark border border-border-light dark:border-border-dark flex items-center justify-center group-hover:border-primary group-hover:bg-primary/10 transition-all">
+                        <span
+                            class="material-symbols-outlined text-3xl text-slate-700 dark:text-slate-300 group-hover:text-primary">extension</span>
+                    </div>
+                    <span
+                        class="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">Plugins</span>
+                </a>
+                <a class="flex flex-col items-center gap-3 min-w-[100px] group" href="#">
+                    <div
+                        class="size-20 rounded-full bg-slate-100 dark:bg-surface-dark border border-border-light dark:border-border-dark flex items-center justify-center group-hover:border-primary group-hover:bg-primary/10 transition-all">
+                        <span
+                            class="material-symbols-outlined text-3xl text-slate-700 dark:text-slate-300 group-hover:text-primary">school</span>
+                    </div>
+                    <span
+                        class="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">EdTech</span>
+                </a>
+            </div>
+        </section>
+        <section>
+            <div class="flex items-end justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Trending on Valyra</h2>
+                    <p class="text-slate-500 dark:text-slate-400 mt-1">Top performing micro-startups by view count and
+                        bid activity.</p>
+                </div>
+                <a class="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1" href="#">View
+                    All <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div
+                    class="lg:col-span-4 bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark overflow-hidden flex flex-col hover:shadow-xl transition-shadow group">
+                    <div class="h-64 relative overflow-hidden">
+                        <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            data-alt="Modern analytics dashboard interface on a laptop screen"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-OccPAZ2lKWRdSLUD5bqMCz5AivB_Pb4cXEjXklOjiNhT93WM7OVBR-MXeK2TbNHQCMdS11KaVO6zAA5khjp7v374J5h-h_tOTGeq255DWOSA5wO1SarORpizOGSSypbY-2slkTwjn6TrGjttnae2xaSC79bHzVP-oeGetX1tHWRnR_d3_unAha_5J_ljAhBSCrsLtIT5qCbFlkpe_4tRe7TI7pRTtRQU-MWU_HHIm1X2SvkA3g5wfWOiAcgJORDsgtCR8-ahH_OG" />
+                        <div
+                            class="absolute top-4 left-4 bg-primary text-black text-xs font-bold px-3 py-1 rounded-full uppercase">
+                            #1 Trending</div>
+                        <div class="absolute top-4 right-4 bg-black/50 backdrop-blur-md text-white p-2 rounded-full">
+                            <span class="material-symbols-outlined text-sm">favorite</span>
+                        </div>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <div class="flex justify-between items-start mb-2">
+                            <span
+                                class="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded uppercase tracking-wide">FinTech</span>
+                            <div
+                                class="flex items-center gap-1 text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded-lg">
+                                <span class="material-symbols-outlined text-sm filled">verified_user</span>
+                                <span class="text-xs font-bold">99/100</span>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+                            PayFlow Analytics
+                            <span class="size-2 bg-green-500 rounded-full" title="Seller Active &lt;24h"></span>
+                        </h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2">Automated revenue
+                            attribution for Stripe connect accounts. Zero maintenance required.</p>
+                        <div class="mt-auto space-y-4">
+                            <div
+                                class="flex justify-between items-end border-t border-dashed border-border-light dark:border-border-dark pt-4">
+                                <div>
+                                    <p class="text-xs text-slate-500 mb-0.5">Asking Price</p>
+                                    <p class="text-lg font-bold text-slate-900 dark:text-white">45M IDRX</p>
+                                    <div
+                                        class="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800">
+                                        <span class="material-symbols-outlined text-[12px] filled">smart_toy</span>
+                                        AI Value: Rp 46.5M
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-slate-500 mb-0.5">Monthly Revenue</p>
+                                    <p class="text-lg font-bold text-slate-900 dark:text-white">$3,400</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <span
+                                    class="px-2 py-1 bg-slate-100 dark:bg-zinc-800 rounded text-[10px] font-semibold text-slate-600 dark:text-slate-400 border border-border-light dark:border-border-dark">React</span>
+                                <span
+                                    class="px-2 py-1 bg-slate-100 dark:bg-zinc-800 rounded text-[10px] font-semibold text-slate-600 dark:text-slate-400 border border-border-light dark:border-border-dark">Node.js</span>
+                                <span
+                                    class="px-2 py-1 bg-slate-100 dark:bg-zinc-800 rounded text-[10px] font-semibold text-slate-600 dark:text-slate-400 border border-border-light dark:border-border-dark">Stripe</span>
+                            </div>
+                            <button
+                                class="w-full bg-slate-900 dark:bg-white text-white dark:text-black font-bold py-3 rounded-full hover:bg-slate-800 transition-colors">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+                        <div class="h-40 relative">
+                            <img class="w-full h-full object-cover" data-alt="Data visualization graph"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAM6KP51vPE_m9AnYlupBlHCbgo6_wkc2VQNZc0s-8Wgw0iwvAYr6bhh-QwxEeDrPMJXrtrGnyMzGU3me2c9VKlHWT-IuMsqxweekZn5lZmopi3zNTYtWlVxwde72F17dmPLXCjn34BKYYNiY4fm711atuCzf84jK0o5dJgYBnPHy4mMSObdE4FxbFgbQTmVNfX3B5hYH_8TYunDcR5i6G0WNJgay0egy4oMbsa4YBjksDIUCscjnM95ilX73kZsDgt-4vG5v4Mb4CC" />
+                            <span
+                                class="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur text-[10px] font-bold px-2 py-1 rounded text-slate-900 dark:text-white">SAAS</span>
+                        </div>
+                        <div class="p-4 flex flex-col flex-1">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-slate-900 dark:text-white truncate flex items-center gap-1.5">
+                                    RankTracker.io
+                                    <span class="size-2 bg-green-500 rounded-full shrink-0" title="Active"></span>
+                                </h4>
+                                <span class="text-green-600 text-xs font-bold flex items-center gap-0.5"><span
+                                        class="material-symbols-outlined text-[14px] filled">shield</span> 95</span>
+                            </div>
+                            <div class="flex flex-col gap-1 mb-3">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="font-bold text-slate-900 dark:text-white">12.5M IDRX</span>
+                                    <span class="text-slate-500 text-xs">MRR: $850</span>
+                                </div>
+                                <div class="flex justify-start">
+                                    <span
+                                        class="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 font-medium">AI
+                                        Value: Rp 9.5M</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-1 mb-3 mt-auto">
+                                <span
+                                    class="px-1.5 py-0.5 bg-slate-50 dark:bg-zinc-800 rounded text-[9px] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">Vue</span>
+                                <span
+                                    class="px-1.5 py-0.5 bg-slate-50 dark:bg-zinc-800 rounded text-[9px] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">Firebase</span>
+                            </div>
+                            <button
+                                class="w-full py-2 rounded-full border border-border-light dark:border-border-dark font-bold text-xs hover:bg-primary hover:border-primary hover:text-black transition-colors">View
+                                Details</button>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+                        <div class="h-40 relative">
+                            <img class="w-full h-full object-cover" data-alt="Social media app interface"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWkYF67wZi78BAxHuE6u-8BaBwKXOiYv_ZIzEDqiMr5FXPrGjownoUa1UfNvaZLWXKaoK5h1Zgj-F_h3pwgk1v8K2R8sVOMbl97ba3MProASlZ_Wj8Z5o816qkL1Lzxe4r7KCVwbDurPDRDLctxWo_ZiH0KRFz7__gwDINOFb-4wov4Au73iRYFW8RykepnkwYIEWbQSBO1-c2tVbzBFDX92qTQiS9iRRwPiVQ61mXOXPAl-2_5TJ1Cr5Tuttu3Acp51Y55gqkA8mG" />
+                            <span
+                                class="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur text-[10px] font-bold px-2 py-1 rounded text-slate-900 dark:text-white">SOCIAL</span>
+                        </div>
+                        <div class="p-4 flex flex-col flex-1">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-slate-900 dark:text-white truncate flex items-center gap-1.5">
+                                    InstaGrow
+                                    <span class="size-2 bg-green-500 rounded-full shrink-0" title="Active"></span>
+                                </h4>
+                                <span class="text-green-600 text-xs font-bold flex items-center gap-0.5"><span
+                                        class="material-symbols-outlined text-[14px] filled">shield</span> 88</span>
+                            </div>
+                            <div class="flex flex-col gap-1 mb-3">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="font-bold text-slate-900 dark:text-white">5M IDRX</span>
+                                    <span class="text-slate-500 text-xs">MRR: $400</span>
+                                </div>
+                                <div class="flex justify-start">
+                                    <span
+                                        class="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">AI
+                                        Value: Rp 5.2M</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-1 mb-3 mt-auto">
+                                <span
+                                    class="px-1.5 py-0.5 bg-slate-50 dark:bg-zinc-800 rounded text-[9px] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">React
+                                    Native</span>
+                            </div>
+                            <button
+                                class="w-full py-2 rounded-full border border-border-light dark:border-border-dark font-bold text-xs hover:bg-primary hover:border-primary hover:text-black transition-colors">View
+                                Details</button>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+                        <div class="h-40 relative">
+                            <img class="w-full h-full object-cover" data-alt="Cryptocurrency charts"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOltjvtmF0io8pwLZdS0hD7ozolVh0xlekBH6jvP1XOvZNyHcxudEsEZLNP5BflRWzoOVwnGOn3G8qgMhGIJs1GX0fnj-RyFFrSbi6jdtY-NSWlk2LODmpra1kU3ofTyjlvrXyRINt0p_Nj132fV--U1eTx3Y6rsnt4eDU6dw65USREHNrUuQZOM0kUE3di4K2fy7ZGls8Z85XXVPbmKZjMLZ9U_5CvH0NQUeBFEr5P6xvL7m7KesJv4nVY5DdUEhRA7yrw8lIZ3zg" />
+                            <span
+                                class="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur text-[10px] font-bold px-2 py-1 rounded text-slate-900 dark:text-white">DEFI</span>
+                        </div>
+                        <div class="p-4 flex flex-col flex-1">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-slate-900 dark:text-white truncate flex items-center gap-1.5">
+                                    CoinSwap UI
+                                    <span class="size-2 bg-green-500 rounded-full shrink-0" title="Active"></span>
+                                </h4>
+                                <span class="text-yellow-600 text-xs font-bold flex items-center gap-0.5"><span
+                                        class="material-symbols-outlined text-[14px] filled">shield</span> 76</span>
+                            </div>
+                            <div class="flex flex-col gap-1 mb-3">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="font-bold text-slate-900 dark:text-white">22M IDRX</span>
+                                    <span class="text-slate-500 text-xs">MRR: $1.2k</span>
+                                </div>
+                                <div class="flex justify-start">
+                                    <span
+                                        class="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 font-medium">AI
+                                        Value: Rp 18M</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-1 mb-3 mt-auto">
+                                <span
+                                    class="px-1.5 py-0.5 bg-slate-50 dark:bg-zinc-800 rounded text-[9px] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">Solidity</span>
+                                <span
+                                    class="px-1.5 py-0.5 bg-slate-50 dark:bg-zinc-800 rounded text-[9px] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">Web3.js</span>
+                            </div>
+                            <button
+                                class="w-full py-2 rounded-full border border-border-light dark:border-border-dark font-bold text-xs hover:bg-primary hover:border-primary hover:text-black transition-colors">View
+                                Details</button>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+                        <div class="h-40 relative">
+                            <img class="w-full h-full object-cover" data-alt="Coding on a laptop"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTovMk00iseZ_GwtmG-4r3WIIjo860-4bpc4pPaGEhaOIl1qP-6e-70iqTA0kNrviQ5lLdHMrM2dYcBEnJLOj7H-WzPEo73rs4uSPsXURSohmoINwRC55aQcrD3ptOWe2kT1wLPc35WDvyH2bM3DjS_77yiZBe33dIKIijjgzZPfT-7q_5eGFH5EQ2INmaehcZtlhARb0Fp88PwGJfnGalT9QACPk5BSlD22pM-S_bogC1TLbe49_0i-HZ5hf5kJwrG3dkoGphTkbl" />
+                            <span
+                                class="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur text-[10px] font-bold px-2 py-1 rounded text-slate-900 dark:text-white">DEVTOOL</span>
+                        </div>
+                        <div class="p-4 flex flex-col flex-1">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-slate-900 dark:text-white truncate flex items-center gap-1.5">
+                                    GitFlow Pro
+                                    <span class="size-2 bg-green-500 rounded-full shrink-0" title="Active"></span>
+                                </h4>
+                                <span class="text-green-600 text-xs font-bold flex items-center gap-0.5"><span
+                                        class="material-symbols-outlined text-[14px] filled">shield</span> 92</span>
+                            </div>
+                            <div class="flex flex-col gap-1 mb-3">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="font-bold text-slate-900 dark:text-white">8M IDRX</span>
+                                    <span class="text-slate-500 text-xs">MRR: $600</span>
+                                </div>
+                                <div class="flex justify-start">
+                                    <span
+                                        class="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">AI
+                                        Value: Rp 8.1M</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-1 mb-3 mt-auto">
+                                <span
+                                    class="px-1.5 py-0.5 bg-slate-50 dark:bg-zinc-800 rounded text-[9px] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">Go</span>
+                                <span
+                                    class="px-1.5 py-0.5 bg-slate-50 dark:bg-zinc-800 rounded text-[9px] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">Docker</span>
+                            </div>
+                            <button
+                                class="w-full py-2 rounded-full border border-border-light dark:border-border-dark font-bold text-xs hover:bg-primary hover:border-primary hover:text-black transition-colors">View
+                                Details</button>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+                        <div class="h-40 relative">
+                            <img class="w-full h-full object-cover" data-alt="Writing on paper"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTH7H3QgvdguHATMFUpWmgT4e43xbXyTSpbFn81EOkRnwjwbTbXgl85Kp7oMl4rtR-GXElalLg8UBW1_0hcLKkWYU-epVoeYVr_kXztRLTmVTdZU_eNGABXcSrc4_mzkXxKccy0QrWZrV210ReH5C5bpTv3mHsixhysE6ctE-KqKbBxpzHiqznYr8srscPj8rDjl3zIbH_V-ziNpL6qqA4-hloIFoWtGCmf3dTp5ZK61CYpImCnDhsblG9LyetH7s1y47mdPVRd0xB" />
+                            <span
+                                class="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur text-[10px] font-bold px-2 py-1 rounded text-slate-900 dark:text-white">CONTENT</span>
+                        </div>
+                        <div class="p-4 flex flex-col flex-1">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-slate-900 dark:text-white truncate flex items-center gap-1.5">
+                                    BlogFast AI
+                                    <span class="size-2 bg-green-500 rounded-full shrink-0" title="Active"></span>
+                                </h4>
+                                <span class="text-green-600 text-xs font-bold flex items-center gap-0.5"><span
+                                        class="material-symbols-outlined text-[14px] filled">shield</span> 98</span>
+                            </div>
+                            <div class="flex flex-col gap-1 mb-3">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="font-bold text-slate-900 dark:text-white">18M IDRX</span>
+                                    <span class="text-slate-500 text-xs">MRR: $1.8k</span>
+                                </div>
+                                <div class="flex justify-start">
+                                    <span
+                                        class="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">AI
+                                        Value: Rp 18.5M</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-1 mb-3 mt-auto">
+                                <span
+                                    class="px-1.5 py-0.5 bg-slate-50 dark:bg-zinc-800 rounded text-[9px] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">Python</span>
+                                <span
+                                    class="px-1.5 py-0.5 bg-slate-50 dark:bg-zinc-800 rounded text-[9px] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">GPT-4</span>
+                            </div>
+                            <button
+                                class="w-full py-2 rounded-full border border-border-light dark:border-border-dark font-bold text-xs hover:bg-primary hover:border-primary hover:text-black transition-colors">View
+                                Details</button>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+                        <div class="h-40 relative">
+                            <img class="w-full h-full object-cover" data-alt="Money and savings concept"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKsPYbdXz7bx6uYVQgRVccIjutNJ8iGFwFxKrVF1p8j4ipoOTnMS_7E_5CHD1wIeempG9PDhRLYF1hfncxn_kW0YJoSQo0wBF1fHPvOX2VLTjvL57mMlSvA6Dzd6BVLvQG0iBlCct2aW3O9pdgqYZxZ3TgIZ2cAgGYtC0zNqzVub4N1_8ZqILWWGz5N9WhAxSnrSMkPqhb2ez5iP24JpLycFormq3b5sVO_Fm4xT3m7N8J2z7wSbe5xeYrQSCNk3qlaMxhvLzV4ze1" />
+                            <span
+                                class="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur text-[10px] font-bold px-2 py-1 rounded text-slate-900 dark:text-white">FINANCE</span>
+                        </div>
+                        <div class="p-4 flex flex-col flex-1">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-slate-900 dark:text-white truncate flex items-center gap-1.5">
+                                    BudgetBuddy
+                                    <span class="size-2 bg-green-500 rounded-full shrink-0" title="Active"></span>
+                                </h4>
+                                <span class="text-green-600 text-xs font-bold flex items-center gap-0.5"><span
+                                        class="material-symbols-outlined text-[14px] filled">shield</span> 90</span>
+                            </div>
+                            <div class="flex flex-col gap-1 mb-3">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="font-bold text-slate-900 dark:text-white">3M IDRX</span>
+                                    <span class="text-slate-500 text-xs">MRR: $150</span>
+                                </div>
+                                <div class="flex justify-start">
+                                    <span
+                                        class="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">AI
+                                        Value: Rp 3.1M</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-1 mb-3 mt-auto">
+                                <span
+                                    class="px-1.5 py-0.5 bg-slate-50 dark:bg-zinc-800 rounded text-[9px] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">Flutter</span>
+                            </div>
+                            <button
+                                class="w-full py-2 rounded-full border border-border-light dark:border-border-dark font-bold text-xs hover:bg-primary hover:border-primary hover:text-black transition-colors">View
+                                Details</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Just Landing</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div
+                    class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark overflow-hidden hover:shadow-xl transition-all group">
+                    <div class="aspect-[4/3] relative">
+                        <img class="w-full h-full object-cover" data-alt="Colorful abstract geometric shapes"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXrs4dpCxDg9d2YzTQEWJpWAvaHQ3hIbelXvOGyjlgeUFPF2AClCpMVVez2D7BweyaXhTAyxTYsOAeV50Uzmudvi6CT-cgINxMSeXvJd0wNF_n2NwzXzgskUtwFFqYX4q8mcL8gOY1vjfPA3FArLXYEGn9pT_gjfdzCdpwvVOlcEn8ItJ9CcQHiYnhIOzvPPEvkYP7i-wR-UXAiChb7tvcO7z1xmB6vyhmm-FaT0WtRJZC4RiBQ-v0duShfmPx0h0kq0Eg6C5MYBYQ" />
+                        <div class="absolute top-3 left-3 flex gap-2">
+                            <span
+                                class="bg-primary text-black text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Genesis</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-slate-400 uppercase">Productivity</span>
+                            <div class="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-bold">
+                                <span class="material-symbols-outlined text-[16px] filled">verified</span>
+                                Verified
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                            TaskFlow Automation
+                            <span class="size-2 bg-green-500 rounded-full shrink-0" title="Active"></span>
+                        </h3>
+                        <div class="mb-4">
+                            <div
+                                class="flex justify-between items-end border-t border-dashed border-border-light dark:border-border-dark pt-3 mb-1">
+                                <div>
+                                    <p class="text-[10px] text-slate-500 uppercase">Ask</p>
+                                    <p class="text-base font-bold text-slate-900 dark:text-white">9M IDRX</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] text-slate-500 uppercase">MRR</p>
+                                    <p class="text-sm font-medium text-slate-700 dark:text-slate-300">$850</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-start">
+                                <span
+                                    class="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">AI
+                                    Value: Rp 9.2M</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 mb-4">
+                            <span
+                                class="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 rounded text-[10px] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">Angular</span>
+                            <span
+                                class="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 rounded text-[10px] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">Node</span>
+                        </div>
+                        <button
+                            class="w-full bg-primary/20 hover:bg-primary text-black font-bold py-2.5 rounded-full text-sm transition-colors">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+                <div
+                    class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark overflow-hidden hover:shadow-xl transition-all group">
+                    <div class="aspect-[4/3] relative">
+                        <img class="w-full h-full object-cover" data-alt="Fluid liquid gradient background"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3NNXIwnxroqpiP3FPbb6TpD9P0RL1HIR7vLET8gy2uCqjKAgtXuQcCnxdDZApcyl9nF2ISPcQYHaA1-JZYuV4tPfvsCCfYu1egueFegwRxx5nIE8z4wF-dYrX1cFA5PBv8GhGhRG5gkGn9SHHbiud5ryiufXpFfd7Jz3xysX_xXS838LKKEGuuG_kPoXOsUFpF7legKXpgeZ2u5SAtLHf0wT6ojK0MHadsNVqgr1k-pKLu1KHOPtNCMipUorzD8pyOLt_LDq1b3ic" />
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-slate-400 uppercase">Design</span>
+                            <div class="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-bold">
+                                <span class="material-symbols-outlined text-[16px]">shield</span>
+                                92/100
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                            ColorPal AI
+                            <span class="size-2 bg-green-500 rounded-full shrink-0" title="Active"></span>
+                        </h3>
+                        <div class="mb-4">
+                            <div
+                                class="flex justify-between items-end border-t border-dashed border-border-light dark:border-border-dark pt-3 mb-1">
+                                <div>
+                                    <p class="text-[10px] text-slate-500 uppercase">Ask</p>
+                                    <p class="text-base font-bold text-slate-900 dark:text-white">4.5M IDRX</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] text-slate-500 uppercase">MRR</p>
+                                    <p class="text-sm font-medium text-slate-700 dark:text-slate-300">$320</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-start">
+                                <span
+                                    class="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">AI
+                                    Value: Rp 4.6M</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 mb-4">
+                            <span
+                                class="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 rounded text-[10px] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">Python</span>
+                            <span
+                                class="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 rounded text-[10px] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">PyTorch</span>
+                        </div>
+                        <button
+                            class="w-full bg-slate-100 dark:bg-zinc-700 hover:bg-primary hover:text-black dark:text-white text-slate-900 font-bold py-2.5 rounded-full text-sm transition-colors">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+                <div
+                    class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark overflow-hidden hover:shadow-xl transition-all group">
+                    <div class="aspect-[4/3] relative">
+                        <img class="w-full h-full object-cover" data-alt="Cybersecurity lock code"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLiktnG-n3GV1OHAj07qthpLSqXOvDmHsEcSR6jpQ8CLU_YpN3DPFnAVwOhouKA7dYmK1atDRaMyuXeVYH9-yVbJUB8ouVwF2kGVcx_OmxPmDOcSCMCfmSVKKVASQLYznbtSd_8Z-21RGTOMroTtsYa4D4B9te6EZ28k5I_VLwZxAzkLlwim34V_y3kB7om-9pejq2nBKNnmd850hTtQVtv7uI7S1eG3DjlU3Co1RYcuTIWxDR4tppjzttMy3iNV1BS37_ibOs2u3v" />
+                        <div class="absolute top-3 left-3 flex gap-2">
+                            <span
+                                class="bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">New</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-slate-400 uppercase">Security</span>
+                            <div class="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-bold">
+                                <span class="material-symbols-outlined text-[16px] filled">verified</span>
+                                Verified
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                            AuthGuard SDK
+                            <span class="size-2 bg-green-500 rounded-full shrink-0" title="Active"></span>
+                        </h3>
+                        <div class="mb-4">
+                            <div
+                                class="flex justify-between items-end border-t border-dashed border-border-light dark:border-border-dark pt-3 mb-1">
+                                <div>
+                                    <p class="text-[10px] text-slate-500 uppercase">Ask</p>
+                                    <p class="text-base font-bold text-slate-900 dark:text-white">25M IDRX</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] text-slate-500 uppercase">MRR</p>
+                                    <p class="text-sm font-medium text-slate-700 dark:text-slate-300">$2,100</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-start">
+                                <span
+                                    class="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 font-medium">AI
+                                    Value: Rp 18M</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 mb-4">
+                            <span
+                                class="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 rounded text-[10px] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">Rust</span>
+                            <span
+                                class="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 rounded text-[10px] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">WASM</span>
+                        </div>
+                        <button
+                            class="w-full bg-slate-100 dark:bg-zinc-700 hover:bg-primary hover:text-black dark:text-white text-slate-900 font-bold py-2.5 rounded-full text-sm transition-colors">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+                <div
+                    class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark overflow-hidden hover:shadow-xl transition-all group">
+                    <div class="aspect-[4/3] relative">
+                        <img class="w-full h-full object-cover" data-alt="Electronic payment terminal"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXihWkHlZFbdLWjoIl_VFVBb25U1fffg4Apv7R3MbHzzebwNTz4F2FShYQ4K4y14oqP5W2HRXL3f9gyZANOkHGAEzJUkEgdRLjA7bMvdpLJxhPkmzyp91X0Nic-o6MrYifQ33CDtGtlb0A2Ji-jR9Vbd7CLjuJXA8fvA9kHFSyc_OTmgLTLWgndO80mZNigzuwXnf0ck_Io0GFHpiT7b7_MHjGdct_LRBiGIeXvywhKd9-Y0FV0_Uu0UYhYjDFw6hqKdrA6CDXyGdJ" />
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-slate-400 uppercase">E-Commerce</span>
+                            <div class="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-bold">
+                                <span class="material-symbols-outlined text-[16px]">shield</span>
+                                89/100
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                            Shopify Spy
+                            <span class="size-2 bg-green-500 rounded-full shrink-0" title="Active"></span>
+                        </h3>
+                        <div class="mb-4">
+                            <div
+                                class="flex justify-between items-end border-t border-dashed border-border-light dark:border-border-dark pt-3 mb-1">
+                                <div>
+                                    <p class="text-[10px] text-slate-500 uppercase">Ask</p>
+                                    <p class="text-base font-bold text-slate-900 dark:text-white">11M IDRX</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] text-slate-500 uppercase">MRR</p>
+                                    <p class="text-sm font-medium text-slate-700 dark:text-slate-300">$950</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-start">
+                                <span
+                                    class="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">AI
+                                    Value: Rp 10.8M</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 mb-4">
+                            <span
+                                class="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 rounded text-[10px] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">Liquid</span>
+                            <span
+                                class="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 rounded text-[10px] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-zinc-700">JS</span>
+                        </div>
+                        <button
+                            class="w-full bg-slate-100 dark:bg-zinc-700 hover:bg-primary hover:text-black dark:text-white text-slate-900 font-bold py-2.5 rounded-full text-sm transition-colors">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+</body>
+
+</html>

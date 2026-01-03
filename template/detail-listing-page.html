@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Valyra - Asset Detail View</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Tailwind Config -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f9f506",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#23220f",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#2a2915",
+                        "text-main": "#181811",
+                        "text-muted": "#8c8b5f",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "1.5rem", "xl": "2rem", "2xl": "2.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for gallery thumbnails */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-text-main font-display antialiased selection:bg-primary selection:text-text-main">
+    <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+        <!-- TopNavBar -->
+        <header
+            class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-[#e6e6db] bg-surface-light/90 px-6 py-3 backdrop-blur-md lg:px-10">
+            <div class="flex items-center gap-8">
+                <div class="flex items-center gap-3 text-text-main hover:opacity-80 transition-opacity cursor-pointer">
+                    <div class="flex size-8 items-center justify-center rounded-lg bg-primary text-text-main">
+                        <span class="material-symbols-outlined text-2xl">grid_view</span>
+                    </div>
+                    <h2 class="text-xl font-bold leading-tight tracking-tight">Valyra</h2>
+                </div>
+                <label class="hidden md:flex flex-col min-w-40 !h-10 max-w-64 group">
+                    <div
+                        class="flex w-full flex-1 items-stretch rounded-full h-full border border-transparent bg-[#f5f5f0] focus-within:border-primary/50 focus-within:bg-white transition-all">
+                        <div class="text-text-muted flex items-center justify-center pl-4">
+                            <span class="material-symbols-outlined text-[20px]">search</span>
+                        </div>
+                        <input
+                            class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-full bg-transparent text-text-main focus:outline-0 border-none h-full placeholder:text-text-muted px-3 text-sm font-normal"
+                            placeholder="Search assets..." />
+                    </div>
+                </label>
+            </div>
+            <div class="flex flex-1 justify-end gap-6 lg:gap-8">
+                <div class="hidden lg:flex items-center gap-8">
+                    <a class="text-sm font-medium hover:text-primary transition-colors" href="#">Explore</a>
+                    <a class="text-sm font-medium hover:text-primary transition-colors" href="#">Sell</a>
+                    <a class="text-sm font-medium hover:text-primary transition-colors" href="#">Community</a>
+                </div>
+                <div class="flex gap-3">
+                    <button
+                        class="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-text-main shadow-[0_2px_10px_rgba(249,245,6,0.2)] hover:shadow-[0_4px_15px_rgba(249,245,6,0.3)] transition-all">
+                        <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+                        <span class="hidden sm:inline">Connect Wallet</span>
+                    </button>
+                    <button
+                        class="flex size-10 cursor-pointer items-center justify-center rounded-full bg-white border border-[#e6e6db] text-text-main hover:bg-[#f5f5f0] transition-colors">
+                        <span class="material-symbols-outlined">notifications</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+        <!-- Main Content -->
+        <main class="flex-1 px-4 py-6 md:px-8 lg:px-20 xl:px-40">
+            <div class="mx-auto max-w-7xl">
+                <!-- Breadcrumbs -->
+                <nav class="mb-6 flex flex-wrap gap-2 text-sm">
+                    <a class="text-text-muted hover:text-text-main transition-colors" href="#">Marketplace</a>
+                    <span class="text-text-muted">/</span>
+                    <a class="text-text-muted hover:text-text-main transition-colors" href="#">SaaS</a>
+                    <span class="text-text-muted">/</span>
+                    <span class="font-medium text-text-main">Micro-SaaS: Auto-Blogger AI</span>
+                </nav>
+                <!-- Page Heading & Actions -->
+                <div class="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+                    <div class="flex flex-col gap-2">
+                        <h1 class="text-4xl font-black leading-tight tracking-tight text-text-main md:text-5xl">
+                            Auto-Blogger AI</h1>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span class="text-lg text-text-muted">Automated content generation platform on Base
+                                L2</span>
+                            <span
+                                class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                                <span class="material-symbols-outlined mr-1 text-[14px]">verified</span> Verified
+                            </span>
+                            <span
+                                class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                                <span class="material-symbols-outlined mr-1 text-[14px]">rocket_launch</span> Growth
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <button
+                            class="flex h-10 items-center justify-center gap-2 rounded-full border border-[#e6e6db] bg-white px-4 text-sm font-bold text-text-main hover:bg-[#f5f5f0] transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">ios_share</span>
+                            Share
+                        </button>
+                        <button
+                            class="flex h-10 items-center justify-center gap-2 rounded-full border border-[#e6e6db] bg-white px-4 text-sm font-bold text-text-main hover:bg-[#f5f5f0] transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">favorite</span>
+                            Watch
+                        </button>
+                    </div>
+                </div>
+                <!-- Two Column Layout -->
+                <div class="grid grid-cols-1 gap-8 lg:grid-cols-12">
+                    <!-- Left Column (Content) -->
+                    <div class="flex flex-col gap-10 lg:col-span-8">
+                        <!-- Media Gallery -->
+                        <div class="flex flex-col gap-4">
+                            <div
+                                class="relative aspect-video w-full overflow-hidden rounded-xl bg-gray-100 shadow-sm border border-[#e6e6db]">
+                                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&amp;w=2426&amp;auto=format&amp;fit=crop')] bg-cover bg-center"
+                                    data-alt="Main dashboard screenshot of Auto-Blogger AI interface"></div>
+                                <div class="absolute bottom-4 right-4 flex gap-2">
+                                    <button
+                                        class="flex size-10 items-center justify-center rounded-full bg-white/90 text-text-main backdrop-blur hover:bg-white">
+                                        <span class="material-symbols-outlined">fullscreen</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Thumbnails -->
+                            <div class="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+                                <button
+                                    class="relative h-20 w-32 shrink-0 overflow-hidden rounded-lg border-2 border-primary">
+                                    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&amp;w=2426&amp;auto=format&amp;fit=crop')] bg-cover bg-center"
+                                        data-alt="Dashboard view"></div>
+                                </button>
+                                <button
+                                    class="relative h-20 w-32 shrink-0 overflow-hidden rounded-lg border border-transparent opacity-70 hover:opacity-100">
+                                    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&amp;w=2370&amp;auto=format&amp;fit=crop')] bg-cover bg-center"
+                                        data-alt="Analytics graph view"></div>
+                                </button>
+                                <button
+                                    class="relative h-20 w-32 shrink-0 overflow-hidden rounded-lg border border-transparent opacity-70 hover:opacity-100">
+                                    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?q=80&amp;w=2376&amp;auto=format&amp;fit=crop')] bg-cover bg-center"
+                                        data-alt="Revenue chart"></div>
+                                </button>
+                                <button
+                                    class="relative flex h-20 w-32 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#f5f5f0] border border-transparent text-text-muted hover:text-text-main">
+                                    <span class="material-symbols-outlined text-3xl">play_circle</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Tabs & Content -->
+                        <div class="flex flex-col gap-8">
+                            <!-- Tab Nav -->
+                            <div
+                                class="sticky top-[72px] z-30 flex w-full overflow-x-auto border-b border-[#e6e6db] bg-background-light/95 pb-1 pt-2 backdrop-blur dark:bg-background-dark/95">
+                                <button
+                                    class="relative flex h-12 min-w-max items-center justify-center px-6 text-sm font-bold text-text-muted hover:text-text-main">
+                                    Description
+                                </button>
+                                <button
+                                    class="relative flex h-12 min-w-max items-center justify-center px-6 text-sm font-bold text-text-main">
+                                    AI Analysis
+                                    <span
+                                        class="absolute bottom-0 left-0 h-[3px] w-full rounded-t-full bg-primary"></span>
+                                </button>
+                                <button
+                                    class="relative flex h-12 min-w-max items-center justify-center px-6 text-sm font-bold text-text-muted hover:text-text-main">
+                                    Verification
+                                </button>
+                                <button
+                                    class="relative flex h-12 min-w-max items-center justify-center px-6 text-sm font-bold text-text-muted hover:text-text-main">
+                                    Tech Stack
+                                </button>
+                            </div>
+                            <!-- AI Analysis Section (Active) -->
+                            <div
+                                class="flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-[#e6e6db] dark:bg-surface-dark">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="flex items-center gap-2 text-lg font-bold">
+                                        <span class="material-symbols-outlined text-primary">auto_awesome</span>
+                                        Valyra AI Assessment
+                                    </h3>
+                                    <span
+                                        class="rounded-full bg-primary/20 px-3 py-1 text-xs font-bold text-yellow-900">Updated
+                                        2h ago</span>
+                                </div>
+                                <div class="grid gap-6 md:grid-cols-2">
+                                    <!-- Fair Value & Confidence -->
+                                    <div class="flex flex-col gap-6">
+                                        <div class="rounded-xl bg-[#f8f8f5] p-5 dark:bg-background-dark">
+                                            <div class="mb-2 text-sm font-medium text-text-muted">Estimated Fair Value
+                                            </div>
+                                            <div class="flex items-baseline gap-2">
+                                                <span class="text-3xl font-black tracking-tight text-text-main">$4,200 -
+                                                    $4,800</span>
+                                                <span class="text-sm font-bold text-green-600">+12% upside</span>
+                                            </div>
+                                            <div class="mt-4 h-2 w-full overflow-hidden rounded-full bg-[#e6e6db]">
+                                                <div class="h-full w-[65%] rounded-full bg-primary"></div>
+                                            </div>
+                                            <div class="mt-2 flex justify-between text-xs text-text-muted">
+                                                <span>Undervalued</span>
+                                                <span>Fair</span>
+                                                <span>Overvalued</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col gap-4">
+                                        <!-- Confidence Score -->
+                                        <div
+                                            class="flex items-center justify-between rounded-xl border border-[#e6e6db] p-4">
+                                            <div class="flex flex-col">
+                                                <span class="text-sm font-medium text-text-muted">Confidence
+                                                    Score</span>
+                                                <span class="text-2xl font-black text-text-main">92/100</span>
+                                            </div>
+                                            <div
+                                                class="relative flex size-12 items-center justify-center rounded-full border-4 border-[#e6e6db] border-t-primary border-r-primary">
+                                                <span class="material-symbols-outlined text-green-600">check</span>
+                                            </div>
+                                        </div>
+                                        <!-- Risk Assessment -->
+                                        <div
+                                            class="flex items-center justify-between rounded-xl border border-[#e6e6db] p-4">
+                                            <div class="flex flex-col">
+                                                <span class="text-sm font-medium text-text-muted">Risk Profile</span>
+                                                <span class="text-lg font-bold text-text-main">Low Risk</span>
+                                            </div>
+                                            <span
+                                                class="material-symbols-outlined text-green-500 text-3xl">shield_lock</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Guardrails -->
+                                <div class="border-t border-[#e6e6db] pt-6">
+                                    <h4 class="mb-4 text-sm font-bold uppercase tracking-wider text-text-muted">AI
+                                        Guardrails &amp; Audits</h4>
+                                    <div class="grid gap-4 sm:grid-cols-2">
+                                        <div
+                                            class="flex items-start gap-3 rounded-lg border border-transparent bg-green-50 p-3 hover:border-green-200">
+                                            <span class="material-symbols-outlined text-green-600">code</span>
+                                            <div>
+                                                <div class="text-sm font-bold text-text-main">Code Quality</div>
+                                                <div class="text-xs text-text-muted">No critical vulnerabilities found
+                                                    in repo scan.</div>
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="flex items-start gap-3 rounded-lg border border-transparent bg-green-50 p-3 hover:border-green-200">
+                                            <span class="material-symbols-outlined text-green-600">payments</span>
+                                            <div>
+                                                <div class="text-sm font-bold text-text-main">Revenue Reality</div>
+                                                <div class="text-xs text-text-muted">Stripe data matches claimed MRR
+                                                    with 99% accuracy.</div>
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="flex items-start gap-3 rounded-lg border border-transparent bg-yellow-50 p-3 hover:border-yellow-200">
+                                            <span class="material-symbols-outlined text-yellow-600">trending_up</span>
+                                            <div>
+                                                <div class="text-sm font-bold text-text-main">Churn Rate</div>
+                                                <div class="text-xs text-text-muted">Slightly higher than industry
+                                                    average (8%).</div>
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="flex items-start gap-3 rounded-lg border border-transparent bg-green-50 p-3 hover:border-green-200">
+                                            <span class="material-symbols-outlined text-green-600">copyright</span>
+                                            <div>
+                                                <div class="text-sm font-bold text-text-main">IP Check</div>
+                                                <div class="text-xs text-text-muted">Content is unique, passed
+                                                    copyscape.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Stacked Sections for Overview/Verification (Visual representation of scrolling down) -->
+                            <div class="space-y-8">
+                                <div class="prose prose-stone max-w-none text-text-main">
+                                    <h3 class="text-xl font-bold">About this Asset</h3>
+                                    <p class="text-text-muted leading-relaxed">Auto-Blogger AI is a fully autonomous
+                                        micro-SaaS that generates SEO-optimized blog posts for small businesses. Built
+                                        on the Base L2 blockchain for payment processing, it leverages GPT-4 for content
+                                        creation. The system includes a dashboard for users to manage keywords, schedule
+                                        posts, and view analytics. Currently generating $450 MRR with zero ad spend.</p>
+                                </div>
+                                <div class="rounded-2xl border border-[#e6e6db] bg-white p-6 dark:bg-surface-dark">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-lg font-bold">Verification Proofs</h3>
+                                        <a class="text-sm font-bold text-blue-600 hover:underline" href="#">View on
+                                            Blockchain</a>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <div
+                                            class="flex items-center justify-between rounded-lg bg-[#f8f8f5] p-3 dark:bg-background-dark">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="flex size-8 items-center justify-center rounded-full bg-[#635bff] text-white">
+                                                    <span class="material-symbols-outlined text-sm">attach_money</span>
+                                                </div>
+                                                <span class="font-medium">Stripe OAuth Connected</span>
+                                            </div>
+                                            <span class="material-symbols-outlined text-green-600">verified</span>
+                                        </div>
+                                        <div
+                                            class="flex items-center justify-between rounded-lg bg-[#f8f8f5] p-3 dark:bg-background-dark">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="flex size-8 items-center justify-center rounded-full bg-black text-white">
+                                                    <span class="material-symbols-outlined text-sm">terminal</span>
+                                                </div>
+                                                <span class="font-medium">GitHub Repository Access</span>
+                                            </div>
+                                            <a class="text-xs font-bold text-text-muted hover:text-text-main"
+                                                href="#">View Repo</a>
+                                        </div>
+                                        <div
+                                            class="flex items-center justify-between rounded-lg bg-[#f8f8f5] p-3 dark:bg-background-dark">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="flex size-8 items-center justify-center rounded-full bg-blue-500 text-white">
+                                                    <span class="material-symbols-outlined text-sm">dns</span>
+                                                </div>
+                                                <span class="font-medium">DNS Ownership (Route53)</span>
+                                            </div>
+                                            <span class="material-symbols-outlined text-green-600">verified</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Token Gated Chat -->
+                        <div
+                            class="relative mt-4 overflow-hidden rounded-2xl border border-[#e6e6db] bg-white shadow-sm dark:bg-surface-dark">
+                            <!-- Chat Header -->
+                            <div class="flex items-center justify-between border-b border-[#e6e6db] px-6 py-4">
+                                <h3 class="font-bold">Seller Chat</h3>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-medium text-text-muted">Powered by XMTP</span>
+                                    <div
+                                        class="relative inline-flex h-5 w-9 cursor-pointer items-center rounded-full bg-primary/30 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                        <span
+                                            class="translate-x-4 inline-block size-3 transform rounded-full bg-primary shadow ring-0 transition duration-200 ease-in-out"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Chat Body (Blurred) -->
+                            <div class="relative flex h-64 flex-col gap-4 p-6 opacity-30 blur-sm select-none">
+                                <div
+                                    class="self-start rounded-2xl rounded-tl-none bg-[#f5f5f0] px-4 py-2 text-sm text-text-main">
+                                    Hi, is the revenue strictly from subscriptions?</div>
+                                <div
+                                    class="self-end rounded-2xl rounded-tr-none bg-primary px-4 py-2 text-sm text-text-main">
+                                    Yes, 100% recurring via Stripe.</div>
+                                <div
+                                    class="self-start rounded-2xl rounded-tl-none bg-[#f5f5f0] px-4 py-2 text-sm text-text-main">
+                                    Can I see the churn metrics?</div>
+                            </div>
+                            <!-- Gated Overlay -->
+                            <div
+                                class="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm p-6 text-center">
+                                <div
+                                    class="mb-4 flex size-14 items-center justify-center rounded-full bg-text-main text-primary">
+                                    <span class="material-symbols-outlined text-3xl">lock</span>
+                                </div>
+                                <h4 class="mb-2 text-lg font-bold text-text-main">This chat is token-gated</h4>
+                                <p class="mb-6 max-w-sm text-sm text-text-muted">You must hold at least 500 $VALYRA
+                                    tokens to message the seller directly. This prevents spam and ensures serious
+                                    inquiries.</p>
+                                <button
+                                    class="rounded-full bg-primary px-8 py-3 text-sm font-bold text-text-main shadow-lg hover:shadow-xl transition-all">
+                                    Connect Wallet to Access
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right Column (Sticky Actions) -->
+                    <div class="lg:col-span-4">
+                        <div class="sticky top-24 flex flex-col gap-6">
+                            <!-- Price Card -->
+                            <div
+                                class="overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-[#e6e6db] dark:bg-surface-dark">
+                                <div class="p-6">
+                                    <div class="mb-6">
+                                        <span class="text-sm font-medium text-text-muted">Current Price</span>
+                                        <div class="flex items-baseline gap-2">
+                                            <span class="text-4xl font-black text-text-main">4,500 IDRX</span>
+                                            <span class="text-sm font-medium text-text-muted">≈ $4,500 USD</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col gap-3">
+                                        <button
+                                            class="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-4 text-base font-bold text-text-main transition-transform active:scale-[0.98]">
+                                            Buy Now
+                                            <span class="material-symbols-outlined text-lg">arrow_forward</span>
+                                        </button>
+                                        <button
+                                            class="flex w-full items-center justify-center rounded-full border border-text-main/10 bg-transparent py-4 text-base font-bold text-text-main hover:bg-[#f5f5f0] transition-colors">
+                                            Make Offer
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="border-t border-[#e6e6db] bg-[#f8f8f5] px-6 py-3 dark:bg-background-dark">
+                                    <div
+                                        class="flex items-center justify-center gap-2 text-xs font-medium text-text-muted">
+                                        <span class="material-symbols-outlined text-[16px]">history</span>
+                                        Last sold for 1,200 IDRX (3 months ago)
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Seller Card -->
+                            <div
+                                class="rounded-2xl border border-[#e6e6db] bg-white p-6 shadow-sm dark:bg-surface-dark">
+                                <div class="flex items-center gap-4">
+                                    <div class="relative">
+                                        <img alt="Seller Avatar" class="size-14 rounded-full object-cover"
+                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAr0Zfz6-3Hd6SkUvbpJi73oV2bMNezHPMOfVheWPuu8GqXl5g5Zy99MRr6o3Kv2qxg6ec_zbPQJnJSziNZJfjB2ZBDWbUwJVgMo-xoKjGmJSxA_4fv8I6dUqWXFOBpXp-IKOKsBFNazCogZdRHCOWtqOBg0KVUbqkZaIVgvnLHLVYmAJUQCf416ZIM5w8vlNCsLyWC0xd3TCjxnKTVghDy5MahK-E3G2pEorK4d3Bq2qeW7mySUt8q96J53epkHfsoCZDWieuPQcBe" />
+                                        <span
+                                            class="absolute bottom-0 right-0 block size-3.5 rounded-full bg-green-500 ring-2 ring-white"></span>
+                                        <span
+                                            class="absolute bottom-0 right-0 block size-3.5 animate-ping rounded-full bg-green-500 opacity-75"></span>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <div class="flex items-center gap-1">
+                                            <h3 class="font-bold text-text-main">AlexDev_88</h3>
+                                            <span class="material-symbols-outlined text-[16px] text-blue-500"
+                                                title="Verified Seller">verified</span>
+                                        </div>
+                                        <p class="text-xs text-text-muted">Member since 2023 • 98% Resp.</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex gap-2">
+                                    <button
+                                        class="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#f5f5f0] py-2 text-sm font-bold text-text-main hover:bg-[#e6e6db]">
+                                        <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+                                        Chat
+                                    </button>
+                                    <button
+                                        class="flex size-9 items-center justify-center rounded-full border border-[#e6e6db] text-text-main hover:bg-[#f5f5f0]">
+                                        <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Safety Card -->
+                            <div
+                                class="rounded-2xl border border-[#e6e6db] bg-white p-5 shadow-sm dark:bg-surface-dark">
+                                <h4 class="mb-4 text-xs font-bold uppercase tracking-wider text-text-muted">Safety &amp;
+                                    Trust</h4>
+                                <div class="space-y-4">
+                                    <div class="flex items-start gap-3">
+                                        <span
+                                            class="material-symbols-outlined mt-0.5 text-primary bg-black rounded-full p-1 text-[16px]">lock</span>
+                                        <div>
+                                            <p class="text-sm font-bold text-text-main">Escrow Protected</p>
+                                            <p class="text-xs text-text-muted">Funds held in smart contract until
+                                                transfer confirmed.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span
+                                            class="material-symbols-outlined mt-0.5 text-primary bg-black rounded-full p-1 text-[16px]">security</span>
+                                        <div>
+                                            <p class="text-sm font-bold text-text-main">Code Audited</p>
+                                            <p class="text-xs text-text-muted">Smart contracts verified by CertiK.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 border-t border-[#e6e6db] pt-3 text-center">
+                                    <a class="text-xs font-bold text-text-muted hover:text-primary" href="#">Learn about
+                                        Valyra Safety</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

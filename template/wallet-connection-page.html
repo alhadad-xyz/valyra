@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Connect Wallet - Valyra</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#0062FF", // Vibrant blue from the screenshot
+                        "primary-hover": "#0051D4",
+                        "background-light": "#F8FAFC", // Light slate for body bg
+                        "background-dark": "#0F172A", // Dark slate for body bg
+                        "card-light": "#FFFFFF",
+                        "card-dark": "#1E293B",
+                        "border-light": "#E2E8F0",
+                        "border-dark": "#334155",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                        'xl': '1rem',
+                        '2xl': '1.5rem',
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.5);
+            border-radius: 20px;
+        }
+
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="bg-slate-200 dark:bg-black font-sans min-h-screen flex items-center justify-center selection:bg-primary selection:text-white">
+    <div
+        class="w-full  bg-card-light dark:bg-card-dark shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-screen transition-colors duration-300">
+        <div class="lg:w-2/5 bg-primary relative p-10 flex flex-col justify-between overflow-hidden">
+            <div
+                class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent pointer-events-none">
+            </div>
+            <div class="relative z-10 flex items-center gap-2">
+                <div class="bg-white text-primary rounded-lg p-1.5 shadow-lg">
+                    <span class="material-icons-round text-2xl">diamond</span>
+                </div>
+                <span class="text-white font-bold text-xl tracking-tight">Valyra</span>
+            </div>
+            <div class="relative z-10 mt-12 mb-auto">
+                <h1 class="text-white text-3xl lg:text-4xl font-bold leading-tight mb-6">
+                    Your gateway to <br />autonomous M&amp;A.
+                </h1>
+                <p class="text-blue-100 text-lg leading-relaxed max-w-md">
+                    Connect securely to buy, sell, and verify assets on Base L2. No passwords required.
+                </p>
+            </div>
+            <div class="relative h-48 w-full flex justify-center items-end mt-8">
+                <div class="absolute bottom-4 left-1/2 -translate-x-1/2 w-32 h-8 bg-black/20 rounded-[100%] blur-md">
+                </div>
+                <div class="float-animation relative z-10">
+                    <svg class="drop-shadow-2xl" fill="none" height="160" viewBox="0 0 100 120" width="140"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M50 110C50 110 90 90 90 30V10L50 0L10 10V30C10 90 50 110 50 110Z" fill="white"></path>
+                        <path d="M50 110C50 110 90 90 90 30V10L50 0V110Z" fill="#E0E7FF"></path>
+                        <path
+                            d="M50 40C44.4772 40 40 44.4772 40 50V55H38C36.8954 55 36 55.8954 36 57V73C36 74.1046 36.8954 75 38 75H62C63.1046 75 64 74.1046 64 73V57C64 55.8954 63.1046 55 62 55H60V50C60 44.4772 55.5228 40 50 40ZM50 69C48.3431 69 47 67.6569 47 66C47 64.3431 48.3431 63 50 63C51.6569 63 53 64.3431 53 66C53 67.6569 51.6569 69 50 69ZM56 55H44V50C44 46.6863 46.6863 44 50 44C53.3137 44 56 46.6863 56 50V55Z"
+                            fill="#0062FF"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="lg:w-3/5 p-10 lg:p-14 flex flex-col justify-between bg-card-light dark:bg-card-dark relative">
+            <div class="w-full flex justify-end">
+                <a class="text-sm font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors flex items-center gap-1"
+                    href="#">
+                    Having troubles? <span class="font-bold text-primary">Get Help</span>
+                </a>
+            </div>
+            <div class="w-full max-w-lg mx-auto mt-4">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Choose the type of wallet</h2>
+                    <p class="text-slate-500 dark:text-slate-400">
+                        Select a provider to sign in. Smart Wallets are supported for email login.
+                    </p>
+                </div>
+                <div class="space-y-4">
+                    <button
+                        class="w-full group relative flex items-center p-5 rounded-xl border-2 border-primary bg-blue-50/50 dark:bg-primary/10 transition-all text-left">
+                        <div
+                            class="flex-shrink-0 w-12 h-12 bg-[#0052FF] rounded-full flex items-center justify-center text-white mr-4 shadow-sm">
+                            <div class="w-6 h-6 border-4 border-white rounded-full"></div>
+                        </div>
+                        <div class="flex-grow">
+                            <h3
+                                class="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                                Coinbase Wallet</h3>
+                            <p class="text-sm text-slate-600 dark:text-slate-300">Recommended for Base users</p>
+                        </div>
+                        <div class="flex-shrink-0 text-primary opacity-100 transform translate-x-0 transition-all">
+                            <span class="material-icons-round">arrow_forward</span>
+                        </div>
+                    </button>
+                    <button
+                        class="w-full group relative flex items-center p-5 rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 hover:border-primary hover:shadow-md dark:hover:border-primary transition-all text-left">
+                        <div
+                            class="flex-shrink-0 w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center text-orange-600 mr-4">
+                            <span class="material-icons-round text-2xl">pets</span>
+                        </div>
+                        <div class="flex-grow">
+                            <h3
+                                class="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                                MetaMask</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Standard browser extension</p>
+                        </div>
+                        <div
+                            class="flex-shrink-0 text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all">
+                            <span class="material-icons-round">arrow_forward</span>
+                        </div>
+                    </button>
+                    <button
+                        class="w-full group relative flex items-center p-5 rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 hover:border-primary hover:shadow-md dark:hover:border-primary transition-all text-left">
+                        <div
+                            class="flex-shrink-0 w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center text-purple-600 mr-4">
+                            <span class="material-icons-round text-2xl">auto_fix_high</span>
+                        </div>
+                        <div class="flex-grow">
+                            <h3
+                                class="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                                Smart Wallet (Email)</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">No recovery phrase needed</p>
+                        </div>
+                        <div
+                            class="flex-shrink-0 text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all">
+                            <span class="material-icons-round">arrow_forward</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            <div class="w-full flex justify-center mt-8">
+                <a class="text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white underline decoration-slate-300 dark:decoration-slate-600 underline-offset-4 transition-colors"
+                    href="#">
+                    New to crypto? Learn how to create a wallet.
+                </a>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

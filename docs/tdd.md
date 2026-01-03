@@ -1206,7 +1206,7 @@ function storeEphemeralKey(uint256 escrowId, string memory encryptedKey, string 
     },
     {
       "type": "payment_processor",
-      "service": "Stripe",
+      "service": "Generic",
       "verified": false
     }
   ],
@@ -1339,62 +1339,7 @@ coverage/
 
 ---
 
-### OAuth Zero-Storage Policy
 
-#### Security Problem
-Storing seller OAuth tokens creates a massive security target. Additionally, revenue might change during the listing period.
-
-#### Solution: Signed Attestation Snapshots
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    ZERO-STORAGE OAUTH FLOW                      │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Step 1: OAuth Authorization                                    │
-│  ┌────────────────────────────────────────────────────────────┐│
-│  │ User redirects to Stripe/GA OAuth consent                  ││
-│  │ Valyra receives temporary access token                     ││
-│  └────────────────────────────────────────────────────────────┘│
-│                                                                 │
-│  Step 2: Data Fetch (ONE TIME ONLY)                            │
-│  ┌────────────────────────────────────────────────────────────┐│
-│  │ Agent fetches: MRR, Revenue, Traffic, Customer Count       ││
-│  │ Data stored in memory only                                 ││
-│  └────────────────────────────────────────────────────────────┘│
-│                                                                 │
-│  Step 3: Generate Attestation                                   │
-│  ┌────────────────────────────────────────────────────────────┐│
-│  │ attestation = {                                            ││
-│  │   listing_id: 123,                                         ││
-│  │   mrr_verified: 1500000,                                   ││
-│  │   snapshot_date: "2025-12-10",                             ││
-│  │   source: "stripe",                                        ││
-│  │   agent_address: "0xAgent..."                              ││
-│  │ }                                                          ││
-│  └────────────────────────────────────────────────────────────┘│
-│                                                                 │
-│  Step 4: Sign Attestation                                       │
-│  ┌────────────────────────────────────────────────────────────┐│
-│  │ signature = agentWallet.sign(keccak256(attestation))       ││
-│  │ signedAttestation = { ...attestation, signature }          ││
-│  └────────────────────────────────────────────────────────────┘│
-│                                                                 │
-│  Step 5: Pin to IPFS & Discard Token                           │
-│  ┌────────────────────────────────────────────────────────────┐│
-│  │ ipfsHash = ipfs.pin(signedAttestation)                     ││
-│  │ listing.attestationIpfs = ipfsHash                         ││
-│  │ DELETE oauthToken (not stored)                             ││
-│  └────────────────────────────────────────────────────────────┘│
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-#### Attestation Verification
-Anyone can verify the attestation by:
-1. Fetching the IPFS content
-2. Recovering the signer address from the signature
-3. Confirming signer is the official Valyra Agent wallet
 
 ---
 
@@ -1530,26 +1475,7 @@ Response:
 }
 ```
 
-**OAuth Verification (Zero-Storage):**
-```
-POST /verify/oauth
-Request:
-{
-  "provider": "stripe",
-  "oauth_code": "xxx",
-  "listing_id": 123
-}
 
-Response:
-{
-  "verified": true,
-  "mrr_confirmed": 1500000,
-  "discrepancy": false,
-  "attestation_ipfs": "Qm...",         // NEW: Signed attestation
-  "agent_signature": "0x...",          // NEW: Agent wallet signature
-  "token_discarded": true              // NEW: Confirm token not stored
-}
-```
 
 **Chat Service (Token-Gated):**
 ```

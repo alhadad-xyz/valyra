@@ -194,7 +194,7 @@ Buyer deposits: 100,000 IDRX
 #### Proof Documents (Upload)
 | Document | Required | Description |
 |----------|----------|-------------|
-| Revenue Screenshot | ✅ | Stripe/Payment processor dashboard (one-time OAuth snapshot) |
+| Revenue Screenshot | ✅ | Dashboard screenshot (verified manually) |
 | Analytics Screenshot | ✅ | Google Analytics or similar |
 | Bank Statement | ⬜ | Recent 3 months (optional) |
 | Expense Breakdown | ⬜ | Spreadsheet of costs |
@@ -220,8 +220,7 @@ Buyer deposits: 100,000 IDRX
 * ✅ **Business Email Verification:** Confirm access via @businessdomain.com email
 
 #### Level 3: Enhanced (Required for Sales >$20,000)
-* ✅ **Revenue Platform OAuth:** Connect Stripe, Paddle, or Gumroad for real-time revenue verification
-    * **Zero-Storage Policy:** Token used once for snapshot, hash signed by Agent, then discarded
+* ✅ **Revenue Verification:** Upload verified screenshots (manual verification for MVP).
 * ✅ **Analytics OAuth:** Connect Google Analytics for traffic verification
 * ✅ **Build ID Verification:** Cross-reference live site `valyra-build-id` meta tag with latest commit hash in GitHub repo
 * ✅ **Just-in-Time Re-verification:** Build ID re-checked at deposit time to prevent bait-and-switch
@@ -245,13 +244,10 @@ Buyer deposits: 100,000 IDRX
                        └─────────────────┘
 ```
 
-### OAuth Zero-Storage Policy
-1. User grants OAuth access to Stripe/GA
-2. Agent fetches revenue/traffic data **once**
-3. Agent generates signed attestation (snapshot report)
-4. Attestation pinned to IPFS
-5. OAuth token **immediately discarded**
-6. Agent signs attestation with its CDP wallet key
+### Revenue Verification
+1. Seller uploads revenue dashboard screenshots
+2. Agent scans screenshots for anomalies (OCR)
+3. Manual verification by Valyra admin for MVP
 
 ---
 
@@ -352,7 +348,7 @@ Credentials are encrypted THREE times:
 | Domain Registrar | Access to transfer domain | ✅ |
 | Hosting/Server | Server credentials or transfer | ✅ |
 | Source Code | Repository access (GitHub, GitLab) | ✅ |
-| Payment Processor | Stripe/Paddle account transfer | ✅ |
+| Payment Processor | Account transfer credentials | ✅ |
 | Email/Support | Customer support email access | ⬜ |
 | Social Accounts | Login credentials | ⬜ |
 | Analytics | Google Analytics property transfer | ⬜ |

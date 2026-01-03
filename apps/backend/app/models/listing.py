@@ -87,6 +87,11 @@ class Listing(Base):
     # Status
     status = Column(Enum(ListingStatus, values_callable=lambda x: [e.value for e in x]), default=ListingStatus.DRAFT, nullable=False)
     
+    # View Tracking for Trending
+    view_count = Column(Integer, nullable=False, server_default='0')
+    view_count_7d = Column(Integer, nullable=False, server_default='0')
+    last_viewed_at = Column(DateTime(timezone=True), nullable=True)
+    
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

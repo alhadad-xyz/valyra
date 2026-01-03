@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -55,7 +56,7 @@ interface IMarketplace {
  * @dev Core escrow contract for managing fund locking, credential handover, and dispute resolution
  * @notice Implements UUPS upgradeable pattern for contract upgrades while preserving state
  */
-contract EscrowV1 is Initializable, OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable {
+contract EscrowV1 is Initializable, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuard, UUPSUpgradeable {
     
     // ============ Enums ============
     
@@ -308,7 +309,7 @@ contract EscrowV1 is Initializable, OwnableUpgradeable, PausableUpgradeable, UUP
         uint256 listingId,
         uint256 amount,
         EncryptionMethod encryptionMethod
-    ) external whenNotPaused returns (uint256 escrowId) {
+    ) external whenNotPaused nonReentrant returns (uint256 escrowId) {
         
         // Fetch listing details from marketplace
         (
@@ -374,6 +375,7 @@ contract EscrowV1 is Initializable, OwnableUpgradeable, PausableUpgradeable, UUP
         whenNotPaused
         escrowExists(escrowId)
         onlySeller(escrowId)
+        nonReentrant
     {
         EscrowTransaction storage escrow = escrows[escrowId];
         require(escrow.state == EscrowState.FUNDED, "Invalid escrow state");
@@ -396,6 +398,7 @@ contract EscrowV1 is Initializable, OwnableUpgradeable, PausableUpgradeable, UUP
         whenNotPaused
         escrowExists(escrowId)
         onlyBuyer(escrowId)
+        nonReentrant
     {
         EscrowTransaction storage escrow = escrows[escrowId];
         require(escrow.state == EscrowState.DELIVERED, "Invalid escrow state");
@@ -443,6 +446,7 @@ contract EscrowV1 is Initializable, OwnableUpgradeable, PausableUpgradeable, UUP
         whenNotPaused
         escrowExists(escrowId)
         onlySeller(escrowId)
+        nonReentrant
     {
         EscrowTransaction storage escrow = escrows[escrowId];
         TransitionHold storage hold = transitionHolds[escrowId];
@@ -589,7 +593,7 @@ contract EscrowV1 is Initializable, OwnableUpgradeable, PausableUpgradeable, UUP
         uint256 escrowId,
         DisputeResolution resolution,
         uint256 refundPercent
-    ) external onlyOwner escrowExists(escrowId) {
+    ) external onlyOwner escrowExists(escrowId) nonReentrant {
         EscrowTransaction storage escrow = escrows[escrowId];
         Dispute storage dispute = disputes[escrowId];
         
@@ -655,6 +659,7 @@ contract EscrowV1 is Initializable, OwnableUpgradeable, PausableUpgradeable, UUP
         external
         whenNotPaused
         escrowExists(escrowId)
+        nonReentrant
     {
         EscrowTransaction storage escrow = escrows[escrowId];
         
@@ -726,6 +731,7 @@ contract EscrowV1 is Initializable, OwnableUpgradeable, PausableUpgradeable, UUP
     function emergencyWithdraw(uint256 escrowId)
         external
         escrowExists(escrowId)
+        nonReentrant
     {
         require(emergencyMode, "Not in emergency mode");
         require(

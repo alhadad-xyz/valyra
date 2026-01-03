@@ -14,6 +14,7 @@ const config: Config = {
         extend: {
             colors: {
                 ...tokens.colors,
+                primary: "var(--color-primary)",
                 // Custom aliases if needed to match legacy usage, though tokens.colors should cover most
                 "background-light": tokens.colors.background.light,
                 "background-dark": tokens.colors.background.dark,
