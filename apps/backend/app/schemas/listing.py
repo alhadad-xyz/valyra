@@ -75,8 +75,12 @@ class ListingResponse(ListingBase):
     updated_at: datetime
     
     # Optional IP/Signature fields
+    on_chain_id: Optional[int] = None
     ip_assignment_hash: Optional[str] = None
     seller_signature: Optional[str] = None
+    
+    # Analytics
+    view_count: int = 0
 
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -99,6 +99,25 @@ async def get_listings(
     return listings
 
 
+@router.get("/{listing_id}", response_model=ListingResponse)
+async def get_listing(
+    listing_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Get a specific listing by ID.
+    """
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    
+    if not listing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Listing not found"
+        )
+        
+    return listing
+
+
 @router.put("/{listing_id}", response_model=ListingResponse)
 async def update_listing(
     listing_id: UUID,
