@@ -72,8 +72,10 @@ class Listing(Base):
     monthly_profit = Column(Numeric(20, 2), nullable=False)
     monthly_expenses = Column(Numeric(20, 2), nullable=False)
     revenue_trend = Column(Enum(RevenueTrend, values_callable=lambda x: [e.value for e in x]), nullable=False)
-    
+    revenue_history = Column(JSON, nullable=True)  # List of {date: str, amount: float}
+
     # Verification
+    verified_level = Column(Integer, default=0, nullable=False)  # 0=None, 1=Identity, 2=Finances, 3=Ownership
     verification_status = Column(
         Enum(VerificationStatus, values_callable=lambda x: [e.value for e in x]),
         default=VerificationStatus.PENDING,

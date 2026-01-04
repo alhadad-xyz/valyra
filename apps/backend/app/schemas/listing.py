@@ -21,6 +21,7 @@ class ListingBase(BaseModel):
     monthly_profit: Decimal = Field(..., ge=0)
     monthly_expenses: Decimal = Field(..., ge=0)
     revenue_trend: RevenueTrend
+    revenue_history: Optional[List[Dict[str, Any]]] = None  # List of {date: str, amount: float}
 
     # Included Assets
     domain_included: bool = False
@@ -49,6 +50,7 @@ class ListingUpdate(BaseModel):
     monthly_profit: Optional[Decimal] = Field(None, ge=0)
     monthly_expenses: Optional[Decimal] = Field(None, ge=0)
     revenue_trend: Optional[RevenueTrend] = None
+    revenue_history: Optional[List[Dict[str, Any]]] = None
 
     domain_included: Optional[bool] = None
     source_code_included: Optional[bool] = None
@@ -58,6 +60,7 @@ class ListingUpdate(BaseModel):
     seller_signature: Optional[str] = None
     
     status: Optional[ListingStatus] = None
+    verified_level: Optional[int] = None
 
 
 class ListingResponse(ListingBase):
@@ -66,6 +69,7 @@ class ListingResponse(ListingBase):
     seller_id: UUID
     customer_count: Optional[int] = 0
     verification_status: VerificationStatus
+    verified_level: int = 0
     status: ListingStatus
     created_at: datetime
     updated_at: datetime
