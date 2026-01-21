@@ -1,10 +1,13 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { Button } from "ui";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export function BuyerHeroSection() {
-    const { ref, isVisible } = useScrollAnimation({ threshold: 0.2 });
+    const scrollOptions = useMemo(() => ({ threshold: 0.2 }), []);
+    const { ref, isVisible } = useScrollAnimation(scrollOptions);
 
     return (
         <section

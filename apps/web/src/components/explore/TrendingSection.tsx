@@ -26,7 +26,7 @@ export function TrendingSection() {
         aiValue: listing.ai_value || "N/A",
         aiValueStatus: listing.ai_value_status || "fair",
         trustScore: listing.trust_score || 0,
-        techStack: listing.tech_stack ? Object.values(listing.tech_stack) : [],
+        techStack: listing.tech_stack ? Object.keys(listing.tech_stack).filter(key => key !== 'repo_url') : [],
         isCodeVerified: listing.verification_status === "verified",
         verificationLevel: listing.verification_level,
         viewCount: listing.view_count || 0,

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Web3Provider } from "@/providers/Web3Provider";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
     title: "Valyra - Autonomous Marketplace for Micro-Startups",
@@ -14,7 +15,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className="light">
+        <html lang="en" className="light" suppressHydrationWarning>
             <head>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link
@@ -31,8 +32,11 @@ export default function RootLayout({
                     rel="stylesheet"
                 />
             </head>
-            <body>
-                <Web3Provider>{children}</Web3Provider>
+            <body suppressHydrationWarning>
+                <Web3Provider>
+                    {children}
+                    <Toaster richColors position="top-center" closeButton />
+                </Web3Provider>
             </body>
         </html>
     );

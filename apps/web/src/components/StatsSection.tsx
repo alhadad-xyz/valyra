@@ -1,9 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export function StatsSection() {
-    const { ref, isVisible } = useScrollAnimation({ threshold: 0.6 });
+    const scrollOptions = useMemo(() => ({ threshold: 0.6 }), []);
+    const { ref, isVisible } = useScrollAnimation(scrollOptions);
 
     const stats = [
         { label: "Transaction Speed", value: "< 2s" },

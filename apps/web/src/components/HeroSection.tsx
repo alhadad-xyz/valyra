@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 
 import { Button, Input, Badge } from "ui";
 import Image from "next/image";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export function HeroSection() {
-    const { ref, isVisible } = useScrollAnimation({ threshold: 1 });
+    // Memoize options to prevent IntersectionObserver flickering on re-renders
+    const scrollOptions = useMemo(() => ({ threshold: 1 }), []);
+    const { ref, isVisible } = useScrollAnimation(scrollOptions);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
