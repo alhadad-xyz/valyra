@@ -723,4 +723,50 @@ contract EscrowV1Test is Test {
         assertEq(platformFee + sellerPayout, amount);
         assertLe(platformFee, amount * 250 / 10000);
     }
+
+    // ============ Snapshot Tests ============
+
+    function test_SnapshotCreation() public {
+        // 1. Deposit Funds -> Should create Snapshot 0
+        vm.prank(buyer);
+        uint256 escrowId = escrow.depositFunds(
+            LISTING_ID,
+            ESCROW_AMOUNT,
+            EscrowV1.EncryptionMethod.ECIES_WALLET
+        );
+
+        (uint256 bal0, EscrowV1.EscrowState state0, uint256 ts0) = escrow.history(escrowId, 0);
+        assertEq(bal0, ESCROW_AMOUNT);
+        assertEq(uint256(state0), uint256(EscrowV1.EscrowState.FUNDED));
+        assertEq(ts0, block.timestamp);
+
+        // 2. Upload Credentials -> Should create Snapshot 1
+        bytes32 credHash = keccak256("encrypted_credentials");
+        vm.prank(seller);
+        escrow.uploadCredentialHash(escrowId, credHash);
+
+        (uint256 bal1, EscrowV1.EscrowState state1, uint256 ts1) = escrow.history(escrowId, 1);
+        assertEq(bal1, ESCROW_AMOUNT);
+        assertEq(uint256(state1), uint256(EscrowV1.EscrowState.DELIVERED));
+        assertEq(ts1, block.timestamp);
+
+        // 3. Confirm Receipt -> Should create Snapshot 2
+        vm.prank(buyer);
+        escrow.confirmReceipt(escrowId);
+
+        // After split: 
+        // 90% released to seller immediately
+        // 10% retained
+        // So balance in contract for this escrow is effectively the retained amount? 
+        // Note: The `balance` in snapshot logic uses `escrow.amount`.
+        // Let's check `_snapshot`: 
+        // balance: escrow.amount
+        // `escrow.amount` is NOT updated during confirmReceipt in the current implementation of `EscrowV1.sol`. 
+        // It stays as the original deposit amount.
+        
+        (uint256 bal2, EscrowV1.EscrowState state2, uint256 ts2) = escrow.history(escrowId, 2);
+        assertEq(bal2, ESCROW_AMOUNT); // Validating that we capture the original amount as per current logic
+        assertEq(uint256(state2), uint256(EscrowV1.EscrowState.TRANSITION));
+        assertEq(ts2, block.timestamp);
+    }
 }

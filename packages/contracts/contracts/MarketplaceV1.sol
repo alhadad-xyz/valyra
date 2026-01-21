@@ -85,6 +85,7 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     uint256 public constant WARNING_PERIOD = 7 days;
     uint256 public constant PAUSE_AFTER_WARNING = 7 days;
     uint256 public constant MAX_IGNORED_OFFERS = 3;
+    uint256 public constant EMERGENCY_COOLDOWN = 72 hours;
     
     // Genesis Program
     bool public genesisProgram;
@@ -95,7 +96,11 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     address public agentAddress;
     
     // IDRX token
+    // IDRX token
     IERC20 public idrxToken;
+
+    // Emergency Withdrawal
+    mapping(address => uint256) public emergencyWithdrawTime;
     
     // ============ Events ============
     
@@ -132,6 +137,10 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     event SellerPaused(address indexed seller);
     
     event AgentAddressUpdated(address indexed oldAgent, address indexed newAgent);
+
+    event EmergencyWithdrawRequested(address indexed user, uint256 executionTime);
+    event EmergencyWithdrawExecuted(address indexed user, uint256 amount);
+    event SellerSlashed(address indexed seller, uint256 amount, string reason, uint256 newSlashCount);
     
     // ============ Modifiers ============
     
@@ -153,7 +162,8 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     // ============ Initializer ============
     
     /**
-     * @dev Initializes the contract with owner and IDRX token address
+     * @notice Initializes the marketplace contract
+     * @dev Initializes the contract with owner and IDRX token address. Called once during proxy deployment.
      * @param _idrxToken Address of the IDRX ERC20 token
      * @param _agentAddress Address of the AI agent for automated operations
      */
@@ -173,7 +183,8 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     // ============ Core Functions ============
     
     /**
-     * @dev Creates a new marketplace listing
+     * @notice Creates a new listing for a digital asset/product
+     * @dev Creates a new marketplace listing. Requires seller to have an active stake.
      * @param title Title of the listing
      * @param ipfsMetadata IPFS hash containing full listing details
      * @param askingPrice Price in IDRX (18 decimals)
@@ -239,10 +250,11 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Updates an existing listing's metadata and/or price
+     * @notice Updates the metadata or price of an existing listing
+     * @dev Updates an existing listing's metadata and/or price. Only callable by the seller.
      * @param listingId ID of the listing to update
-     * @param ipfsMetadata New IPFS metadata hash
-     * @param newPrice New asking price
+     * @param ipfsMetadata New IPFS metadata hash (pass empty string to skip)
+     * @param newPrice New asking price (pass 0 to skip)
      */
     function updateListing(
         uint256 listingId,
@@ -267,7 +279,8 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Cancels a listing
+     * @notice Cancels an active listing, removing it from the marketplace
+     * @dev Cancels a listing. Only callable by the seller.
      * @param listingId ID of the listing to cancel
      */
     function cancelListing(uint256 listingId) external onlySeller(listingId) {
@@ -285,6 +298,7 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
+     * @notice Pauses a listing when health checks fail (Agent only)
      * @dev Pauses a listing (agent only, for health check failures)
      * @param listingId ID of the listing to pause
      */
@@ -302,7 +316,8 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Resumes a paused listing
+     * @notice Resumes a previously paused listing
+     * @dev Resumes a paused listing. Only callable by the seller.
      * @param listingId ID of the listing to resume
      */
     function resumeListing(uint256 listingId) external onlySeller(listingId) {
@@ -315,8 +330,9 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Gets a paginated list of active listings
-     * @param offset Starting index
+     * @notice Retrieves a paginated list of all active listings
+     * @dev Gets a paginated list of active listings. Warning: costly for large datasets, use with reasonable limit.
+     * @param offset Starting index for pagination
      * @param limit Maximum number of listings to return
      * @return activeListings Array of active listings
      */
@@ -334,9 +350,20 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
             }
         }
         
-        // Adjust limit if needed
-        if (limit > count - offset) {
-            limit = count - offset;
+        // Edge case: no active listings or offset beyond total
+        if (count == 0 || offset >= count) {
+            return new Listing[](0);
+        }
+        
+        // Edge case: limit is 0
+        if (limit == 0) {
+            return new Listing[](0);
+        }
+        
+        // Adjust limit if it exceeds remaining items
+        uint256 remaining = count - offset;
+        if (limit > remaining) {
+            limit = remaining;
         }
         
         activeListings = new Listing[](limit);
@@ -356,7 +383,8 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Verifies the build ID for a listing (agent only)
+     * @notice Verifies that a listing's build ID matches its source code (Agent only)
+     * @dev Verifies the build ID for a listing. Optionally upgrades seller verification to ENHANCED.
      * @param listingId ID of the listing
      * @param verified Whether the build ID is verified
      */
@@ -373,7 +401,8 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Records a heartbeat for seller activity tracking
+     * @notice Records seller activity to prevent auto-pausing
+     * @dev Records a heartbeat for seller activity tracking. Updates lastHeartbeat timestamp.
      */
     function recordHeartbeat() external {
         SellerActivity storage activity = sellerActivity[msg.sender];
@@ -385,7 +414,8 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Registers caller as a Genesis Seller (first 50 verified sellers)
+     * @notice Registers the caller as a Genesis Seller if eligible
+     * @dev Registers caller as a Genesis Seller (first 50 verified sellers). Requires STANDARD verification or higher.
      */
     function joinGenesis() external {
         require(genesisProgram, "Genesis program has ended");
@@ -401,14 +431,14 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Stakes IDRX to become a seller
+     * @notice Stakes IDRX tokens to become an active seller
+     * @dev Stakes IDRX to become a seller. Wiaved for Genesis Sellers.
      */
     function stakeToSell() external nonReentrant {
-        require(sellerStakes[msg.sender].stakeAmount == 0, "Already staked");
+        require(!sellerStakes[msg.sender].isActive, "Already staked");
         
         // Genesis Seller Program: First 50 verified sellers (Level 2+) get free listing
-        if (genesisProgram && genesisSellersCount < GENESIS_SELLER_LIMIT) {
-            require(sellerVerificationLevel[msg.sender] >= VerificationLevel.STANDARD, "Must be verified for Genesis");
+        if (genesisProgram && genesisSellersCount < GENESIS_SELLER_LIMIT && sellerVerificationLevel[msg.sender] >= VerificationLevel.STANDARD) {
             
             sellerStakes[msg.sender] = SellerStake({
                 seller: msg.sender,
@@ -418,6 +448,7 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
                 slashCount: 0
             });
             
+            isGenesisSeller[msg.sender] = true; // Fix double counting
             genesisSellersCount++;
             emit GenesisSellerJoined(msg.sender, genesisSellersCount);
         } else {
@@ -448,8 +479,9 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Withdraws staked IDRX (only if no active listings)
-     * @param amount Amount to withdraw
+     * @notice Withdraws staked IDRX tokens if the seller has no active listings
+     * @dev Withdraws staked IDRX (only if no active listings). Deactivates status if below minimum.
+     * @param amount Amount to withdraw in IDRX (18 decimals)
      */
     function withdrawStake(uint256 amount) external nonReentrant {
         require(sellerStakes[msg.sender].isActive, "No active stake");
@@ -475,7 +507,42 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Pauses an inactive seller (agent only)
+     * @notice Requests an emergency withdrawal of all staked funds
+     * @dev Sets the emergency withdrawal timestamp. Valid for execution after 72 hours.
+     */
+    function requestEmergencyWithdraw() external {
+        require(sellerStakes[msg.sender].stakeAmount > 0, "No stake to withdraw");
+        emergencyWithdrawTime[msg.sender] = block.timestamp + EMERGENCY_COOLDOWN;
+        emit EmergencyWithdrawRequested(msg.sender, emergencyWithdrawTime[msg.sender]);
+    }
+
+    /**
+     * @notice Executes the emergency withdrawal after the cooldown period
+     * @dev Transfers all staked funds to the user. Bypasses standard withdrawal checks.
+     */
+    function executeEmergencyWithdraw() external nonReentrant {
+        uint256 unlockTime = emergencyWithdrawTime[msg.sender];
+        require(unlockTime > 0, "No request found");
+        require(block.timestamp >= unlockTime, "Cooldown active");
+        
+        uint256 amount = sellerStakes[msg.sender].stakeAmount;
+        require(amount > 0, "No funds to withdraw");
+        
+        // Reset state
+        delete sellerStakes[msg.sender];
+        delete emergencyWithdrawTime[msg.sender];
+        
+        // Also clear activity to prevent zombie state
+        delete sellerActivity[msg.sender];
+        
+        require(idrxToken.transfer(msg.sender, amount), "Transfer failed");
+        
+        emit EmergencyWithdrawExecuted(msg.sender, amount);
+    }
+
+    /**
+     * @notice Pauses a seller who has been inactive for too long (Agent only)
+     * @dev Pauses an inactive seller (agent only). Based on checkSellerActivity logic.
      * @param seller Address of the seller to pause
      */
     function pauseInactiveSeller(address seller) external onlyAgent {
@@ -492,9 +559,41 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
             emit SellerPaused(seller);
         }
     }
+
+    /**
+     * @notice Penalizes a seller for violations by deducting stake
+     * @dev Slashes the seller's stake. Deactivates seller if stake falls below minimum.
+     * @param seller Address of the seller to slash
+     * @param reason Reason for the flashing
+     */
+    function slashSeller(address seller, string memory reason) external onlyAgent {
+        require(sellerStakes[seller].isActive, "Seller not active");
+        require(sellerStakes[seller].stakeAmount >= SLASH_PENALTY, "Insufficient stake to slash");
+        
+        // Deduct penalty
+        sellerStakes[seller].stakeAmount -= SLASH_PENALTY;
+        sellerStakes[seller].slashCount++;
+        
+        // Check if remaining stake is sufficient
+        if (sellerStakes[seller].stakeAmount < MINIMUM_SELLER_STAKE) {
+            sellerStakes[seller].isActive = false;
+            sellerActivity[seller].isActive = false;
+            sellerActivity[seller].isPaused = true;
+        }
+        
+        // Transfer slashed amount to treasury or burn (for now keep in contract or transfer to agent/treasury)
+        // PRD says "deduct", assuming it stays in contract or goes to treasury.
+        // For MVP, we'll keep it in the contract (effectively confiscated from withdrawal pool)
+        // Logic: transferFrom was already done. The contract holds the funds. 
+        // We just reduced the `stakeAmount` which is the withdrawable amount.
+        // So the tokens remain in the contract but are no longer withdrawable by the seller.
+        
+        emit SellerSlashed(seller, SLASH_PENALTY, reason, sellerStakes[seller].slashCount);
+    }
     
     /**
-     * @dev Checks if a seller needs warning or should be paused
+     * @notice Checks if a seller requires a warning or suspension due to inactivity
+     * @dev Checks if a seller needs warning or should be paused based on heartbeat intervals.
      * @param seller Address of the seller to check
      * @return needsWarning Whether the seller needs a warning
      * @return shouldPause Whether the seller should be paused
@@ -508,10 +607,11 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Checks if a seller can withdraw their stake
+     * @notice Checks if a seller is eligible to withdraw their stake
+     * @dev Checks if a seller can withdraw their stake. Requires active stake, no active listings, and non-zero balance.
      * @param seller Address of the seller to check
      * @return canWithdraw Whether the seller can withdraw
-     * @return reason Reason if withdrawal is not allowed
+     * @return reason Reason string if withdrawal is not allowed
      */
     function canWithdrawStake(address seller) public view returns (bool canWithdraw, string memory reason) {
         if (!sellerStakes[seller].isActive) {
@@ -527,7 +627,8 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Updates the agent address
+     * @notice Updates the address of the AI agent
+     * @dev Updates the agent address. Only callable by contract owner.
      * @param newAgent New agent address
      */
     function setAgentAddress(address newAgent) external onlyOwner {
@@ -538,7 +639,8 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Ends the genesis program
+     * @notice Manually ends the Genesis Seller program
+     * @dev Ends the genesis program. Only callable by contract owner.
      */
     function endGenesisProgram() external onlyOwner {
         require(genesisProgram, "Already ended");
@@ -546,7 +648,8 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
     
     /**
-     * @dev Checks if genesis program is still active
+     * @notice Checks if the Genesis Seller program is currently active
+     * @dev Checks if genesis program is still active and limit not reached.
      * @return bool Whether an address can join the genesis program
      */
     function canJoinGenesisProgram() external view returns (bool) {
@@ -556,14 +659,16 @@ contract MarketplaceV1 is Initializable, OwnableUpgradeable, PausableUpgradeable
     // ============ Admin Functions ============
     
     /**
-     * @dev Pauses the contract
+     * @notice Pauses the entire marketplace contract (Emergency only)
+     * @dev Pauses the contract. Only callable by contract owner.
      */
     function pause() external onlyOwner {
         _pause();
     }
     
     /**
-     * @dev Unpauses the contract
+     * @notice Unpauses the marketplace contract
+     * @dev Unpauses the contract. Only callable by contract owner.
      */
     function unpause() external onlyOwner {
         _unpause();

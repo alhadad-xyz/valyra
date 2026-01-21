@@ -27,7 +27,7 @@ contract DeployEscrowV1 is Script {
         
         vm.startBroadcast(deployerPrivateKey);
         
-        // Step 1: Deploy MockIDRX token (for testnet only)
+        // Step 1: Deploy MockIDRX Token (for testnet only)
         console.log("\n=== Deploying MockIDRX Token ===");
         MockIDRX idrxToken = new MockIDRX();
         console.log("MockIDRX deployed at:", address(idrxToken));
@@ -43,12 +43,15 @@ contract DeployEscrowV1 is Script {
         
         // Step 3: Prepare initialization data
         address treasuryAddress = deployer; // Use deployer as treasury for testnet
+        address marketplaceAddress = 0xD7Dc67800280c6C4eDC8214B245632796B3c1d22; // Hardcoded existing Marketplace address
         console.log("Treasury address:", treasuryAddress);
+        console.log("Marketplace address:", marketplaceAddress);
         
         bytes memory initData = abi.encodeWithSelector(
             EscrowV1.initialize.selector,
             treasuryAddress,
-            address(idrxToken)
+            address(idrxToken),
+            marketplaceAddress
         );
         
         // Step 4: Deploy ERC1967 Proxy
@@ -66,11 +69,12 @@ contract DeployEscrowV1 is Script {
         console.log("\n=== Verifying Deployment ===");
         console.log("Escrow treasury:", escrow.treasuryAddress());
         console.log("Escrow IDRX token:", address(escrow.idrxToken()));
+        console.log("Escrow marketplace:", escrow.marketplaceAddress());
         console.log("Escrow owner:", escrow.owner());
-        console.log("Escrow counter:", escrow.escrowCounter());
         
         require(escrow.treasuryAddress() == treasuryAddress, "Treasury mismatch");
         require(address(escrow.idrxToken()) == address(idrxToken), "IDRX token mismatch");
+        require(address(escrow.marketplaceAddress()) == marketplaceAddress, "Marketplace mismatch");
         require(escrow.owner() == deployer, "Owner mismatch");
         
         vm.stopBroadcast();
@@ -83,6 +87,7 @@ contract DeployEscrowV1 is Script {
         console.log("EscrowV1 Implementation:", address(escrowImplementation));
         console.log("EscrowV1 Proxy (Main Contract):", address(proxy));
         console.log("Treasury:", treasuryAddress);
+        console.log("Marketplace:", marketplaceAddress);
         console.log("\n=== Save these addresses for frontend integration ===");
         console.log("ESCROW_CONTRACT_ADDRESS=", address(proxy));
         console.log("IDRX_TOKEN_ADDRESS=", address(idrxToken));
