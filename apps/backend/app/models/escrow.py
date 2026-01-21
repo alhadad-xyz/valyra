@@ -15,6 +15,7 @@ class EscrowState(PyEnum):
     FUNDED = "funded"
     DELIVERED = "delivered"
     CONFIRMED = "confirmed"
+    TRANSITION = "transition"
     DISPUTED = "disputed"
     RESOLVED = "resolved"
     COMPLETED = "completed"
@@ -32,7 +33,7 @@ class Escrow(Base):
     # Smart Contract
     contract_address = Column(String(42), nullable=True, index=True)
     on_chain_id = Column(Numeric(20, 0), nullable=True, index=True) # Using Numeric for uint256 safety, though Integer might suffice for small counts
-    escrow_state = Column(Enum(EscrowState), default=EscrowState.CREATED, nullable=False)
+    escrow_state = Column(Enum(EscrowState, values_callable=lambda obj: [e.value for e in obj]), default=EscrowState.CREATED, nullable=False)
     
     # Parties
     buyer_address = Column(String(42), nullable=False)
@@ -44,6 +45,7 @@ class Escrow(Base):
     
     # Credentials
     credentials_ipfs_hash = Column(String(255), nullable=True)
+    buyer_public_key = Column(String(256), nullable=True) # Uncompressed hex public key
     
     # Verification Period
     verification_deadline = Column(

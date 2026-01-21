@@ -10,3 +10,13 @@ class VerificationResponse(BaseModel):
     details: Dict[str, Any] = Field(..., description="Detailed breakdown of the scoring factors")
     github_data: Optional[Dict[str, Any]] = Field(None, description="Data fetched from GitHub")
     linkedin_data: Optional[Dict[str, Any]] = Field(None, description="Data scraped from LinkedIn")
+
+class RepoVerificationRequest(BaseModel):
+    repo_url: HttpUrl = Field(..., description="The GitHub repository URL to verify")
+
+class RepoVerificationResponse(BaseModel):
+    is_verified: bool
+    exists: bool
+    is_public: bool
+    repo_details: Optional[Dict[str, Any]] = None
+    message: str

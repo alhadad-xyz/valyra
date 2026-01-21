@@ -11,7 +11,8 @@ class ValuationResponse(BaseModel):
 
 class ValuationRequest(BaseModel):
     revenue: float = Field(..., gt=0, description="Annual Recurring Revenue (ARR) or Annual Revenue")
-    growth_rate: float = Field(..., description="Year-over-Year Growth Rate (e.g., 0.5 for 50%)")
+    growth_rate: Optional[float] = Field(None, description="Year-over-Year Growth Rate (e.g., 0.5 for 50%)")
+    revenue_trend: Optional[str] = Field(None, description="Revenue trend (growing, stable, declining)")
     industry: Optional[str] = Field(None, description="Industry sector (e.g., SaaS, E-commerce)")
     description: Optional[str] = Field(None, description="Brief description of the project")
 

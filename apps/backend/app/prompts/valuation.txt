@@ -4,7 +4,7 @@ User: Please analyze the following SaaS project and provide a valuation range.
 
 Metrics:
 - Annual Revenue: {{ revenue }}
-- Year-over-Year Growth Rate: {{ growth_rate }}
+- Growth: {{ growth_description }}
 
 Instructions:
 1. Analyze the provided metrics in the context of current SaaS market benchmarks.

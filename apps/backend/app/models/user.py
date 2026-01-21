@@ -31,9 +31,9 @@ class User(Base):
     wallet_address = Column(String(42), unique=True, nullable=False, index=True)
     basename = Column(String(255), nullable=True)
     email = Column(String(255), nullable=True)
-    # stripe_account_id removed
+    stripe_account_id = Column(String(255), nullable=True) # Zero-storage: Only ID stored
     google_id = Column(String(255), nullable=True)  # Zero-storage: Only ID stored
-    challenge = Column(String(1024), nullable=True) # WebAuthn challenge
+
     verification_level = Column(
         Enum(VerificationLevel, values_callable=lambda x: [e.value for e in x]),
         default=VerificationLevel.BASIC,
@@ -48,10 +48,15 @@ class User(Base):
         nullable=False
     )
 
+    # Notification Preferences
+    email_on_offer = Column(Integer, default=1, server_default="1", nullable=False) # Using Integer as Boolean (0/1) for SQLite compatibility if needed, or just standard Boolean
+    email_on_status = Column(Integer, default=1, server_default="1", nullable=False)
+    marketing_drops = Column(Integer, default=1, server_default="1", nullable=False)
+
     # Relationships
     listings = relationship("Listing", back_populates="seller", foreign_keys="Listing.seller_id")
     offers = relationship("Offer", back_populates="buyer", foreign_keys="Offer.buyer_id")
-    credentials = relationship("UserCredential", back_populates="user", cascade="all, delete-orphan")
+
 
     def __repr__(self) -> str:
         return f"<User {self.wallet_address[:10]}... (Score: {self.reputation_score})>"

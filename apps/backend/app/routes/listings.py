@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Literal
 from uuid import UUID
 from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -15,6 +15,9 @@ from app.websockets import manager
 from app.core.rate_limiter import limiter
 from fastapi import Request
 from app.services.view_tracker import ViewTrackerService
+from app.models.verification import VerificationRecord, VerificationType, VerificationRecordStatus
+from app.services.asset_verification import asset_verification_service
+from datetime import datetime
 
 router = APIRouter(prefix="/listings", tags=["Listings"])
 
@@ -34,6 +37,31 @@ async def create_listing(
     db.add(new_listing)
     db.commit()
     db.refresh(new_listing)
+
+    # Automatic GitHub Repo Verification
+    if new_listing.tech_stack and isinstance(new_listing.tech_stack, dict):
+        repo_url = new_listing.tech_stack.get("repo_url")
+        if repo_url:
+            # Verify the repo
+            verify_result = await asset_verification_service.verify_repo(repo_url)
+            
+            if verify_result.get("is_verified"):
+                # Create Verification Record
+                record = VerificationRecord(
+                    listing_id=new_listing.id,
+                    verification_type=VerificationType.GITHUB_REPO,
+                    status=VerificationRecordStatus.VERIFIED,
+                    verification_data=verify_result,
+                    verified_at=datetime.utcnow()
+                )
+                db.add(record)
+                
+                # Check if we should update listing verification level
+                # For MVP, getting code verified upgrades to level 2 if not already
+                if new_listing.verified_level < 2:
+                    new_listing.verified_level = 2
+                    
+                db.commit()
     
     # Broadcast new listing
     listing_data = jsonable_encoder(new_listing)
@@ -55,7 +83,14 @@ async def get_listings(
     asset_type: Optional[AssetType] = None,
     min_price: Optional[Decimal] = None,
     max_price: Optional[Decimal] = None,
+    search: Optional[str] = Query(None, min_length=1),
     sort_by: str = Query("created_at", regex="^(created_at|trending|price|views)$"),
+    revenue_trend: Optional[str] = Query(None, description="Comma-separated list of revenue trends"),
+    min_mrr: Optional[Decimal] = None,
+    max_mrr: Optional[Decimal] = None,
+    verification_level: Optional[str] = Query(None, description="Comma-separated list of verification levels (1,2,3)"),
+    on_chain_id: Optional[int] = None,
+    seller_id: Optional[UUID] = None,
     db: Session = Depends(get_db)
 ):
     """
@@ -71,6 +106,35 @@ async def get_listings(
         query = query.filter(Listing.asking_price >= min_price)
     if max_price:
         query = query.filter(Listing.asking_price <= max_price)
+    if min_mrr:
+        query = query.filter(Listing.mrr >= min_mrr)
+    if max_mrr:
+        query = query.filter(Listing.mrr <= max_mrr)
+    if revenue_trend:
+        trends = [t.strip() for t in revenue_trend.split(",") if t.strip()]
+        if trends:
+            # Case-insensitive match for enum values
+            query = query.filter(Listing.revenue_trend.in_(trends))
+
+
+    if verification_level:
+        try:
+            levels = [int(l.strip()) for l in verification_level.split(",") if l.strip().isdigit()]
+            if levels:
+                query = query.filter(Listing.verified_level.in_(levels))
+        except ValueError:
+            pass # Ignore invalid format
+    if on_chain_id is not None:
+        query = query.filter(Listing.on_chain_id == on_chain_id)
+    if seller_id:
+        query = query.filter(Listing.seller_id == seller_id)
+    if search:
+        # Case-insensitive search across asset_name and description
+        search_pattern = f"%{search}%"
+        query = query.filter(
+            (Listing.asset_name.ilike(search_pattern)) |
+            (Listing.description.ilike(search_pattern))
+        )
         
     # Apply sorting
     if sort_by == "trending":
@@ -98,22 +162,106 @@ async def get_listings(
     
     return listings
 
-
-@router.get("/{listing_id}", response_model=ListingResponse)
-async def get_listing(
-    listing_id: UUID,
+@router.get("/{listing_id}/verification")
+async def get_listing_verification(
+    listing_id: str,
     db: Session = Depends(get_db)
 ):
     """
-    Get a specific listing by ID.
+    Get verification records for a specific listing.
     """
+    from app.models.verification import VerificationRecord
+    from app.schemas.verification_record import VerificationRecordResponse
+    
+    # Verify listing exists
     listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    
+    # Fetch verification records
+    records = db.query(VerificationRecord).filter(
+        VerificationRecord.listing_id == listing_id
+    ).all()
+    
+    return {
+        "listing_id": str(listing_id),
+        "verified_level": listing.verified_level,
+        "verification_status": listing.verification_status.value if listing.verification_status else "pending",
+        "records": [VerificationRecordResponse.model_validate(r) for r in records]
+    }
+
+
+
+@router.get("/{listing_id}", response_model=ListingResponse)
+async def get_listing(
+    listing_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Get a specific listing by ID (UUID) or On-Chain ID (Integer).
+    """
+    listing = None
+    
+    # Try as UUID
+    try:
+        uuid_obj = UUID(listing_id)
+        listing = db.query(Listing).filter(Listing.id == uuid_obj).first()
+    except ValueError:
+        # Not a UUID, try as On-Chain ID
+        if listing_id.isdigit():
+            listing = db.query(Listing).filter(Listing.on_chain_id == int(listing_id)).first()
     
     if not listing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Listing not found"
         )
+        
+    # Generate mock revenue history if missing (for demo purposes)
+    if not listing.revenue_history:
+        from datetime import date, timedelta
+        import random
+        
+        history = []
+        # Fallback to annual_revenue or default if 0
+        annual_rev = float(listing.annual_revenue) if listing.annual_revenue else 120000.0
+        monthly_avg = annual_rev / 12.0
+        
+        # Use current date as baseline 
+        today = date.today()
+        
+        for i in range(11, -1, -1):
+            # Approximate date for previous months (1st of month)
+            # Safe calculation using day=1 replacement
+            d = today.replace(day=1) 
+            # Subtract i months (rough approximation 30 days)
+            month_date = d - timedelta(days=i*30)
+            
+            # Base variance (+- 10%)
+            variance = random.uniform(0.9, 1.1)
+            revenue = monthly_avg * variance
+            
+            # Trend adjustment
+            trend = listing.revenue_trend.value if listing.revenue_trend else "stable"
+            
+            if trend == "growing":
+                 # Past was lower (start at 70%, grow to 100%)
+                 factor = 0.7 + (0.3 * ((12-i)/12))
+                 revenue *= factor
+            elif trend == "declining":
+                 # Past was higher (start at 130%, decline to 100%)
+                 factor = 1.3 - (0.3 * ((12-i)/12))
+                 revenue *= factor
+            
+            expenses = revenue * 0.3 # Assume 30% expenses
+            
+            history.append({
+                "date": month_date.isoformat(),
+                "revenue": round(revenue, 2),
+                "expenses": round(expenses, 2),
+            })
+            
+        listing.revenue_history = history
         
     return listing
 
@@ -149,6 +297,39 @@ async def update_listing(
         
     db.commit()
     db.refresh(listing)
+
+    # Automatic verification update on edit
+    if listing.tech_stack and isinstance(listing.tech_stack, dict):
+        repo_url = listing.tech_stack.get("repo_url")
+        if repo_url:
+            # Check if record exists
+            existing_record = db.query(VerificationRecord).filter(
+                VerificationRecord.listing_id == listing.id,
+                VerificationRecord.verification_type == VerificationType.GITHUB_REPO
+            ).first()
+            
+            # Re-verify if no record OR if repo url changed (simplified logic: just verify)
+            verify_result = await asset_verification_service.verify_repo(repo_url)
+            
+            if verify_result.get("is_verified"):
+                if existing_record:
+                    existing_record.status = VerificationRecordStatus.VERIFIED
+                    existing_record.verification_data = verify_result
+                    existing_record.verified_at = datetime.utcnow()
+                else:
+                    new_record = VerificationRecord(
+                        listing_id=listing.id,
+                        verification_type=VerificationType.GITHUB_REPO,
+                        status=VerificationRecordStatus.VERIFIED,
+                        verification_data=verify_result,
+                        verified_at=datetime.utcnow()
+                    )
+                    db.add(new_record)
+                
+                if listing.verified_level < 2:
+                    listing.verified_level = 2
+                    
+                db.commit()
 
     # Broadcast listing update
     listing_data = jsonable_encoder(listing)

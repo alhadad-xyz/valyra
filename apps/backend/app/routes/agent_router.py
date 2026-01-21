@@ -39,14 +39,7 @@ async def execute_command(
 async def agent_valuation(
     request: Request,
     valuation_request: ValuationRequest,
-    _ = Depends(verify_admin_key) # Keep admin protection for now, or maybe make public? 
-    # Usually agent actions are protected, but valuation might be public. 
-    # Current instruction didn't specify, but I'll keep it consistent with other agent routes or user authenticated.
-    # Actually, let's allow it to be public or at least consistent with valyra auth if needed.
-    # For this hackathon/MVP, I will use same protection or maybe no protection?
-    # The user asked for "not duplicate api".
-    # I will stick to verify_admin_key for consistency in this file, or relax it. 
-    # Let's keep verify_admin_key for consistency with the agent/execute endpoint.
+    # Made public for frontend integration - consider adding user auth in production
 ):
     """
     Get a signed valuation attestation from the AI Agent.

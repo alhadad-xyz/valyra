@@ -26,7 +26,7 @@ eth-account = "^0.13.1"
 supabase = "^2.3.0"
 redis = "^5.0.1"
 lighthouseweb3 = "0.1.4"
-webauthn = "^2.0.0"
+
 shortuuid = "^1.0.11"
 coinbase-agentkit = "^0.1.0"
 coinbase-agentkit-langchain = "^0.1.0"

@@ -11,10 +11,19 @@ async def get_current_user(
     """
     Get the current authenticated user based on wallet signature.
     """
+    # Ensure wallet address is lowercase
+    wallet_address = wallet_address.lower()
     user = db.query(User).filter(User.wallet_address == wallet_address).first()
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+        # Auto-create user for new wallets
+        from app.models.user import VerificationLevel
+        user = User(
+            wallet_address=wallet_address,
+            email=f"{wallet_address[:8]}@valyra.xyz", # Placeholder
+            verification_level=VerificationLevel.BASIC
         )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        
     return user

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.schemas.verification import VerificationRequest, VerificationResponse
+from app.schemas.verification import VerificationRequest, VerificationResponse, RepoVerificationRequest, RepoVerificationResponse
 from app.services.identity_verification import IdentityVerificationService
+from app.services.asset_verification import asset_verification_service
 
 router = APIRouter(tags=["verification"])
 
@@ -18,3 +19,14 @@ async def verify_identity(request: VerificationRequest):
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/verification/verify-repo", response_model=RepoVerificationResponse)
+async def verify_repo(request: RepoVerificationRequest):
+    """
+    Verifies a GitHub repository's existence and public visibility.
+    """
+    try:
+        result = await asset_verification_service.verify_repo(str(request.repo_url))
+        return RepoVerificationResponse(**result)
+    except Exception as e:
+         raise HTTPException(status_code=500, detail=str(e))
