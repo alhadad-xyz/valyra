@@ -70,8 +70,22 @@ contract MarketplaceV1GenesisTest is Test {
         vm.stopPrank();
         
         // Restart genesis
+        // Slot 90 is likely genesisProgram (bool) and genesisSellersCount (uint256) proximity? 
+        // Wait, checking storage slots blindly is dangerous.
+        // Previous code:
+        // vm.store(address(marketplace), bytes32(uint256(6)), bytes32(uint256(1))); // genesisProgram = true
+        // vm.store(address(marketplace), bytes32(uint256(7)), bytes32(uint256(0))); // genesisSellersCount = 0 -> THIS IS THE BUG
+        
+        // We only want to turn genesisProgram back on.
+        // Assuming slot 6 is genesisProgram based on previous usage.
+        // We should safeguard the count.
+        
+        uint256 currentCount = marketplace.genesisSellersCount();
         vm.store(address(marketplace), bytes32(uint256(6)), bytes32(uint256(1)));
-        vm.store(address(marketplace), bytes32(uint256(7)), bytes32(uint256(0)));
+        // We do NOT want to reset count. 
+        // But if endGenesisProgram didn't mess with count, we don't need to restore it.
+        // Just remove the line writing to slot 7.
+
     }
     
     function testJoinGenesisSuccess() public {
@@ -136,5 +150,70 @@ contract MarketplaceV1GenesisTest is Test {
         marketplace.joinGenesis();
         
         assertTrue(marketplace.isGenesisSeller(seller));
+    }
+
+    function test_GenesisCap() public {
+        // Assume test setup has 0 genesis sellers (or reset count)
+        // Note: setUp() initializes with 0. 
+        // We need to ensure setVerificationLevel doesn't permanently add a genesis seller.
+        // Looking at setVerificationLevel helper:
+        // It calls marketplace.staking functions.
+        // It calls endGenesisProgram then restarts it?
+        // Wait, helper:
+        // marketplace.endGenesisProgram();
+        // ... stakeToSell() -> Genesis logic skipped because program ended?
+        // Ah, if program ended, stakeToSell goes to "Regular staking", correct?
+        // But let's verify.
+        
+        uint256 startCount = marketplace.genesisSellersCount();
+        assertEq(startCount, 0, "Should start with 0");
+        
+        // Loop 50 times
+        for (uint256 i = 1; i <= 50; i++) {
+            address user = address(uint160(i + 1000));
+            setVerificationLevel(user, MarketplaceV1.VerificationLevel.STANDARD);
+            vm.prank(user);
+            marketplace.joinGenesis();
+            assertEq(marketplace.genesisSellersCount(), i);
+        }
+
+        // Try 51st
+        address user51 = address(0x9999);
+        setVerificationLevel(user51, MarketplaceV1.VerificationLevel.STANDARD);
+        
+        vm.prank(user51);
+        vm.expectRevert("Genesis program is full");
+        marketplace.joinGenesis();
+    }
+
+    function test_GenesisDoubleCountPrevented() public {
+        address user = address(0x5555);
+        setVerificationLevel(user, MarketplaceV1.VerificationLevel.STANDARD);
+        
+        // 1. Join via stakeToSell (Genesis path)
+        vm.prank(user);
+        marketplace.stakeToSell();
+        
+        assertTrue(marketplace.isGenesisSeller(user));
+        assertEq(marketplace.genesisSellersCount(), 1);
+
+        // 2. Try to join again via joinGenesis
+        vm.prank(user);
+        vm.expectRevert("Already a Genesis Seller");
+        marketplace.joinGenesis();
+    }
+
+    function test_GenesisReentryPrevented() public {
+        address user = address(0x6666);
+        setVerificationLevel(user, MarketplaceV1.VerificationLevel.STANDARD);
+
+        // 1. Join via stakeToSell
+        vm.prank(user);
+        marketplace.stakeToSell();
+
+        // 2. Try to stake again
+        vm.prank(user);
+        vm.expectRevert("Already staked");
+        marketplace.stakeToSell();
     }
 }
