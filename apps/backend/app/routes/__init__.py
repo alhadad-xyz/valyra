@@ -7,5 +7,6 @@ from app.routes.valuation import router as valuation_router
 from app.routes.verification import router as verification_router
 from app.routes.disputes import router as disputes_router
 from app.routes.debug import router as debug_router
+from app.routes.offers import router as offers_router
 
-__all__ = ["health_router", "listings_router", "users_router", "agent_router", "valuation_router", "verification_router", "disputes_router", "debug_router"]
+__all__ = ["health_router", "listings_router", "users_router", "agent_router", "valuation_router", "verification_router", "disputes_router", "debug_router", "offers_router"]

@@ -103,5 +103,9 @@ class Listing(Base):
     offers = relationship("Offer", back_populates="listing")
     verification_records = relationship("VerificationRecord", back_populates="listing")
 
+    @property
+    def seller_address(self):
+        return self.seller.wallet_address if self.seller else None
+
     def __repr__(self) -> str:
         return f"<Listing {self.asset_name} - {self.asking_price} IDRX>"

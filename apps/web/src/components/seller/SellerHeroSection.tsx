@@ -1,10 +1,14 @@
 "use client";
 
+import { useMemo } from "react";
+
+import Link from "next/link";
 import { Button } from "ui";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export function SellerHeroSection() {
-    const { ref, isVisible } = useScrollAnimation({ threshold: 1 });
+    const scrollOptions = useMemo(() => ({ threshold: 1 }), []);
+    const { ref, isVisible } = useScrollAnimation(scrollOptions);
 
     return (
         <section
@@ -43,13 +47,15 @@ export function SellerHeroSection() {
 
                     {/* CTA Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4">
-                        <Button
-                            size="lg"
-                            variant="primary"
-                            rightIcon={<span className="material-symbols-outlined text-sm">arrow_forward</span>}
-                        >
-                            Start Selling
-                        </Button>
+                        <Link href="/app/sell">
+                            <Button
+                                size="lg"
+                                variant="primary"
+                                rightIcon={<span className="material-symbols-outlined text-sm">arrow_forward</span>}
+                            >
+                                Start Selling
+                            </Button>
+                        </Link>
                         <Button size="lg" variant="secondary">
                             How it works
                         </Button>

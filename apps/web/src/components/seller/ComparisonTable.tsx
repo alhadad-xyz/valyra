@@ -1,9 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export function ComparisonTable() {
-    const { ref, isVisible } = useScrollAnimation({ threshold: 0.4 });
+    const scrollOptions = useMemo(() => ({ threshold: 0.4 }), []);
+    const { ref, isVisible } = useScrollAnimation(scrollOptions);
 
     const features = [
         {

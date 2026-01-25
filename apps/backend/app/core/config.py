@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     ipfs_gateway_url: str = "https://gateway.lighthouse.storage/ipfs/"
     pinata_api_key: Optional[str] = None
     pinata_secret_key: Optional[str] = None
+    pinata_jwt: Optional[str] = None
 
     # AgentKit & CDP
     cdp_api_key_name: Optional[str] = None
@@ -67,8 +68,14 @@ class Settings(BaseSettings):
     google_client_secret: Optional[SecretStr] = None
     google_redirect_uri: Optional[str] = "http://localhost:8000/api/v1/auth/google/callback"
 
+    # Stripe
+    stripe_client_id: Optional[str] = None
+    stripe_api_key: Optional[str] = None
+    stripe_redirect_uri: Optional[str] = "http://localhost:8000/api/v1/auth/stripe/callback"
+
     # App Config
     environment: str = "development"
+    frontend_url: str = "http://localhost:3000"
     cors_origins: str = "http://localhost:3000"
     log_level: str = "INFO"
     api_v1_prefix: str = "/api/v1"

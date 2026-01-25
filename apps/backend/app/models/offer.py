@@ -30,9 +30,10 @@ class Offer(Base):
     offer_amount = Column(Numeric(20, 2), nullable=False)
     earnest_deposit = Column(Numeric(20, 2), nullable=False)  # 5% of offer
     earnest_tx_hash = Column(String(66), nullable=True)  # On-chain transaction hash
+    on_chain_id = Column(String(100), nullable=True, index=True)  # On-chain offer ID
     
     # Status
-    status = Column(Enum(OfferStatus), default=OfferStatus.PENDING, nullable=False)
+    status = Column(Enum(OfferStatus, values_callable=lambda obj: [e.value for e in obj]), default=OfferStatus.PENDING, nullable=False)
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

@@ -1,9 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export function TrustBar() {
-    const { ref, isVisible } = useScrollAnimation({ threshold: 1 });
+    const scrollOptions = useMemo(() => ({ threshold: 1 }), []);
+    const { ref, isVisible } = useScrollAnimation(scrollOptions);
 
     return (
         <section

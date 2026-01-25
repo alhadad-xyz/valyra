@@ -84,6 +84,10 @@ app.include_router(agent_router, prefix=settings.api_v1_prefix)
 app.include_router(valuation_router, prefix=settings.api_v1_prefix)
 app.include_router(verification_router, prefix=settings.api_v1_prefix)
 app.include_router(disputes_router, prefix=settings.api_v1_prefix)
+from app.routes import escrow
+app.include_router(escrow.router, prefix=settings.api_v1_prefix)
+from app.routes import offers_router
+app.include_router(offers_router, prefix=settings.api_v1_prefix)
 
 from app.routes import debug_router
 app.include_router(debug_router, prefix=settings.api_v1_prefix, tags=["debug"])

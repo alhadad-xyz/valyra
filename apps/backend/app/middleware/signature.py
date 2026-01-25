@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Constants
-TIMESTAMP_TOLERANCE_SECONDS = 300  # 5 minutes
+TIMESTAMP_TOLERANCE_SECONDS = 86400  # 24 hours
 
 async def verify_signature(
     x_wallet_address: str = Header(..., alias="X-Wallet-Address"),

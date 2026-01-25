@@ -1,10 +1,13 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { Button } from "ui";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export function PricingSection() {
-    const { ref, isVisible } = useScrollAnimation({ threshold: 0.4 });
+    const scrollOptions = useMemo(() => ({ threshold: 0.4 }), []);
+    const { ref, isVisible } = useScrollAnimation(scrollOptions);
 
     return (
         <section
@@ -89,13 +92,13 @@ export function PricingSection() {
                     </div>
 
                     <div className="mb-6">
-                        <h3 className="text-2xl font-bold mb-2">Genesis Seller</h3>
+                        <h3 className="text-2xl font-bold mb-2">Genesis Seller (Lifetime)</h3>
                         <p className="opacity-80">First 50 verified sellers only</p>
                     </div>
 
                     <div className="mb-8">
                         <span className="text-4xl font-black">Free</span>
-                        <p className="text-sm opacity-80 mt-2">No staking requirement</p>
+                        <p className="text-sm opacity-80 mt-2">No staking requirement • Lifetime access</p>
                     </div>
 
                     <ul className="flex flex-col gap-4 mb-8 flex-1">

@@ -1,12 +1,49 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
 import { Button } from "ui";
 import { ExploreSearchBar } from "@/components/explore/ExploreSearchBar";
+import {
+    ConnectWallet,
+    Wallet,
+    WalletDropdown,
+    WalletDropdownDisconnect,
+    WalletDropdownLink
+} from '@coinbase/onchainkit/wallet';
+import {
+    Address,
+    Avatar,
+    Name,
+    Identity,
+    EthBalance,
+} from '@coinbase/onchainkit/identity';
+import { GenesisBadge } from "@/components/marketplace/GenesisBadge";
 
 export function MarketplaceHeader() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+
+    // Sync input with URL
+    useEffect(() => {
+        setSearchQuery(searchParams.get('search') || '');
+    }, [searchParams]);
+
+    const handleSearch = (e: FormEvent) => {
+        e.preventDefault();
+        const params = new URLSearchParams(searchParams.toString());
+
+        if (searchQuery.trim()) {
+            params.set('search', searchQuery.trim());
+        } else {
+            params.delete('search');
+        }
+
+        router.push(`?${params.toString()}`, { scroll: false });
+    };
+
     return (
         <>
             {/* Top Bar - Support/Docs/Language */}
@@ -36,56 +73,75 @@ export function MarketplaceHeader() {
 
                     {/* Search Bar - Center */}
                     <div className="flex-1 max-w-2xl hidden md:block">
-                        <div className="flex items-center w-full h-12 bg-background-light dark:bg-background-dark rounded-full border border-gray-200 dark:border-gray-700 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary overflow-hidden pl-2">
-                            <Button
-                                variant="secondary"
-                                className="px-4 py-1.5 h-8 bg-background-light dark:bg-background-dark-elevated rounded-full text-xs font-bold text-text-main dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
-                                rightIcon={<span className="material-symbols-outlined text-[16px]">expand_more</span>}
-                            >
-                                All Categories
-                            </Button>
+                        <form onSubmit={handleSearch} className="flex items-center w-full h-12 bg-background-light dark:bg-background-dark rounded-full border border-gray-200 dark:border-gray-700 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary overflow-hidden">
+                            <span className="material-symbols-outlined text-text-muted dark:text-gray-500 ml-4">search</span>
                             <input
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                                 className="flex-1 bg-transparent border-none focus:ring-0 text-sm px-4 placeholder:text-text-muted dark:placeholder:text-gray-500 dark:text-white h-full focus:outline-none"
                                 placeholder="Search for micro-startups, SaaS, AI agents..."
                                 type="text"
                             />
                             <Button
+                                type="submit"
                                 variant="primary"
                                 className="size-10 rounded-full mr-1 hover:brightness-95 transition-all p-0 [&>span]:flex [&>span]:items-center [&>span]:justify-center"
                             >
-                                <span className="material-symbols-outlined text-white">search</span>
+                                <span className="material-symbols-outlined text-white">arrow_forward</span>
                             </Button>
-                        </div>
+                        </form>
                     </div>
 
                     {/* Right Actions - Notifications & Profile */}
-                    <div className="flex items-center">
-                        <Button
-                            variant="ghost"
-                            className="size-10 rounded-full bg-background-light dark:bg-background-dark hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center text-text-main dark:text-gray-300 transition-colors relative !px-3 [&>span]:flex [&>span]:items-center [&>span]:justify-center"
-                        >
-                            <span className="material-symbols-outlined">visibility</span>
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            className="size-10 rounded-full bg-background-light dark:bg-background-dark hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center text-text-main dark:text-gray-300 transition-colors relative !px-3 [&>span]:flex [&>span]:items-center [&>span]:justify-center"
-                        >
-                            <span className="material-symbols-outlined">notifications</span>
-                            <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-background-dark-elevated"></span>
-                        </Button>
+                    <div className="flex items-center gap-3">
+                        <GenesisBadge />
 
-                        {/* Profile Button - Simulated Connected State */}
-                        <Button
-                            variant="ghost"
-                            className="py-1 bg-background-light dark:bg-background-dark rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-600 h-auto [&>span]:flex [&>span]:items-center [&>span]:gap-2 !px-3"
-                        >
-                            <div className="size-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500"></div>
-                            {/* Placeholder for user avatar - using div gradient for now or could use img if available */}
-                            <div className="flex flex-col items-start leading-none">
-                                <span className="text-xs font-bold text-text-main dark:text-white">0x84...9a2</span>
-                                <span className="text-[10px] font-medium text-text-muted">Connected</span>
-                            </div>
-                        </Button>
+                        {/* Wallet with Dropdown */}
+                        <Wallet>
+                            <ConnectWallet className="py-1 bg-background-light dark:bg-background-dark rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-600 h-auto flex items-center gap-2 px-3">
+                                <Avatar className="size-8" />
+                                <Name className="text-xs font-bold" />
+                            </ConnectWallet>
+                            <WalletDropdown>
+                                <Identity className="px-4 pt-3 pb-2" hasCopyAddressOnClick>
+                                    <Avatar />
+                                    <Name />
+                                    <Address />
+                                    <EthBalance />
+                                </Identity>
+                                <WalletDropdownLink
+                                    icon="dashboard"
+                                    href="/app/dashboard"
+                                >
+                                    Overview
+                                </WalletDropdownLink>
+                                <WalletDropdownLink
+                                    icon="storefront"
+                                    href="/app/listings"
+                                >
+                                    My Listings
+                                </WalletDropdownLink>
+                                <WalletDropdownLink
+                                    icon="shopping_bag"
+                                    href="/buyer/purchases"
+                                >
+                                    My Acquisition
+                                </WalletDropdownLink>
+                                <WalletDropdownLink
+                                    icon="description"
+                                    href="/app/offers"
+                                >
+                                    My Offers
+                                </WalletDropdownLink>
+                                <WalletDropdownLink
+                                    icon="settings"
+                                    href="/app/settings"
+                                >
+                                    Settings
+                                </WalletDropdownLink>
+                                <WalletDropdownDisconnect />
+                            </WalletDropdown>
+                        </Wallet>
                     </div>
                 </div>
             </header>

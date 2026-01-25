@@ -1,9 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export function FeaturesSection() {
-    const { ref, isVisible } = useScrollAnimation({ threshold: 0.4 });
+    const scrollOptions = useMemo(() => ({ threshold: 0.4 }), []);
+    const { ref, isVisible } = useScrollAnimation(scrollOptions);
 
     const features = [
         {
@@ -65,7 +68,7 @@ export function FeaturesSection() {
                         </div>
                         <div className="flex flex-col gap-2">
                             <h3 className="text-xl font-bold">{feature.title}</h3>
-                            <p className="text-text-muted dark:text-gray-400 leading-relaxed">
+                            <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
                                 {feature.description}
                             </p>
                         </div>

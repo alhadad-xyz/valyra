@@ -1,13 +1,46 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "ui";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useAccount } from 'wagmi';
+import {
+    ConnectWallet,
+    Wallet,
+    WalletDropdown,
+    WalletDropdownDisconnect,
+    WalletDropdownLink
+} from '@coinbase/onchainkit/wallet';
+import {
+    Address,
+    Avatar,
+    Name,
+    Identity,
+    EthBalance,
+} from '@coinbase/onchainkit/identity';
 
 export function Header() {
     const pathname = usePathname();
+    const router = useRouter();
+    const { status } = useAccount();
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isRedirectable, setIsRedirectable] = useState(false);
+
+    useEffect(() => {
+        // If user is disconnected, we allow a future redirect upon connection
+        if (status === 'disconnected') {
+            setIsRedirectable(true);
+        }
+    }, [status]);
+
+    useEffect(() => {
+        // Only redirect if we were previously disconnected (isRedirectable) and are now connected
+        // This prevents redirecting when the wallet auto-connects on page load (status goes reconnecting -> connected)
+        if (status === 'connected' && isRedirectable) {
+            router.push('/app');
+            setIsRedirectable(false); // Reset flag after redirect to prevent repeated redirects
+        }
+    }, [status, isRedirectable, router]);
 
     // Define navigation items with their paths
     const navItems = [
@@ -68,11 +101,59 @@ export function Header() {
                                 );
                             })}
                         </div>
-                        <Link href="/connect-wallet">
-                            <Button variant="primary" size="md">
-                                Connect Wallet
-                            </Button>
-                        </Link>
+
+                        <div className="flex justify-end relative">
+                            <Wallet>
+                                <ConnectWallet
+                                    className="px-6 py-2.5 bg-gray-100 dark:bg-gray-800 text-text-main dark:text-white rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-bold flex items-center gap-2"
+                                />
+                                <WalletDropdown>
+                                    <Identity className="px-4 pt-3 pb-2" hasCopyAddressOnClick>
+                                        <Avatar />
+                                        <Name />
+                                        <Address />
+                                        <EthBalance />
+                                    </Identity>
+                                    <WalletDropdownLink
+                                        icon="dashboard"
+                                        href="/app"
+                                    >
+                                        Dashboard
+                                    </WalletDropdownLink>
+                                    <WalletDropdownLink
+                                        icon="storefront"
+                                        href="/app/listings"
+                                    >
+                                        My Listings
+                                    </WalletDropdownLink>
+                                    <WalletDropdownLink
+                                        icon="shopping_bag"
+                                        href="/buyer/purchases"
+                                    >
+                                        My Purchases
+                                    </WalletDropdownLink>
+                                    <WalletDropdownLink
+                                        icon="description"
+                                        href="/app/offers"
+                                    >
+                                        My Offers
+                                    </WalletDropdownLink>
+                                    <WalletDropdownLink
+                                        icon="receipt_long"
+                                        href="/app/transactions"
+                                    >
+                                        Transactions
+                                    </WalletDropdownLink>
+                                    <WalletDropdownLink
+                                        icon="settings"
+                                        href="/app/settings"
+                                    >
+                                        Settings
+                                    </WalletDropdownLink>
+                                    <WalletDropdownDisconnect />
+                                </WalletDropdown>
+                            </Wallet>
+                        </div>
                     </div>
 
                     {/* Mobile Menu Icon */}
@@ -80,7 +161,8 @@ export function Header() {
                         <span className="material-symbols-outlined">menu</span>
                     </button>
                 </div>
-            </header>
-        </div>
+            </header >
+        </div >
     );
 }
+

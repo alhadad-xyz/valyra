@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import { Button, Badge } from "ui";
+import Link from "next/link";
 import { formatCurrency } from "@/utils/format";
 
 interface ListingCardProps {
+    id: string;
     image: string;
     category: string;
     title: string;
@@ -27,6 +29,7 @@ interface ListingCardProps {
 }
 
 export function ListingCard({
+    id,
     image,
     category,
     title,
@@ -68,20 +71,23 @@ export function ListingCard({
         return (
             <div className="bg-white dark:bg-background-dark-elevated rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col hover:shadow-xl transition-shadow group">
                 <div className="h-64 relative overflow-hidden">
-                    <Image
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        src={image}
-                        alt={title}
-                    />
+                    {image || title ? (
+                        <Image
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            src={image || `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(title || "Listing")}`}
+                            alt={title}
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-gray-400 dark:text-gray-600 text-7xl">image</span>
+                        </div>
+                    )}
                     {isFeatured && (
                         <div className="absolute top-4 left-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase">
                             #1 Trending
                         </div>
                     )}
-                    <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md text-white p-2 rounded-full cursor-pointer hover:bg-black/70 transition-colors">
-                        <span className="material-symbols-outlined text-sm">favorite</span>
-                    </div>
                 </div>
                 <div className="p-6 flex-1 flex flex-col">
                     <div className="flex justify-between items-start mb-2">
@@ -156,15 +162,14 @@ export function ListingCard({
     }
 
     return (
-        <div className="bg-white dark:bg-background-dark-elevated rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+        <div className="bg-white dark:bg-background-dark-elevated rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
             <div className="h-40 relative">
-                {image ? (
-                    <Image fill className="object-cover" src={image} alt={title} />
-                ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-gray-400 dark:text-gray-600 text-5xl">image</span>
-                    </div>
-                )}
+                <Image
+                    fill
+                    className="object-cover"
+                    src={image || `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(title || "Listing")}`}
+                    alt={title}
+                />
                 <span className="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur text-[10px] font-bold px-2 py-1 rounded text-text-main dark:text-white">
                     {category}
                 </span>
@@ -189,9 +194,10 @@ export function ListingCard({
                 </div>
                 <div className="flex flex-col gap-1 mb-3">
                     <div className="flex justify-between items-center text-sm">
-                        <div className="flex flex-col">
-                            <span className="font-bold text-text-main dark:text-white">{formatCurrency(askingPrice)}</span>
-                            {platformFee && <span className="text-[9px] text-primary">+2.5% fee</span>}
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-lg font-black text-text-main dark:text-white">
+                                {formatCurrency(askingPrice)}
+                            </span>
                         </div>
                         <span className="text-text-muted text-xs">MRR: {formatCurrency(mrr)}</span>
                     </div>
@@ -201,25 +207,18 @@ export function ListingCard({
                         </span>
                     </div>
                 </div>
-                <div className="flex gap-1 mb-3 mt-auto flex-wrap">
-                    {(techStack || []).slice(0, 2).map((tech, index) => (
-                        <span
-                            key={index}
-                            className="px-1.5 py-0.5 bg-gray-50 dark:bg-gray-800 rounded text-[9px] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700"
-                        >
-                            {tech}
-                        </span>
-                    ))}
-                </div>
+
                 {showViews && viewCount !== undefined && viewCount > 0 && (
                     <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 mb-2">
                         <span className="material-symbols-outlined text-sm">visibility</span>
                         {viewCount.toLocaleString()} views
                     </div>
                 )}
-                <Button variant="outline" fullWidth size="sm" className="mt-auto">
-                    View Details
-                </Button>
+                <Link href={`/app/listings/${id}`} className="mt-auto block w-full">
+                    <Button variant="outline" fullWidth size="sm">
+                        View Details
+                    </Button>
+                </Link>
             </div>
         </div>
     );

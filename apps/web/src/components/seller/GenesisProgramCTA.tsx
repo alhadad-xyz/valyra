@@ -1,10 +1,14 @@
 "use client";
 
+import { useMemo } from "react";
+
+import Link from "next/link";
 import { Button } from "ui";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export function GenesisProgramCTA() {
-    const { ref, isVisible } = useScrollAnimation({ threshold: 0.2 });
+    const scrollOptions = useMemo(() => ({ threshold: 0.2 }), []);
+    const { ref, isVisible } = useScrollAnimation(scrollOptions);
 
     return (
         <section
@@ -38,14 +42,16 @@ export function GenesisProgramCTA() {
                 </div>
 
                 <div className="flex flex-col items-center gap-3 relative z-10 min-w-max">
-                    <Button
-                        size="lg"
-                        variant="primary"
-                        leftIcon={<span className="material-symbols-outlined">wallet</span>}
-                        className="hover:scale-105 transition-transform shadow-[0_0_20px_rgba(0,82,255,0.4)]"
-                    >
-                        Check Eligibility
-                    </Button>
+                    <Link href="/app/sell">
+                        <Button
+                            size="lg"
+                            variant="primary"
+                            leftIcon={<span className="material-symbols-outlined">wallet</span>}
+                            className="hover:scale-105 transition-transform shadow-[0_0_20px_rgba(0,82,255,0.4)]"
+                        >
+                            Check Eligibility
+                        </Button>
+                    </Link>
                     <p className="text-xs text-gray-500">Connect wallet to check status</p>
                 </div>
             </div>

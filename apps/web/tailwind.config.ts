@@ -9,6 +9,8 @@ const config: Config = {
         "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
         // Include UI package components
         "../../packages/ui/src/**/*.{js,ts,jsx,tsx}",
+        // Include OnchainKit components
+        "./node_modules/@coinbase/onchainkit/dist/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
         extend: {

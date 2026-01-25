@@ -16,6 +16,9 @@ class VerificationType(PyEnum):
     OAUTH_ANALYTICS = "oauth_analytics"
     GITHUB_REPO = "github_repo"
     EMAIL_DOMAIN = "email_domain"
+    REVENUE_MANUAL = "revenue_manual"
+    IDENTITY = "identity"
+    REPO_SNAPSHOT = "repo_snapshot"
 
 
 class VerificationRecordStatus(PyEnum):

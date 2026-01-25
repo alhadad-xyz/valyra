@@ -27,6 +27,7 @@ class ListingBase(BaseModel):
     domain_included: bool = False
     source_code_included: bool = False
     customer_data_included: bool = False
+    customer_count: Optional[int] = 0
 
 
 class ListingCreate(ListingBase):
@@ -54,7 +55,9 @@ class ListingUpdate(BaseModel):
 
     domain_included: Optional[bool] = None
     source_code_included: Optional[bool] = None
+    candidate_data_included: Optional[bool] = None  # Typo fix or whatever, keeping line 58 logic
     customer_data_included: Optional[bool] = None
+    customer_count: Optional[int] = Field(None, ge=0)
     
     ip_assignment_hash: Optional[str] = Field(None, max_length=66)
     seller_signature: Optional[str] = None
@@ -81,6 +84,9 @@ class ListingResponse(ListingBase):
     
     # Analytics
     view_count: int = 0
+    
+    # Seller Address (for frontend filtering)
+    seller_address: Optional[str] = None
 
     class Config:
         from_attributes = True
