@@ -45,14 +45,14 @@ export const CredentialUploadModal: FC<CredentialUploadModalProps> = ({
     React.useEffect(() => {
         const handleTransactionResult = async () => {
             if (isConfirmed && backendIpfsHash) {
-                toast.success("Credentials synced to blockchain!");
+                toast.success("Credentials successfully synced to blockchain.");
                 setIsSubmitting(false);
                 setBackendIpfsHash(null);
                 onSuccess();
                 onClose();
             } else if (isTxError && backendIpfsHash) {
                 // Transaction failed - rollback backend upload
-                toast.error("Blockchain transaction failed. Rolling back...");
+                toast.error("Transaction failed. Rolling back...");
                 try {
                     const timestamp = Math.floor(Date.now() / 1000).toString();
                     const message = `Login to Valyra at ${timestamp}`;
@@ -70,10 +70,10 @@ export const CredentialUploadModal: FC<CredentialUploadModalProps> = ({
                             }
                         }
                     );
-                    toast.info("Backend upload rolled back");
+                    toast.info("Upload rollback completed.");
                 } catch (err) {
                     console.error("Rollback failed:", err);
-                    toast.error("Failed to rollback. Please contact support.");
+                    toast.error("Rollback failed. Contact support.");
                 }
                 setIsSubmitting(false);
                 setBackendIpfsHash(null);
@@ -93,7 +93,7 @@ export const CredentialUploadModal: FC<CredentialUploadModalProps> = ({
             }
 
             // Step 1: Upload to backend vault
-            toast.info("Uploading to backend vault...");
+            toast.info("Uploading to secure vault...");
             const timestamp = Math.floor(Date.now() / 1000).toString();
             const message = `Login to Valyra at ${timestamp}`;
             const signature = await signMessageAsync({ message });
@@ -135,11 +135,11 @@ export const CredentialUploadModal: FC<CredentialUploadModalProps> = ({
             const result = await response.json();
             const ipfsHash = result.ipfs_hash || result.credentials_ipfs_hash;
 
-            toast.success("Backend upload successful!");
+            toast.success("Upload successful.");
 
             // Step 2: Upload hash to smart contract
             if (onChainEscrowId && ipfsHash) {
-                toast.info("Syncing to blockchain...");
+                toast.info("Syncing with blockchain...");
 
                 // Use keccak256 to hash the IPFS string to get a proper bytes32
                 const { keccak256, toBytes } = await import('viem');
@@ -153,7 +153,7 @@ export const CredentialUploadModal: FC<CredentialUploadModalProps> = ({
                     args: [onChainEscrowId, hashBytes]
                 });
 
-                toast.success("Contract transaction sent! Please confirm in your wallet.");
+                toast.success("Transaction sent. Please confirm in wallet.");
                 setBackendIpfsHash(ipfsHash);
             } else {
                 // If no on-chain ID, just close
@@ -169,7 +169,7 @@ export const CredentialUploadModal: FC<CredentialUploadModalProps> = ({
                 onClose();
                 return;
             }
-            toast.error(err.message || "Failed to upload credentials");
+            toast.error(err.message || "Unable to upload credentials.");
             setIsSubmitting(false);
         }
     };
@@ -268,7 +268,7 @@ export const CredentialUploadModal: FC<CredentialUploadModalProps> = ({
                                     Encrypted & Secure
                                 </p>
                                 <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                                    Credentials are encrypted with ECIES and stored on Lighthouse IPFS. Only the buyer can decrypt and access them.
+                                    Credentials are encrypted with ECIES and stored on IPFS. Only the buyer can decrypt and access them.
                                 </p>
                             </div>
                         </div>

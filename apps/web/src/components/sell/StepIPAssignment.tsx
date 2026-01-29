@@ -22,6 +22,7 @@ export const StepIPAssignment: FC = () => {
 
     const handleSign = async () => {
         try {
+            console.log('[StepIPAssignment] Starting sign process...');
             setIsSigning(true);
             const timestamp = Math.floor(Date.now() / 1000);
 
@@ -29,10 +30,12 @@ export const StepIPAssignment: FC = () => {
             // In production, EIP-712 is preferred, but personal_sign is fine for MVP
             const messageToSign = `${agreementText}\n\nTimestamp: ${timestamp}`;
             const hash = keccak256(toBytes(messageToSign));
+            console.log('[StepIPAssignment] Message prepared', { messageToSign, hash });
 
             const signature = await signMessageAsync({
                 message: messageToSign,
             });
+            console.log('[StepIPAssignment] Signature received', signature);
 
             // Store in global state
             setField('ipAssignmentHash', hash);
@@ -41,12 +44,13 @@ export const StepIPAssignment: FC = () => {
 
             // Auto-advance after short delay
             setTimeout(() => {
+                console.log('[StepIPAssignment] Auto-advancing...');
                 nextStep();
             }, 1000);
 
         } catch (error) {
             console.error("Signing failed:", error);
-            toast.error("Failed to sign IP Assignment. Please try again.");
+            toast.error("Unable to sign IP Assignment. Please retry.");
         } finally {
             setIsSigning(false);
         }
@@ -106,26 +110,6 @@ export const StepIPAssignment: FC = () => {
                         <p className="text-center text-xs text-text-muted">
                             By signing, you agree to Valyra's Terms of Service and Seller Code of Conduct.
                         </p>
-
-                        {/* DEV ONLY: Bypass Button */}
-                        {process.env.NODE_ENV === 'development' && !sellerSignature && (
-                            <div className="pt-4 border-t border-dashed border-gray-300 dark:border-gray-800 text-center">
-                                <p className="text-xs text-red-500 mb-2 font-bold uppercase">Development Mode Only</p>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-xs text-text-muted hover:text-red-500"
-                                    onClick={() => {
-                                        setField('ipAssignmentHash', '0xMOCK_HASH_' + Date.now());
-                                        setField('ipSignedAt', Math.floor(Date.now() / 1000));
-                                        setField('sellerSignature', '0xMOCK_SIGNATURE_' + Date.now());
-                                        setTimeout(nextStep, 500);
-                                    }}
-                                >
-                                    [DEV] Bypass Signing
-                                </Button>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>

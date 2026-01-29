@@ -1,7 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAccount, useSignMessage } from 'wagmi';
 import { useCallback } from 'react';
 import { getAuthSession, setAuthSession } from '@/utils/authSession';
+import { useOffersWebSocket } from './useOffersWebSocket';
 
 export type OfferStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
 
@@ -37,6 +38,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 export function useOffers() {
     const { address } = useAccount();
     const { signMessageAsync } = useSignMessage();
+    const queryClient = useQueryClient();
+
+    // Auto-refresh on WebSocket events
+    useOffersWebSocket((event) => {
+        console.log('[useOffers] Received realtime event:', event);
+        queryClient.invalidateQueries({ queryKey: ['offers-sent'] });
+        queryClient.invalidateQueries({ queryKey: ['offers-received'] });
+    });
 
     const fetchOffers = useCallback(async (endpoint: string): Promise<Offer[]> => {
         if (!address) {

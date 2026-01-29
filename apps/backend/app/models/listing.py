@@ -58,7 +58,9 @@ class Listing(Base):
     description = Column(Text, nullable=False)
     asking_price = Column(Numeric(20, 2), nullable=False)
     tech_stack = Column(JSON, nullable=True)
+    tech_stack = Column(JSON, nullable=True)
     build_id = Column(String(255), nullable=True)
+    images = Column(JSON, nullable=True, default=[])  # List of image URLs
     
     # Included Assets/Stats
     customer_count = Column(Integer, default=0)

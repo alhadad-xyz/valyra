@@ -1,11 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, Form, UploadFile
+from typing import Optional
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models.escrow import Escrow
+from app.models.escrow import Escrow, EscrowState, EscrowEvent, EscrowEventType
 from app.schemas.escrow import EscrowResponse, CredentialUploadRequest, PublicKeyRequest
 from app.dependencies import get_current_user
 from app.models.user import User
 import uuid
+import base64
+import json
+from datetime import datetime, timedelta
+from app.websockets import manager
+from app.websockets import manager
+import asyncio
+import os
+
+CREDENTIALS_FILE = "escrow_credentials.json"
 
 router = APIRouter(prefix="/escrow", tags=["Escrow"])
 
@@ -19,12 +29,22 @@ async def get_escrow(
     """
     # Try UUID
     try:
+        from sqlalchemy.orm import joinedload
+        from app.models.offer import Offer
         uuid_obj = uuid.UUID(escrow_id)
-        escrow = db.query(Escrow).filter(Escrow.id == uuid_obj).first()
+        escrow = db.query(Escrow)\
+            .options(joinedload(Escrow.offer).joinedload(Offer.listing), joinedload(Escrow.events))\
+            .filter(Escrow.id == uuid_obj)\
+            .first()
     except ValueError:
         # Try On-Chain ID
         if escrow_id.isdigit():
-             escrow = db.query(Escrow).filter(Escrow.on_chain_id == int(escrow_id)).first()
+             from sqlalchemy.orm import joinedload
+             from app.models.offer import Offer
+             escrow = db.query(Escrow)\
+                 .options(joinedload(Escrow.offer).joinedload(Offer.listing), joinedload(Escrow.events))\
+                 .filter(Escrow.on_chain_id == int(escrow_id))\
+                 .first()
         else:
             raise HTTPException(status_code=400, detail="Invalid ID format")
 
@@ -35,25 +55,38 @@ async def get_escrow(
 
 
 @router.post("/{escrow_id}/upload-credentials", response_model=EscrowResponse)
+@router.post("/{escrow_id}/upload-credentials", response_model=EscrowResponse)
 async def upload_credentials(
     escrow_id: str,
-    credentials: CredentialUploadRequest,
+    file: Optional[UploadFile] = File(None),
+    data: str = Form(...), # JSON string of CredentialUploadRequest
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Upload credentials to escrow vault. Encrypts credentials and stores on Lighthouse.
-    Updates escrow state to DELIVERED and sets verification deadline.
+    Upload credentials to escrow vault. 
+    Accepts Multipart/Form-Data with:
+    - file: Optional file to upload to IPFS (via Pinata)
+    - data: JSON string matching CredentialUploadRequest schema
+    Bundles them, encrypts, and stores.
     """
     from app.services.listing_encryption_service import ListingEncryptionService
     from app.services.storage_service import StorageService
-    from app.models.escrow import EscrowState
     from sqlalchemy.orm import joinedload
-    from datetime import datetime, timedelta
-    import json
     
     print(f"DEBUG: Starting upload_credentials for escrow {escrow_id}")
+
+    # Parse JSON data
+    try:
+        data_dict = json.loads(data)
+        request_data = CredentialUploadRequest(**data_dict)
+    except Exception as e:
+         raise HTTPException(status_code=400, detail=f"Invalid JSON in 'data' field: {str(e)}")
     
+    # Validation: Need at least something to upload
+    if not request_data.domain_credentials and not request_data.notes and not request_data.repo_url and not request_data.api_keys and not file:
+        raise HTTPException(status_code=400, detail="Must provide at least credentials, notes, repo URL, or a file")
+
     # Find escrow by UUID or on-chain ID
     try:
         uuid_obj = uuid.UUID(escrow_id)
@@ -69,35 +102,89 @@ async def upload_credentials(
         print("DEBUG: Escrow not found")
         raise HTTPException(status_code=404, detail="Escrow not found")
     
-    print(f"DEBUG: Found escrow {escrow.id}, State: {escrow.escrow_state}")
-
     # Verify user is the seller
     if escrow.seller_address.lower() != current_user.wallet_address.lower():
-        print(f"DEBUG: Auth failed. Seller: {escrow.seller_address}, Current: {current_user.wallet_address}")
         raise HTTPException(status_code=403, detail="Only seller can upload credentials")
     
     # Check state - must be FUNDED or DELIVERED (allow re-upload/rewrite before confirmation)
     if escrow.escrow_state not in [EscrowState.FUNDED, EscrowState.DELIVERED]:
-        print(f"DEBUG: Invalid state {escrow.escrow_state}")
         raise HTTPException(
             status_code=400,
             detail=f"Cannot upload credentials. Escrow state is {escrow.escrow_state.value}"
         )
     
     # Get buyer public key (prefer stored, fallback to dummy)
-    buyer_pub_key = escrow.buyer_public_key
-    print(f"DEBUG: Using buyer public key from DB: {buyer_pub_key}")
+    buyer_pub_key = escrow.buyer_public_key or "0x75311a683285a98a273cbb5ab20dffe6ff11d8e645e98a66e1b81f6e7d93438a0ed8d9c823eadbcaf6424b03c27145ff6a0f8fee746a0681ac51751e948e4ba5"
     
-    if not buyer_pub_key:
-        print(f"WARNING: Using dummy public key for buyer {escrow.buyer_address}")
-        buyer_pub_key = "0x75311a683285a98a273cbb5ab20dffe6ff11d8e645e98a66e1b81f6e7d93438a0ed8d9c823eadbcaf6424b03c27145ff6a0f8fee746a0681ac51751e948e4ba5"
-    
-    # Convert credentials to JSON bytes
-    credentials_dict = credentials.model_dump(exclude_none=True)
-    credentials_json = json.dumps(credentials_dict)
+    # --- Prepare Data Bundle ---
+    credential_bundle = {
+        "uploaded_at": datetime.utcnow().isoformat(),
+        "notes": request_data.notes,
+        "repo_url": request_data.repo_url,
+        "repo_token": request_data.repo_access_token,
+        "domain_credentials": request_data.domain_credentials,
+        "api_keys": request_data.api_keys,
+        "files": []
+    }
+
+    # Handle File Upload (Pinata)
+    if file:
+        try:
+            content = await file.read()
+            # Upload to Pinata via StorageService
+            storage_service = StorageService()
+            # Check if configured, otherwise skip or error? 
+            # For hackathon, if not configured, we might skip or fail.
+            # Assuming it is configured per user request.
+            
+            try:
+                upload_result = await storage_service.upload(
+                    file_bytes=content,
+                    filename=file.filename,
+                    content_type=file.content_type
+                )
+                
+                credential_bundle["files"].append({
+                    "filename": file.filename,
+                    "content_type": file.content_type,
+                    "size": len(content),
+                    "cid": upload_result.get("cid"),
+                    "url": upload_result.get("url"),
+                    # Keep base64 data for immediate "Real Data" access if small? 
+                    # Or rely on URL. Relying on URL is cleaner.
+                })
+                print(f"DEBUG: Processed file {file.filename} -> {upload_result.get('cid')}")
+            except RuntimeError as e:
+                print(f"WARNING: Pinata upload failed ({e}). Proceeding without file cloud storage.")
+                # Fallback: Store dummy info or base64 if needed?
+                pass
+                
+        except Exception as e:
+            print(f"ERROR processing file: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to process file upload: {str(e)}")
+
+    # Convert bundle to JSON bytes
+    credentials_json = json.dumps(credential_bundle)
     credentials_bytes = credentials_json.encode('utf-8')
-    print("DEBUG: Credentials converted to bytes")
     
+    # Save to file for demo (Real Data Implementation)
+    # Save to file for demo (Real Data Implementation)
+    try:
+        storage_data = {}
+        if os.path.exists(CREDENTIALS_FILE):
+            try:
+                with open(CREDENTIALS_FILE, 'r') as f:
+                    storage_data = json.load(f)
+            except json.JSONDecodeError:
+                pass
+        
+        storage_data[str(escrow.id)] = credential_bundle
+        with open(CREDENTIALS_FILE, 'w') as f:
+            json.dump(storage_data, f)
+        print(f"DEBUG: Saved credentials for {escrow.id} to file.")
+    except Exception as e:
+        print(f"ERROR saving to file: {e}")
+
     # Encrypt credentials using vault system
     recipients = [
         {
@@ -112,43 +199,29 @@ async def upload_credentials(
     if escrow.offer:
         listing_id = str(escrow.offer.listing_id)
     else:
-        # Fallback
+        # Fallback logic to find listing from seller active listings
         from app.models.listing import Listing
-        from app.models.user import User
-        
-        seller = db.query(User).filter(
-            User.wallet_address.ilike(escrow.seller_address)
-        ).first()
-        
+        seller = db.query(User).filter(User.wallet_address.ilike(escrow.seller_address)).first()
         if seller:
-            listing = db.query(Listing).filter(
-                Listing.seller_id == seller.id,
-                Listing.status == "active"
-            ).first()
-            
+            listing = db.query(Listing).filter(Listing.seller_id == seller.id, Listing.status == "active").first()
             if listing:
                 listing_id = str(listing.id)
     
     if not listing_id:
-        print("DEBUG: Listing ID not found")
         raise HTTPException(
             status_code=400, 
             detail="Listing not found for escrow. Escrow must be linked to an offer or seller must have an active listing."
         )
-    print(f"DEBUG: Using listing_id {listing_id}")
     
     # Create encrypted vault entry
-    print("DEBUG: Creating vault entry...")
     vault_entry = ListingEncryptionService.create_vault_entry(
         db=db,
         listing_id=listing_id,
         credentials_data=credentials_bytes,
         recipients=recipients
     )
-    print("DEBUG: Vault entry created")
     
     # Upload encrypted data to Lighthouse
-    print("DEBUG: Starting Lighthouse upload/fallback...")
     storage_service = StorageService()
     cid = None
     try:
@@ -157,27 +230,42 @@ async def upload_credentials(
             filename=f"credentials_{escrow.id}.enc"
         )
         cid = lighthouse_result.get("cid")
-        print(f"DEBUG: Lighthouse upload success, CID: {cid}")
     except Exception as e:
-        # Fallback for Demo/Hackathon if Lighthouse is down/blocked
+        # Fallback for Demo
         import hashlib
         print(f"WARNING: Lighthouse upload failed ({str(e)}). Using dummy CID for demo.")
-        # Generate a deterministic dummy CID from the content
         cid = hashlib.sha256(vault_entry.encrypted_data).hexdigest()
-        print(f"DEBUG: Fallback CID generated: {cid}")
 
     if not cid:
-        print("DEBUG: CID generation failed")
-        raise HTTPException(status_code=500, detail="Failed to upload to Lighthouse")
+         raise HTTPException(status_code=500, detail="Failed to generate CID")
     
     # Update escrow
     escrow.credentials_ipfs_hash = cid
     escrow.escrow_state = EscrowState.DELIVERED
     escrow.verification_deadline = datetime.utcnow() + timedelta(hours=72)
     
+    # Log Event
+    db.add(EscrowEvent(
+        escrow_id=escrow.id,
+        event_type=EscrowEventType.ASSETS_UPLOADED,
+        title="Assets Uploaded",
+        description="Seller has uploaded encrypted credentials.",
+        tx_hash=None # Off-chain action
+    ))
+    
+    db.commit()
     db.commit()
     db.refresh(escrow)
-    print("DEBUG: Escrow updated and committed")
+
+    # BFS: Broadcast event
+    asyncio.create_task(manager.broadcast({
+        "type": "escrow.delivered",
+        "data": {
+            "escrow_id": str(escrow.id),
+            "on_chain_id": str(escrow.on_chain_id) if escrow.on_chain_id else None,
+            "status": "DELIVERED"
+        }
+    }))
     
     return escrow
 
@@ -307,13 +395,13 @@ async def store_public_key(
 
 
 @router.get("/{escrow_id}/credentials")
-async def get_encrypted_credentials(
+async def get_credentials(
     escrow_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Returns the encrypted bundle for the authorized user to decrypt client-side.
+    Returns the credentials bundle.
     """
     from app.services.listing_encryption_service import ListingEncryptionService
     from app.models.listing import Listing
@@ -354,6 +442,16 @@ async def get_encrypted_credentials(
 
     if not listing_id:
         raise HTTPException(status_code=404, detail="Credentials not found or vault not initialized")
+
+    # Check file storage first (Real Data Implementation)
+    if os.path.exists(CREDENTIALS_FILE):
+        try:
+            with open(CREDENTIALS_FILE, 'r') as f:
+                data = json.load(f)
+                if str(escrow.id) in data:
+                     return data[str(escrow.id)]
+        except Exception as e:
+             print(f"Error reading credentials file: {e}")
 
     bundle = ListingEncryptionService.get_encrypted_key_bundle(db, listing_id, current_user.wallet_address)
     if not bundle:

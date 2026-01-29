@@ -1,8 +1,24 @@
-import { Button } from "ui";
+"use client";
 
-export function Step5Released() {
+import { Button } from "ui";
+import { format } from "date-fns";
+
+interface Step5ReleasedProps {
+    escrowId: string;
+    userRole: 'buyer' | 'seller' | 'viewer';
+    escrow?: any;
+}
+
+export function Step5Released({ escrowId, userRole, escrow }: Step5ReleasedProps) {
+    const totalAmount = Number(escrow?.amount || 0);
+    const sellerPayout = Number(escrow?.sellerPayout || 0);
+    const completedAt = escrow?.updatedAt || Date.now() / 1000; // Fallback to now if not tracked, but usually status change updates timestamp
+
+    // Formatting helper
+    const fmt = (val: number) => (val / 1e18).toLocaleString(undefined, { maximumFractionDigits: 2 });
+
     return (
-        <div className="bg-white dark:bg-background-dark-elevated rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-800 relative overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
             <div className="relative z-10">
@@ -27,15 +43,17 @@ export function Step5Released() {
                         <div className="space-y-3 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-text-muted">Total Released</span>
-                                <span className="font-bold text-text-main dark:text-white">43.875M IDRX</span>
+                                <span className="font-bold text-text-main dark:text-white">{fmt(sellerPayout || totalAmount)} IDRX</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-text-muted">Transaction Hash</span>
-                                <a href="#" className="text-primary hover:underline font-mono">0x7d...2a9f</a>
+                                <span className="text-text-muted">Escrow ID</span>
+                                <span className="text-primary hover:underline font-mono cursor-pointer">#{escrowId}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-text-muted">Time</span>
-                                <span className="text-text-main dark:text-white">Oct 27, 2023 at 14:20 PM</span>
+                                <span className="text-text-main dark:text-white">
+                                    {format(new Date(Number(completedAt) * 1000), "PPP p")}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -44,9 +62,15 @@ export function Step5Released() {
                         <Button variant="ghost" className="rounded-full">
                             View Receipt
                         </Button>
-                        <Button className="rounded-full bg-primary text-text-main font-bold">
-                            View on Explorer
-                        </Button>
+                        <a
+                            href={`https://sepolia.basescan.org/address/${process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <Button className="rounded-full bg-primary text-text-main font-bold">
+                                View on Explorer
+                            </Button>
+                        </a>
                     </div>
                 </div>
             </div>

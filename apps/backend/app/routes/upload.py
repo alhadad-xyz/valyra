@@ -1,4 +1,4 @@
-"""File upload router for handling uploads to IPFS via Lighthouse."""
+"""File upload router for handling uploads to IPFS via Pinata."""
 from typing import Dict, Any
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, status
@@ -22,7 +22,7 @@ async def upload_file(
     file: UploadFile = File(...)
 ) -> Dict[str, Any]:
     """
-    Upload a file to IPFS via Lighthouse.
+    Upload a file to IPFS via Pinata.
     
     Validates file type and size before uploading.
     Returns the IPFS CID and a gateway URL.

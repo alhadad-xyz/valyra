@@ -3,14 +3,17 @@
 import { createConfig, http, WagmiProvider } from 'wagmi';
 import { baseSepolia } from 'viem/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { injected, metaMask, coinbaseWallet } from 'wagmi/connectors';
+import { injected, metaMask, coinbaseWallet, mock } from 'wagmi/connectors';
 import { ReactNode, useState } from 'react';
 import { OnchainKitProvider } from '@coinbase/onchainkit';
+import { privateKeyToAccount } from 'viem/accounts';
+
+const mockAccount = privateKeyToAccount('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80');
 
 export const config = createConfig({
     chains: [baseSepolia],
     transports: {
-        [baseSepolia.id]: http(),
+        [baseSepolia.id]: http(process.env.NEXT_PUBLIC_RPC_URL),
     },
     connectors: [
         coinbaseWallet({

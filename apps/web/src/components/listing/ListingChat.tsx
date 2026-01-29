@@ -63,7 +63,7 @@ export function ListingChat() {
         setIsConnecting(true);
         // For demo purposes, we rely on the actual wagmi state.
         // If not connected, the user should connect via the header button.
-        toast.error("Please connect your wallet using the button in the top right corner.");
+        toast.error("Wallet connection required. Please connect your wallet to continue.");
         setIsConnecting(false);
     };
 

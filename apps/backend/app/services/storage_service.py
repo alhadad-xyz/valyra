@@ -1,9 +1,8 @@
-"""Unified storage service utilizing Lighthouse Web3 and IPFS."""
+"""Unified storage service utilizing IPFS via Pinata."""
 
 import logging
 from typing import Optional
 
-from app.services.lighthouse_client import LighthouseClient
 from app.services.pinata_client import PinataClient
 from app.services.ipfs_client import IPFSClient
 
@@ -15,18 +14,15 @@ class StorageService:
 
     def __init__(
         self,
-        lighthouse_client: Optional[LighthouseClient] = None,
         pinata_client: Optional[PinataClient] = None,
         ipfs_client: Optional[IPFSClient] = None,
     ):
         """Initialize storage service.
 
         Args:
-            lighthouse_client: LighthouseClient instance.
             pinata_client: PinataClient instance.
             ipfs_client: IPFSClient instance.
         """
-        self.lighthouse = lighthouse_client or LighthouseClient()
         self.pinata = pinata_client or PinataClient()
         self.ipfs = ipfs_client or IPFSClient()
         self._cache: dict[str, bytes] = {}
@@ -34,7 +30,7 @@ class StorageService:
     async def upload(
         self, file_bytes: bytes, filename: str, content_type: str = "application/octet-stream"
     ) -> dict:
-        """Upload file to Pinata (preferred) or Lighthouse (legacy) for permanent storage.
+        """Upload file to Pinata for permanent storage.
 
         Args:
             file_bytes: File content as bytes
@@ -50,26 +46,17 @@ class StorageService:
                 - content_type: MIME type
 
         Raises:
-            RuntimeError: If no storage provider is configured
+            RuntimeError: If storage provider is not configured
         """
-        cid = None
         
-        # Try Pinata first (More reliable)
-        if self.pinata.is_configured():
-            logger.info(f"Uploading file to Pinata: {filename} ({len(file_bytes)} bytes)")
-            result = await self.pinata.upload_file(file_bytes, filename)
-            cid = result.get("Hash")
-        
-        # Fallback to Lighthouse if Pinata not configured
-        elif self.lighthouse.is_configured():
-            logger.info(f"Uploading file to Lighthouse: {filename} ({len(file_bytes)} bytes)")
-            result = await self.lighthouse.upload_file(file_bytes, filename)
-            cid = result.get("Hash")
-            
-        else:
+        if not self.pinata.is_configured():
              raise RuntimeError(
-                "No storage provider configured. Please set PINATA_JWT or LIGHTHOUSE_API_KEY."
+                "Pinata storage provider not configured. Please set PINATA_JWT."
             )
+
+        logger.info(f"Uploading file to Pinata: {filename} ({len(file_bytes)} bytes)")
+        result = await self.pinata.upload_file(file_bytes, filename)
+        cid = result.get("Hash")
 
         if not cid:
             raise RuntimeError("Upload failed: No CID returned from storage provider")

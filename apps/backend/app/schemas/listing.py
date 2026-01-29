@@ -13,7 +13,9 @@ class ListingBase(BaseModel):
     description: str
     asking_price: Decimal = Field(..., ge=0)
     tech_stack: Optional[Dict[str, Any]] = None
+    tech_stack: Optional[Dict[str, Any]] = None
     build_id: Optional[str] = Field(None, max_length=255)
+    images: Optional[List[str]] = []
     
     # Financials
     mrr: Decimal = Field(..., ge=0)
@@ -45,6 +47,7 @@ class ListingUpdate(BaseModel):
     asking_price: Optional[Decimal] = Field(None, ge=0)
     tech_stack: Optional[Dict[str, Any]] = None
     build_id: Optional[str] = Field(None, max_length=255)
+    images: Optional[List[str]] = None
     
     mrr: Optional[Decimal] = Field(None, ge=0)
     annual_revenue: Optional[Decimal] = Field(None, ge=0)
@@ -90,3 +93,10 @@ class ListingResponse(ListingBase):
 
     class Config:
         from_attributes = True
+
+
+class PurchasedListingResponse(ListingResponse):
+    """Schema for a purchased listing, including offer details."""
+    purchase_price: Decimal
+    purchase_date: datetime
+

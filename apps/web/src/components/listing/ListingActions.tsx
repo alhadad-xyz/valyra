@@ -35,7 +35,7 @@ export function ListingActions({ listingId, price, sellerId }: ListingActionsPro
             const ESCROW_CONTRACT = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS as `0x${string}`;
 
             if (!ESCROW_CONTRACT) {
-                toast.error("Escrow contract address not configured!");
+                toast.error("Escrow contract configuration missing.");
                 return;
             }
 
@@ -98,7 +98,7 @@ export function ListingActions({ listingId, price, sellerId }: ListingActionsPro
                     // I implemented it in `page.tsx` where the modal lives.
                     // I should probably skip this unless I move the modal inside here.
                     // Let's just notify the user about `page.tsx` being the main driver.
-                    toast.info("Please use the Make Offer button on the right.");
+                    toast.info("Please utilize the Make Offer option to proceed.");
                 }}
             >
                 Make Offer

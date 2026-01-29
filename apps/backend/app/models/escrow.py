@@ -63,6 +63,7 @@ class Escrow(Base):
 
     # Relationships
     offer = relationship("Offer", back_populates="escrow")
+    events = relationship("EscrowEvent", back_populates="escrow", cascade="all, delete-orphan")
 
     def set_verification_deadline(self, hours: int = 72) -> None:
         """Set verification deadline from now."""
@@ -70,3 +71,35 @@ class Escrow(Base):
 
     def __repr__(self) -> str:
         return f"<Escrow {self.contract_address or 'pending'} - {self.escrow_state.value}>"
+
+
+class EscrowEventType(PyEnum):
+    """Types of escrow events."""
+    CREATED = "created"
+    FUNDED = "funded"
+    ASSETS_UPLOADED = "assets_uploaded"
+    DELIVERED = "delivered"
+    CONFIRMED = "confirmed"
+    DISPUTED = "disputed"
+    RESOLVED = "resolved"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    REFUNDED = "refunded"
+
+
+class EscrowEvent(Base):
+    """Log of events for an escrow."""
+    
+    __tablename__ = "escrow_events"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    escrow_id = Column(UUID(as_uuid=True), ForeignKey("escrows.id"), nullable=False, index=True)
+    
+    event_type = Column(Enum(EscrowEventType, values_callable=lambda obj: [e.value for e in obj]), nullable=False)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    tx_hash = Column(String(66), nullable=True)
+    
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+    
+    escrow = relationship("Escrow", back_populates="events")

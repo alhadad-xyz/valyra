@@ -53,10 +53,10 @@ export function SettingsNotifications() {
             if (!response.ok) throw new Error("Failed to update settings");
 
             await queryClient.invalidateQueries({ queryKey: ['user-me'] });
-            toast.success("Preferences updated");
+            toast.success("Notification preferences saved.");
         } catch (error) {
             console.error("Failed to update preferences:", error);
-            toast.error("Failed to update preferences");
+            toast.error("Unable to update preferences.");
             // Revert on error
             if (user) {
                 if (field === "email_on_offer") setEmailOffer(user.email_on_offer === 1);

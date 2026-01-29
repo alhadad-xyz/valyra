@@ -14,6 +14,9 @@ from app.core.rate_limiter import limiter
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
 # Initialize Sentry
 if settings.sentry_dsn:
@@ -41,6 +44,34 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    """
+    Custom validation error handler to safely handle bytes in error details
+    that might cause UnicodeDecodeError in jsonable_encoder.
+    """
+    print(f"DEBUG: Validation Error: {exc.errors()}")
+    try:
+        # Try default encoding
+        return JSONResponse(
+            status_code=422,
+            content={"detail": jsonable_encoder(exc.errors())},
+        )
+    except Exception:
+        # Fallback: sanitize errors directly
+        sanitized_errors = []
+        for error in exc.errors():
+            sanitized_error = error.copy()
+            # If input is bytes, convert to string repr
+            if 'input' in sanitized_error and isinstance(sanitized_error['input'], bytes):
+                sanitized_error['input'] = str(sanitized_error['input'])
+            sanitized_errors.append(sanitized_error)
+        
+        return JSONResponse(
+            status_code=422,
+            content={"detail": jsonable_encoder(sanitized_errors)},
+        )
 
 # Configure CORS
 app.add_middleware(

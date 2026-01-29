@@ -22,7 +22,7 @@ const inputVariants = cva(
     {
         variants: {
             variant: {
-                default: 'border-gray-200 dark:border-gray-700 focus:border-[#f9f506] focus:ring-[#f9f506]',
+                default: 'border-gray-200 dark:border-gray-700 focus:border-primary focus:ring-primary',
                 error: 'border-red-500 focus:border-red-500 focus:ring-red-500',
             },
             inputSize: {

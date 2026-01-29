@@ -6,12 +6,17 @@ import Image from "next/image";
 import { useAccount } from "wagmi";
 
 export const ListingPreview = () => {
-    const { title, assetType, price, mrr, revenueTrend, description } = useSellStore();
+    const { title, assetType, price, mrr, revenueTrend, description, images } = useSellStore();
     const { address } = useAccount();
 
     const displayTitle = title || "Untitled Project";
     const displayPrice = price ? formatCurrency(price) : "$0.00";
     const displayMRR = mrr ? formatCurrency(mrr) : "$0/mo";
+
+    // Use first image as cover, or fallback to placeholder
+    const coverImage = images && images.length > 0
+        ? images[0]
+        : `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(displayTitle)}`;
 
     // Determine status color (always pending generally for preview, or just show active simulation)
     const statusColor = "success";
@@ -22,8 +27,9 @@ export const ListingPreview = () => {
                 <Image
                     fill
                     className="object-cover"
-                    src={`https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(displayTitle)}`}
+                    src={coverImage}
                     alt={displayTitle}
+                    unoptimized
                 />
 
                 <span className="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur text-[10px] font-bold px-2 py-1 rounded text-text-main dark:text-white uppercase">

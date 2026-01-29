@@ -36,7 +36,15 @@ export function RecentAcquisitionsTable() {
                                     <tr key={offer.id} className="hover:bg-background-light/50 dark:hover:bg-gray-800/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="size-8 rounded-lg bg-gray-100 dark:bg-gray-800 bg-center bg-cover"></div>
+                                                <div
+                                                    className="size-8 rounded-lg bg-gray-100 dark:bg-gray-800 bg-center bg-cover border border-gray-200 dark:border-gray-700"
+                                                    style={{
+                                                        backgroundImage: `url('${(offer.listing_image)
+                                                                ? offer.listing_image
+                                                                : `https://placehold.co/100x100/0052FF/FFFFFF?text=${encodeURIComponent(offer.listing_title.charAt(0))}`
+                                                            }')`
+                                                    }}
+                                                ></div>
                                                 <span className="font-medium text-text-main dark:text-white">{offer.listing_title}</span>
                                             </div>
                                         </td>

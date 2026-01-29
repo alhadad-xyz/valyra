@@ -25,20 +25,20 @@ export default function SettingsPage() {
 
         if (googleLinked) {
             if (googleLinked === "success") {
-                toast.success("Google account successfully linked!");
+                toast.success("Google account linked successfully.");
                 queryClient.invalidateQueries({ queryKey: ['user-me'] });
             } else if (googleLinked === "error") {
-                toast.error("Failed to link Google account: " + (searchParams.get("error") || "Unknown error"));
+                toast.error("Unable to link Google account: " + (searchParams.get("error") || "Unknown error"));
             }
             router.replace('/app/settings');
         }
 
         if (stripeLinked) {
             if (stripeLinked === "success") {
-                toast.success("Stripe account successfully linked!");
+                toast.success("Stripe account linked successfully.");
                 queryClient.invalidateQueries({ queryKey: ['user-me'] });
             } else if (stripeLinked === "error") {
-                toast.error("Failed to link Stripe account: " + (searchParams.get("error") || "Unknown error"));
+                toast.error("Unable to link Stripe account: " + (searchParams.get("error") || "Unknown error"));
             }
             router.replace('/app/settings');
         }

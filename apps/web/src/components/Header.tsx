@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAccount } from 'wagmi';
@@ -71,10 +72,14 @@ export function Header() {
                 <div className="px-4 md:px-10 py-4 flex items-center justify-between max-w-8xl mx-auto">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-4 text-text-main dark:text-white hover:opacity-80 transition-opacity">
-                        <div className="size-10 bg-primary rounded-xl flex items-center justify-center text-black">
-                            <span className="material-symbols-outlined filled text-2xl text-white font-bold">
-                                token
-                            </span>
+                        <div className="relative size-10 flex items-center justify-center">
+                            <Image
+                                src="/icon.svg"
+                                alt="Valyra"
+                                width={40}
+                                height={40}
+                                className="object-contain"
+                            />
                         </div>
                         <h2 className="text-xl font-bold leading-tight tracking-tight">
                             Valyra
@@ -128,9 +133,9 @@ export function Header() {
                                     </WalletDropdownLink>
                                     <WalletDropdownLink
                                         icon="shopping_bag"
-                                        href="/buyer/purchases"
+                                        href="/app/buyer/purchases"
                                     >
-                                        My Purchases
+                                        My Acquisitions
                                     </WalletDropdownLink>
                                     <WalletDropdownLink
                                         icon="description"

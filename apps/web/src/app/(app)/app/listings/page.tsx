@@ -122,6 +122,7 @@ export default function DashboardPage() {
                                             title={item.asset_name || "Untitled"}
                                             category={item.asset_type || "Other"}
                                             image={item.image || ""}
+                                            images={item.images || []}
                                             askingPrice={item.asking_price || 0}
                                             mrr={item.mrr || 0}
                                             aiValue={item.ai_value || "N/A"}

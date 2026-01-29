@@ -49,7 +49,7 @@ export function OfferModal({ isOpen, onClose, listingId, listingUuid, listingPri
     // Verify Network
     useEffect(() => {
         if (chainId && chainId !== 84532) { // 84532 = Base Sepolia
-            toast.error("Wrong Network! Please switch your wallet to Base Sepolia.");
+            toast.error("Incorrect network detected. Please switch to Base Sepolia to proceed.");
             try {
                 switchChain({ chainId: 84532 });
             } catch (e) { console.error("Auto-switch failed", e); }
@@ -72,14 +72,14 @@ export function OfferModal({ isOpen, onClose, listingId, listingUuid, listingPri
     // Show toast when duplicate offer is detected
     useEffect(() => {
         if (hasExistingOffer && isOpen) {
-            toast.error('You already have an active offer on this listing!');
+            toast.error('Duplicate offer detected. You already have an active offer for this listing.');
         }
     }, [hasExistingOffer, isOpen]);
 
     // Effect: Handle Approve Success - Auto-submit offer
     useEffect(() => {
         if (isApproveSuccess && step === 'approve') {
-            toast.success('Approval successful! Submitting offer...');
+            toast.success('Allowance approved. Proceeding with offer submission...');
             refetchAllowance().then(() => {
                 setStep('offer');
                 // Auto-submit the offer after a brief delay to ensure state updates
@@ -93,12 +93,12 @@ export function OfferModal({ isOpen, onClose, listingId, listingUuid, listingPri
     // Effect: Handle Offer Success
     useEffect(() => {
         if (isOfferSuccess) {
-            toast.success('Offer submitted successfully! Redirecting to your offers...');
+            toast.success('Offer successfully submitted. Redirecting to My Offers...');
             setTimeout(() => {
                 window.location.href = '/app/offers';
             }, 1500);
         } else if (offerError) {
-            toast.error("Transaction failed: " + (offerError as Error).message);
+            toast.error("Unable to complete transaction: " + (offerError as Error).message);
         }
     }, [isOfferSuccess, onSuccess, onClose, isOfferConfirming, offerHash, offerStatus, offerError]);
 
@@ -120,7 +120,7 @@ export function OfferModal({ isOpen, onClose, listingId, listingUuid, listingPri
 
     const handleApprove = () => {
         if (hasExistingOffer) {
-            toast.error('You have already made an offer on this listing!');
+            toast.error('Duplicate offer detected. You already have an active offer for this listing.');
             return;
         }
         console.log("handleApprove called", { address: IDRX_ADDRESS, spender: ESCROW_ADDRESS, amount: earnestMoney });
@@ -136,13 +136,13 @@ export function OfferModal({ isOpen, onClose, listingId, listingUuid, listingPri
             });
         } catch (err: any) {
             console.error("Approve Try-Catch Error:", err);
-            toast.error(err.message || 'Approval failed');
+            toast.error(err.message || 'Authorization failed.');
         }
     };
 
     const handleMakeOffer = () => {
         if (hasExistingOffer) {
-            toast.error('You have already made an offer on this listing!');
+            toast.error('Duplicate offer detected. You already have an active offer for this listing.');
             return;
         }
 
@@ -158,7 +158,7 @@ export function OfferModal({ isOpen, onClose, listingId, listingUuid, listingPri
             });
         } catch (err: any) {
             console.error("Offer Try-Catch Error:", err);
-            toast.error(err.message || 'Offer failed');
+            toast.error(err.message || 'Offer submission failed.');
         }
     };
 

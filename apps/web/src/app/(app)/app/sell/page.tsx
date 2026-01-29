@@ -51,7 +51,11 @@ export default function SellPage() {
             <div className="min-h-screen bg-background-light dark:bg-background-dark flex flex-col">
                 <MarketplaceHeader />
                 <main className="flex-1">
-                    <SellerOnboarding onSuccess={() => refetch()} />
+                    <SellerOnboarding onSuccess={() => {
+                        refetch().then(() => {
+                            window.location.reload();
+                        });
+                    }} />
                 </main>
             </div>
         );

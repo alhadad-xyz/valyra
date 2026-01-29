@@ -23,6 +23,7 @@ interface SellState {
     techStack: string[];
     customerCount: string;
     repoUrl: string;
+    images: string[];
 
     // Financials
     mrr: string;
@@ -66,6 +67,7 @@ export const useSellStore = create<SellState>((set) => ({
     techStack: [],
     customerCount: '',
     repoUrl: '',
+    images: [],
 
     // Financials
     mrr: '',
@@ -101,6 +103,7 @@ export const useSellStore = create<SellState>((set) => ({
         techStack: [],
         customerCount: '',
         repoUrl: '',
+        images: [],
         mrr: '',
         annualRevenue: '',
         monthlyProfit: '',
@@ -127,6 +130,8 @@ export const useSellStore = create<SellState>((set) => ({
         techStack: Object.keys(listing.tech_stack || {}),
         customerCount: listing.customer_count?.toString() || '',
         repoUrl: listing.tech_stack?.repo_url || '',
+        images: listing.images || [],
+        images: listing.images || [],
 
         mrr: listing.mrr?.toString() || '',
         annualRevenue: listing.annual_revenue?.toString() || '',

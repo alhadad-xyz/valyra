@@ -19,9 +19,9 @@ export function IncomingOffersList() {
 
             {isLoading ? (
                 <div className="p-4 text-center text-text-muted">Loading offers...</div>
-            ) : received.length === 0 ? (
-                <div className="p-4 text-center text-text-muted">No incoming offers.</div>
-            ) : received.map((offer: any) => (
+            ) : received.filter(o => o.status === 'PENDING').length === 0 ? (
+                <div className="p-4 text-center text-text-muted">No pending offers.</div>
+            ) : received.filter(o => o.status === 'PENDING').map((offer: any) => (
                 <div key={offer.id} className="bg-surface dark:bg-background-dark-elevated p-5 rounded-xl border border-border dark:border-gray-700 shadow-sm flex flex-col gap-4 relative group hover:border-primary/50 transition-colors">
                     <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
@@ -33,13 +33,18 @@ export function IncomingOffersList() {
                         </div>
                         <div className="text-right">
                             <p className="text-lg font-bold text-text-main dark:text-white">{Number(offer.offer_amount).toLocaleString()} IDRX</p>
-                            {/* <p className="text-xs text-text-muted dark:text-gray-400">Floor: 2.0 IDRX</p> */}
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-100 text-yellow-800 uppercase">Pending</span>
                         </div>
                     </div>
-                    {/* Earnest Money logic to be refined, simplifying for now */}
-                    <div className="grid grid-cols-2 gap-3 pt-2">
-                        <Button variant="outline" className="h-9 rounded-full text-sm font-medium">Decline</Button>
-                        <Button variant="primary" className="h-9 rounded-full text-sm font-bold shadow-sm">Accept</Button>
+                    <div className="pt-2">
+                        <Button
+                            variant="outline"
+                            fullWidth
+                            className="h-9 rounded-full text-sm font-medium"
+                            onClick={() => window.location.href = '/app/offers'}
+                        >
+                            Review Offer
+                        </Button>
                     </div>
                 </div>
             ))}

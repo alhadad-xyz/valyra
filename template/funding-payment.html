@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Escrow Step 0: Funding Payment</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark min-h-screen text-[#111318] dark:text-white transition-colors duration-200">
+    <!-- Top Navigation Bar -->
+    <header
+        class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#dbdfe6] dark:border-[#2d3748] bg-white dark:bg-[#1a202c] px-6 py-3 lg:px-40">
+        <div class="flex items-center gap-4 text-primary">
+            <div class="size-8">
+                <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z"
+                        fill="currentColor"></path>
+                </svg>
+            </div>
+            <h2 class="text-[#111318] dark:text-white text-xl font-bold leading-tight tracking-tight">SecureEscrow</h2>
+        </div>
+        <div class="flex flex-1 justify-end gap-8 items-center">
+            <nav class="hidden md:flex items-center gap-9">
+                <a class="text-[#111318] dark:text-gray-300 text-sm font-medium hover:text-primary transition-colors"
+                    href="#">Dashboard</a>
+                <a class="text-[#111318] dark:text-gray-300 text-sm font-medium hover:text-primary transition-colors"
+                    href="#">Transactions</a>
+                <a class="text-[#111318] dark:text-gray-300 text-sm font-medium hover:text-primary transition-colors"
+                    href="#">Settings</a>
+            </nav>
+            <div class="flex gap-2">
+                <button
+                    class="flex size-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 text-[#111318] dark:text-white">
+                    <span class="material-symbols-outlined">notifications</span>
+                </button>
+                <button
+                    class="flex size-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 text-[#111318] dark:text-white">
+                    <span class="material-symbols-outlined">account_circle</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <main class="flex flex-col items-center justify-center px-4 py-12 lg:px-40">
+        <div class="max-w-[540px] w-full flex flex-col gap-6">
+            <!-- Breadcrumbs & Status -->
+            <div class="flex flex-col items-center gap-2">
+                <div class="flex items-center gap-2 text-[#616f89] dark:text-gray-400 text-sm font-medium">
+                    <a class="hover:text-primary" href="#">Escrow</a>
+                    <span>/</span>
+                    <span class="text-[#111318] dark:text-white">Awaiting Payment</span>
+                </div>
+            </div>
+            <!-- Main Funding Card -->
+            <div
+                class="bg-white dark:bg-[#1a202c] rounded-xl shadow-xl border border-[#dbdfe6] dark:border-[#2d3748] overflow-hidden">
+                <!-- Progress Bar Section -->
+                <div class="p-6 border-b border-[#f0f2f4] dark:border-[#2d3748]">
+                    <div class="flex flex-col gap-3">
+                        <div class="flex gap-6 justify-between items-center">
+                            <p class="text-[#111318] dark:text-white text-base font-bold">Step 1 of 5: Funding</p>
+                            <span class="px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">20%
+                                COMPLETE</span>
+                        </div>
+                        <div class="rounded-full bg-[#dbdfe6] dark:bg-gray-700 h-2.5 w-full overflow-hidden">
+                            <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 20%;">
+                            </div>
+                        </div>
+                        <p class="text-[#616f89] dark:text-gray-400 text-sm">Initiate your secure payment to the smart
+                            contract</p>
+                    </div>
+                </div>
+                <!-- Transaction Content -->
+                <div class="p-8 flex flex-col items-center text-center">
+                    <div class="size-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
+                        <span class="material-symbols-outlined !text-4xl">account_balance_wallet</span>
+                    </div>
+                    <h1 class="text-[#111318] dark:text-white text-3xl font-bold tracking-tight">Awaiting Payment</h1>
+                    <p class="text-[#616f89] dark:text-gray-400 text-sm mt-1">Transaction ID: ESC-99283-IDRX</p>
+                    <!-- Large Amount Display -->
+                    <div class="mt-8 mb-8">
+                        <div class="text-[42px] font-bold text-primary leading-none tracking-tight">45,000,000 IDRX
+                        </div>
+                        <div class="text-[#616f89] dark:text-gray-400 text-lg mt-2 font-medium">≈ $2,850.00 USD</div>
+                    </div>
+                    <!-- Fee Breakdown -->
+                    <div
+                        class="w-full bg-background-light dark:bg-gray-800/50 rounded-lg p-5 flex flex-col gap-3 border border-gray-100 dark:border-gray-700">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-[#616f89] dark:text-gray-400">Base Amount</span>
+                            <span class="text-[#111318] dark:text-white font-medium">44,995,000 IDRX</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <div class="flex items-center gap-1 text-[#616f89] dark:text-gray-400">
+                                <span>Network/Gas Fee</span>
+                                <span class="material-symbols-outlined !text-sm cursor-help">info</span>
+                            </div>
+                            <span class="text-[#111318] dark:text-white font-medium">5,000 IDRX</span>
+                        </div>
+                        <div
+                            class="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between items-center">
+                            <span class="text-[#111318] dark:text-white font-bold">Total Payment</span>
+                            <span class="text-[#111318] dark:text-white font-bold">45,000,000 IDRX</span>
+                        </div>
+                    </div>
+                    <!-- Action Buttons -->
+                    <div class="w-full mt-8 flex flex-col gap-3">
+                        <button
+                            class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+                            <span>Pay 45M IDRX</span>
+                            <span class="material-symbols-outlined">arrow_forward</span>
+                        </button>
+                        <button
+                            class="w-full border-2 border-primary/20 hover:border-primary/40 text-primary font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">swap_horiz</span>
+                            <span>Pay with USDC (Swap)</span>
+                        </button>
+                    </div>
+                    <!-- Security Disclaimer -->
+                    <div class="mt-8 flex items-start gap-3 text-left">
+                        <span class="material-symbols-outlined text-green-500 !text-xl mt-0.5">lock</span>
+                        <p class="text-[#616f89] dark:text-gray-400 text-xs leading-relaxed italic">
+                            Your funds will be held securely in a non-custodial smart contract and released only upon
+                            completion of the escrow terms. Neither party can access funds without mutual agreement or
+                            dispute resolution.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- Help Support -->
+            <div class="flex justify-center items-center gap-4 text-[#616f89] dark:text-gray-400 text-sm">
+                <a class="flex items-center gap-1 hover:text-primary transition-colors" href="#">
+                    <span class="material-symbols-outlined !text-lg">help</span>
+                    How this works
+                </a>
+                <span class="h-4 w-px bg-gray-300 dark:bg-gray-700"></span>
+                <a class="flex items-center gap-1 hover:text-primary transition-colors" href="#">
+                    <span class="material-symbols-outlined !text-lg">support_agent</span>
+                    Contact Support
+                </a>
+            </div>
+        </div>
+    </main>
+    <!-- Background Decoration -->
+    <div class="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden pointer-events-none opacity-20 dark:opacity-5">
+        <div class="absolute -top-24 -left-24 size-[500px] bg-primary rounded-full blur-[120px]"></div>
+        <div class="absolute -bottom-24 -right-24 size-[500px] bg-primary rounded-full blur-[120px]"></div>
+    </div>
+</body>
+
+</html>

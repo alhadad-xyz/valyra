@@ -4,6 +4,7 @@ import { FC, useEffect, useState } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { formatUnits, parseUnits } from 'viem';
 import { Button } from 'ui';
+import { toast } from 'sonner';
 import { MARKETPLACE_ABI } from '@/abis/MarketplaceV1';
 import { ERC20_ABI } from '@/abis/ERC20';
 
@@ -42,15 +43,15 @@ export const SellerOnboarding: FC<SellerOnboardingProps> = ({ onSuccess }) => {
     });
 
     // Write Hooks
-    const { writeContract: writeApprove, data: approveHash, isPending: isApprovePending } = useWriteContract();
+    const { writeContract: writeApprove, data: approveHash, isPending: isApprovePending, error: writeApproveError } = useWriteContract();
     const { writeContract: writeStake, data: stakeHash, isPending: isStakePending } = useWriteContract();
     const { writeContract: writeMint, data: mintHash, isPending: isMintPending } = useWriteContract();
 
     // Transaction Receipts
-    const { isLoading: isApproveConfirming, isSuccess: isApproveSuccess } = useWaitForTransactionReceipt({
+    const { isLoading: isApproveConfirming, isSuccess: isApproveSuccess, isError: isApproveError } = useWaitForTransactionReceipt({
         hash: approveHash
     });
-    const { isLoading: isStakeConfirming, isSuccess: isStakeSuccess } = useWaitForTransactionReceipt({
+    const { isLoading: isStakeConfirming, isSuccess: isStakeSuccess, isError: isStakeError } = useWaitForTransactionReceipt({
         hash: stakeHash
     });
     const { isLoading: isMintConfirming, isSuccess: isMintSuccess } = useWaitForTransactionReceipt({
@@ -59,40 +60,87 @@ export const SellerOnboarding: FC<SellerOnboardingProps> = ({ onSuccess }) => {
 
     // Effect: Handle Approve Success
     useEffect(() => {
+        console.log('[SellerOnboarding] Approve Tx State:', { isApproveSuccess, isApproveError, approveHash });
         if (isApproveSuccess) {
+            toast.success("Allowance approved. You may now proceed.");
             refetchAllowance();
             setStep('stake');
         }
-    }, [isApproveSuccess, refetchAllowance]);
+        if (isApproveError) {
+            toast.error("Allowance approval transaction failed.");
+        }
+    }, [isApproveSuccess, isApproveError, refetchAllowance, approveHash]);
+
+    useEffect(() => {
+        if (writeApproveError) {
+            console.error('[SellerOnboarding] writeApprove Hook Error:', writeApproveError);
+            toast.error(`Approval transaction failed: ${writeApproveError.message}`);
+        }
+    }, [writeApproveError]);
 
     // Effect: Handle Stake Success
     useEffect(() => {
         if (isStakeSuccess) {
+            toast.success("Account verified. Welcome to the marketplace.");
             onSuccess();
         }
-    }, [isStakeSuccess, onSuccess]);
+        if (isStakeError) {
+            toast.error("Staking transaction failed. Please try again.");
+        }
+    }, [isStakeSuccess, isStakeError, onSuccess]);
 
     // Determine Initial Step
     useEffect(() => {
+        const minStakeVal = minStake ? formatUnits(minStake, 18) : 'undefined';
+        const allowanceVal = allowance ? formatUnits(allowance, 18) : 'undefined';
+        console.log('[SellerOnboarding] Data Check:', {
+            allowance: allowanceVal,
+            minStake: minStakeVal,
+            isApproveSuccess,
+            currentStep: step
+        });
+
         if (allowance !== undefined && minStake !== undefined) {
             // Only set step if data is loaded
             if (allowance >= minStake) {
+                console.log('[SellerOnboarding] Setting step to STAKE (Sufficient Allowance)');
                 setStep('stake');
-            } else {
+            } else if (!isApproveSuccess) {
+                console.log('[SellerOnboarding] Setting step to APPROVE (Insufficient Allowance & No Recent Success)');
                 setStep('approve');
+            } else {
+                console.log('[SellerOnboarding] Holding step at STAKE (Optimistic Success)');
             }
         }
-    }, [allowance, minStake]);
+    }, [allowance, minStake, isApproveSuccess]);
 
     // Handlers
     const handleApprove = () => {
-        if (!minStake) return;
-        writeApprove({
-            address: IDRX_ADDRESS,
-            abi: ERC20_ABI,
-            functionName: 'approve',
-            args: [MARKETPLACE_ADDRESS, minStake],
-        });
+        console.log('[SellerOnboarding] handleApprove clicked. minStake:', minStake);
+        if (!minStake) {
+            console.error('[SellerOnboarding] minStake is undefined, aborting.');
+            toast.error("Calculating staking requirements. Please wait...");
+            return;
+        }
+        try {
+            console.log('[SellerOnboarding] Calling writeApprove...');
+            writeApprove({
+                address: IDRX_ADDRESS,
+                abi: ERC20_ABI,
+                functionName: 'approve',
+                args: [MARKETPLACE_ADDRESS, minStake],
+            }, {
+                onError: (error) => {
+                    console.error('[SellerOnboarding] writeApprove onError callback:', error);
+                    // Force toast immediate feedback
+                    toast.error(`Approval request failed: ${error.shortMessage || error.message}`);
+                },
+                onSuccess: (data) => console.log('[SellerOnboarding] writeApprove onSuccess:', data)
+            });
+        } catch (e) {
+            console.error('[SellerOnboarding] Exception in writeApprove call:', e);
+            toast.error("Unable to initiate approval transaction.");
+        }
     };
 
     const handleStake = () => {

@@ -21,3 +21,7 @@ export type { CardProps } from './components/Card';
 export { Badge } from './components/Badge';
 export type { BadgeProps } from './components/Badge';
 
+
+export { Tabs, TabsList, TabsTrigger, TabsContent } from './components/Tabs';
+export { Spinner } from './components/Spinner';
+

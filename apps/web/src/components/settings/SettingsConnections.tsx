@@ -44,10 +44,10 @@ export function SettingsConnections({ address }: SettingsConnectionsProps) {
             if (!res.ok) throw new Error("Failed to disconnect");
 
             await queryClient.invalidateQueries({ queryKey: ['user-me'] });
-            toast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} disconnected successfully`);
+            toast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} successfully disconnected.`);
         } catch (e) {
             console.error(e);
-            toast.error("Failed to disconnect account");
+            toast.error("Unable to disconnect account.");
         } finally {
             setDisconnecting(null);
         }

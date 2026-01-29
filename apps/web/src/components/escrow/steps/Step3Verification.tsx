@@ -1,22 +1,61 @@
 "use client";
 
 import { Button } from "ui";
+import { useState, useEffect } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { ESCROW_ABI } from "@/abis/EscrowV1";
+import { DecryptModal } from "@/components/escrow/DecryptModal";
+import { toast } from "sonner";
 
-const ESCROW_CONTRACT = process.env.NEXT_PUBLIC_ESCROW_ADDRESS as `0x${string}`;
+const ESCROW_CONTRACT = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS as `0x${string}`;
 
 interface Step3VerificationProps {
     escrowId: string;
     userRole: 'buyer' | 'seller' | 'viewer';
     escrow?: any;
+    onActionComplete?: () => void;
 }
 
-export function Step3Verification({ escrowId, userRole, escrow }: Step3VerificationProps) {
-    const { writeContract, data: hash, isPending } = useWriteContract();
+export function Step3Verification({ escrowId, userRole, escrow, onActionComplete }: Step3VerificationProps) {
+    const { writeContract, data: hash, isPending: isWritePending } = useWriteContract();
     const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+    const [timeLeft, setTimeLeft] = useState<string>("--:--:--");
+    const [isDecryptModalOpen, setIsDecryptModalOpen] = useState(false);
+
+    useEffect(() => {
+        if (!escrow?.verifyDeadline) return;
+
+        const updateTimer = () => {
+            const now = Math.floor(Date.now() / 1000);
+            const deadline = Number(escrow.verifyDeadline);
+            const diff = deadline - now;
+
+            if (diff <= 0) {
+                setTimeLeft("Expired");
+                return;
+            }
+
+            const hours = Math.floor(diff / 3600);
+            const minutes = Math.floor((diff % 3600) / 60);
+            const seconds = diff % 60;
+
+            setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        };
+
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+        return () => clearInterval(interval);
+    }, [escrow?.verifyDeadline]);
+
+    useEffect(() => {
+        if (isSuccess && onActionComplete) {
+            onActionComplete();
+            toast.success("Extension successfully requested.");
+        }
+    }, [isSuccess, onActionComplete]);
 
     const handleRequestExtension = () => {
+        if (!escrowId) return;
         writeContract({
             address: ESCROW_CONTRACT,
             abi: ESCROW_ABI,
@@ -25,15 +64,17 @@ export function Step3Verification({ escrowId, userRole, escrow }: Step3Verificat
         });
     };
 
+    const isPending = isWritePending || isConfirming;
+
     // Buyer view - show credential vault with actions
     if (userRole === 'buyer') {
         return (
-            <div className="bg-white dark:bg-background-dark-elevated rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-800 relative overflow-hidden group">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
                 <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-center relative z-10">
                     <div
-                        className="w-full md:w-48 h-32 md:h-48 rounded-lg bg-cover bg-center shrink-0 border border-gray-200 dark:border-gray-800"
+                        className="w-full md:w-48 h-32 md:h-48 rounded-lg bg-cover bg-center shrink-0 border border-gray-200 dark:border-gray-700"
                         style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDiBAR3wE6bVUSbl7eMhZC7_PEwtvbSf_MitGWcRgZsH2jPVyX7rpa3uBSp3dWKu-EFuAQYTWKuoBiSaH0yMWr_NolpkBp2p-G-lxnyr3pN3vKXL-D_91xlaA8UUpael5ATyJ6m0k34FBGQ7krOYU4_s4ofvI2KbFB20F6yAzE9PvY78NT3hDs4aBd4eY1NeNnSlAEKyDsq4faMW-yYg39lxOCcrv5aOG5WjEZx-NepwcWSM0wrdUc0BzNemO69-raYCValtSNXbaYd')" }}
                     ></div>
 
@@ -45,7 +86,7 @@ export function Step3Verification({ escrowId, userRole, escrow }: Step3Verificat
                             </div>
                             <div className="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-sm font-mono font-bold flex items-center gap-2">
                                 <span className="material-symbols-outlined text-[18px]">timer</span>
-                                71:59:42
+                                {timeLeft}
                             </div>
                         </div>
 
@@ -54,7 +95,7 @@ export function Step3Verification({ escrowId, userRole, escrow }: Step3Verificat
                                 <span className="material-symbols-outlined text-[16px] text-primary">lock</span>
                                 Assets Locked
                             </div>
-                            Contains: AWS Root Access keys, Domain Transfer Auth Code, Stripe Account Ownership Transfer.
+                            Contains: Encrypted Credentials from Seller. Decrypt to access.
                         </div>
 
                         {isSuccess && (
@@ -67,28 +108,39 @@ export function Step3Verification({ escrowId, userRole, escrow }: Step3Verificat
                         )}
 
                         <div className="flex flex-col sm:flex-row gap-4 mt-2">
-                            <Button className="flex-1 rounded-full flex items-center justify-center gap-2">
+                            <Button
+                                onClick={() => setIsDecryptModalOpen(true)}
+                                className="flex-1 rounded-full flex items-center justify-center gap-2"
+                            >
                                 <span className="material-symbols-outlined text-[20px]">vpn_key</span>
                                 Decrypt Credentials
                             </Button>
-                            <Button
-                                variant="ghost"
-                                onClick={handleRequestExtension}
-                                disabled={isPending || isConfirming || isSuccess}
-                                className="px-6 rounded-full text-text-muted hover:text-text-main dark:hover:text-white text-sm"
-                            >
-                                {isPending || isConfirming ? "Requesting..." : isSuccess ? "Extension Requested" : "Request Extension"}
-                            </Button>
+                            {!escrow?.verifyExtensionUsed && (
+                                <Button
+                                    variant="outline"
+                                    onClick={handleRequestExtension}
+                                    disabled={isPending || isSuccess}
+                                    className="px-6 rounded-full text-text-muted hover:text-text-main dark:hover:text-white text-sm border-gray-200 dark:border-gray-700"
+                                >
+                                    {isPending ? "Requesting..." : isSuccess ? "Extension Requested" : "Request 24h Extension"}
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
+
+                <DecryptModal
+                    isOpen={isDecryptModalOpen}
+                    onClose={() => setIsDecryptModalOpen(false)}
+                    escrowId={escrowId}
+                />
             </div>
         );
     }
 
     // Seller view - show waiting state
     return (
-        <div className="bg-white dark:bg-background-dark-elevated rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-800">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                     <span className="material-symbols-outlined text-[24px]">hourglass_empty</span>
@@ -96,6 +148,7 @@ export function Step3Verification({ escrowId, userRole, escrow }: Step3Verificat
                 <div>
                     <h3 className="text-xl font-bold text-text-main dark:text-white">Buyer Verification in Progress</h3>
                     <p className="text-text-muted text-sm">Waiting for buyer to verify credentials and confirm receipt</p>
+                    <p className="text-xs text-text-muted mt-1 font-mono">Time remaining: {timeLeft}</p>
                 </div>
             </div>
         </div>

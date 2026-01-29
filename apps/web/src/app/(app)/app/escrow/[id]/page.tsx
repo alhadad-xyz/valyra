@@ -17,6 +17,16 @@ import { DecryptModal } from "@/components/escrow/DecryptModal";
 import { MarketplaceHeader } from "@/components/marketplace/MarketplaceHeader";
 import { Footer } from "@/components/Footer";
 
+import { Step0Funding } from "@/components/escrow/steps/Step0Funding";
+import { Step1Deposit } from "@/components/escrow/steps/Step1Deposit";
+import { Step2Handover } from "@/components/escrow/steps/Step2Handover";
+import { Step3Verification } from "@/components/escrow/steps/Step3Verification";
+import { Step4Confirmation } from "@/components/escrow/steps/Step4Confirmation";
+import { Step5Released } from "@/components/escrow/steps/Step5Released";
+
+import { EscrowSidebar } from "@/components/escrow/EscrowSidebar";
+import { useEscrowWebSocket } from "@/hooks/useEscrowWebSocket";
+
 export default function EscrowPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     // id is UUID
@@ -58,6 +68,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
 
     useEffect(() => {
         if (isTxSuccess) {
+            toast.success("Transaction confirmed successfully!");
             refetchEscrow();
             if (escrow?.state === EscrowState.COMPLETED) {
                 setShowConfetti(true);
@@ -65,12 +76,23 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
         }
     }, [isTxSuccess, refetchEscrow, escrow]);
 
+    // WebSocket Integration
+    useEscrowWebSocket((event) => {
+        // Filter for this specific escrow if needed, or just refetch all (safe)
+        // If event.data.escrow_id matches, refetch.
+        // We compare UUIDs or on_chain_IDs
+        if (event.data.escrow_id === id || event.data.on_chain_id === escrow.on_chain_id?.toString()) {
+            console.log('[EscrowPage] Received update:', event);
+            refetchEscrow();
+        }
+    });
+
     const ESCROW_CONTRACT = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS as `0x${string}`;
     const IDRX_TOKEN = process.env.NEXT_PUBLIC_IDRX_TOKEN_ADDRESS as `0x${string}`;
 
     const handleConfirmReceipt = () => {
         if (!escrowId) {
-            toast.error("Escrow ID not found");
+            toast.error("Escrow ID unavailable.");
             return;
         }
         writeContract({
@@ -83,7 +105,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
 
     const handleClaimRetainer = () => {
         if (!escrowId) {
-            toast.error("Escrow ID not found");
+            toast.error("Escrow ID unavailable.");
             return;
         }
         writeContract({
@@ -99,7 +121,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
         if (!issue) return;
 
         if (!escrowId) {
-            toast.error("Escrow ID not found");
+            toast.error("Escrow ID unavailable.");
             return;
         }
         writeContract({
@@ -112,7 +134,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
 
     const handleRequestExtension = () => {
         if (!escrowId) {
-            toast.error("Escrow ID not found");
+            toast.error("Escrow ID unavailable.");
             return;
         }
         writeContract({
@@ -125,7 +147,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
 
     const handleCompleteFunding = async () => {
         if (!escrowId || !escrow?.amount) {
-            toast.error("Escrow data not available");
+            toast.error("Escrow data unavailable.");
             return;
         }
 
@@ -135,7 +157,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
         const remainingAmount = totalAmount - depositedAmount;
 
         // Step 1: Approve IDRX
-        toast.info(`Approving ${(Number(remainingAmount) / 1e18).toFixed(2)} IDRX...`);
+        toast.info(`Approving token allowance...`);
         try {
             const ERC20_ABI = [{ "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "approve", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }];
 
@@ -150,7 +172,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             // Step 2: Complete funding
-            toast.info("Funding escrow...");
+            toast.info("Initiating escrow funding...");
             writeContract({
                 address: ESCROW_CONTRACT,
                 abi: ESCROW_ABI,
@@ -158,7 +180,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
                 args: [escrowId]
             });
         } catch (error: any) {
-            toast.error(error.message || "Failed to complete funding");
+            toast.error(error.message || "Unable to complete funding.");
         }
     };
 
@@ -214,6 +236,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
 
     const isBuyer = address?.toLowerCase() === (escrow.buyer_address || escrow.buyer)?.toLowerCase();
     const isSeller = address?.toLowerCase() === (escrow.seller_address || escrow.seller)?.toLowerCase();
+    const userRole = isBuyer ? 'buyer' : (isSeller ? 'seller' : 'viewer');
 
     // Helper for steps
     const steps = [
@@ -310,7 +333,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
                         <div className="flex gap-2">
                             <button
                                 className="flex items-center gap-2 px-4 h-10 rounded-full border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-900/20 text-sm font-bold transition-colors"
-                                onClick={() => toast.info("Dispute feature coming in next version")}
+                                onClick={() => toast.info("Dispute feature coming soon.")}
                             >
                                 <span className="material-symbols-outlined text-[18px]">gavel</span>
                                 Raise Dispute
@@ -335,72 +358,36 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
                         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
                             {/* Dynamic Content based on State */}
                             {currentState === EscrowState.CREATED && isBuyer && (
-                                <div>
-                                    <h3 className="text-xl font-bold mb-2">Complete Payment</h3>
-                                    <p className="text-gray-500 mb-4">
-                                        You've paid a {escrow.totalFunded ? Math.round((Number(escrow.totalFunded) / Number(escrow.amount)) * 100) : 5}% deposit.
-                                        Complete the remaining payment to start the escrow process.
-                                    </p>
-                                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-sm text-gray-600 dark:text-gray-400">Total Amount:</span>
-                                            <span className="font-semibold">{(Number(escrow.amount || 0) / 1e18).toLocaleString()} IDRX</span>
-                                        </div>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-sm text-gray-600 dark:text-gray-400">Already Paid:</span>
-                                            <span className="text-green-600 dark:text-green-400">-{(Number(escrow.totalFunded || 0) / 1e18).toLocaleString()} IDRX</span>
-                                        </div>
-                                        <div className="border-t border-blue-200 dark:border-blue-800 my-2"></div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="font-semibold">Remaining:</span>
-                                            <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                                                {((Number(escrow.amount || 0) - Number(escrow.totalFunded || 0)) / 1e18).toLocaleString()} IDRX
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <Button onClick={handleCompleteFunding} className="w-full">
-                                        Pay Now & Fund Escrow
-                                    </Button>
-                                </div>
+                                <Step0Funding
+                                    escrow={escrow}
+                                    onCompleteFunding={handleCompleteFunding}
+                                    isPending={isWritePending || isTxConfirming}
+                                />
                             )}
 
                             {currentState === EscrowState.FUNDED && isSeller && (
-                                <div>
-                                    <h3 className="text-xl font-bold mb-2">Upload Credentials</h3>
-                                    <p className="text-gray-500 mb-4">The buyer has deposited funds. Please upload the credentials to the vault.</p>
-                                    <Button onClick={() => setIsUploadModalOpen(true)}>
-                                        Upload to Vault
-                                    </Button>
-                                </div>
+                                <Step2Handover
+                                    escrowId={id}
+                                    userRole="seller"
+                                    escrow={escrow}
+                                    onUploadComplete={refetchEscrow}
+                                />
                             )}
 
                             {currentState === EscrowState.DELIVERED && isBuyer && (
-                                <div>
-                                    <h3 className="text-xl font-bold mb-2">Verify Assets</h3>
-                                    <p className="text-gray-500 mb-4">Seller has uploaded credentials. Please verify them within the deadline.</p>
-                                    <div className="flex gap-4">
-                                        <Button variant="outline" onClick={() => setIsDecryptModalOpen(true)}>
-                                            Decrypt Credentials
-                                        </Button>
-                                        <Button
-                                            variant="primary"
-                                            onClick={handleConfirmReceipt}
-                                            loading={isWritePending || isTxConfirming}
-                                            disabled={isWritePending || isTxConfirming}
-                                        >
-                                            Confirm & Release
-                                        </Button>
-                                        {!escrow.verifyExtensionUsed && (
-                                            <Button
-                                                variant="outline"
-                                                onClick={handleRequestExtension}
-                                                loading={isWritePending || isTxConfirming}
-                                                disabled={isWritePending || isTxConfirming}
-                                            >
-                                                Request 24h Extension
-                                            </Button>
-                                        )}
-                                    </div>
+                                <div className="space-y-6">
+                                    <Step3Verification
+                                        escrowId={id}
+                                        userRole="buyer"
+                                        escrow={escrow}
+                                        onActionComplete={refetchEscrow}
+                                    />
+                                    <Step4Confirmation
+                                        escrowId={id}
+                                        userRole="buyer"
+                                        escrow={escrow}
+                                        onActionComplete={refetchEscrow}
+                                    />
                                 </div>
                             )}
 
@@ -491,17 +478,25 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
                                 </div>
                             )}
 
-                            {currentState === EscrowState.COMPLETED && (
-                                <div className="text-center py-8">
-                                    <span className="material-symbols-outlined text-6xl text-green-500 mb-4">check_circle</span>
-                                    <h3 className="text-2xl font-bold text-green-600">Transaction Completed</h3>
-                                    <p className="text-gray-500">Funds released to seller. Assets transferred.</p>
-                                </div>
+                            {(currentState === EscrowState.COMPLETED || currentState === EscrowState.RESOLVED) && (
+                                <Step5Released
+                                    escrowId={id}
+                                    userRole={userRole}
+                                    escrow={escrow}
+                                />
                             )}
 
                             {/* Default/Waiting states */}
-                            {currentState === EscrowState.FUNDED && isBuyer && <p>Waiting for seller to upload credentials...</p>}
-                            {currentState === EscrowState.DELIVERED && isSeller && <p>Waiting for buyer to verify...</p>}
+                            {currentState === EscrowState.FUNDED && isBuyer && (
+                                <Step1Deposit escrow={escrow} />
+                            )}
+                            {currentState === EscrowState.DELIVERED && isSeller && (
+                                <Step3Verification
+                                    escrowId={id}
+                                    userRole="seller"
+                                    escrow={escrow}
+                                />
+                            )}
 
                         </div>
 
@@ -533,27 +528,11 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
 
                     {/* RIGHT COLUMN: Sidebar */}
                     <div className="lg:col-span-4 flex flex-col gap-6">
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-[600px] flex flex-col">
-                            <div className="flex border-b border-gray-100 dark:border-gray-700">
-                                <button className="flex-1 py-3 text-sm font-bold border-b-2 border-primary bg-primary/5">Activity Log</button>
-                                <button className="flex-1 py-3 text-sm font-medium text-gray-500">Chat</button>
-                            </div>
-                            <div className="p-4 flex-1 overflow-y-auto">
-                                {/* Placeholder Activity Log */}
-                                <div className="space-y-4">
-                                    <div className="flex gap-3">
-                                        <div className="flex flex-col items-center">
-                                            <div className="w-2 h-2 rounded-full bg-gray-300 mt-2"></div>
-                                            <div className="w-px h-full bg-gray-200"></div>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-gray-400">{format(new Date(Number(escrow.depositedAt) * 1000), "p")}</p>
-                                            <p className="text-sm">Funds Deposited</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <EscrowSidebar
+                            escrow={escrow}
+                            currentUserAddress={address}
+                            userRole={isBuyer ? 'buyer' : isSeller ? 'seller' : 'viewer'}
+                        />
                     </div>
                 </div>
             </main>

@@ -1,0 +1,27 @@
+# Koyeb deployment configuration
+# https://www.koyeb.com/docs/build-and-deploy/build-from-git
+
+name: valyra-backend
+
+services:
+  - name: api
+    type: web
+    build:
+      type: buildpack
+      buildCommand: cd apps/backend && poetry install --no-dev
+    run:
+      command: cd apps/backend && poetry run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    ports:
+      - port: 8000
+        protocol: http
+    health_check:
+      http:
+        path: /health
+        port: 8000
+    env:
+      - name: PYTHON_VERSION
+        value: "3.11"
+      - name: PORT
+        value: "8000"
+    # Add your environment variables in the Koyeb dashboard
+    # or reference them from a .env file

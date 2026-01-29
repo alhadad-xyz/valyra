@@ -7,7 +7,9 @@ import { formatCurrency } from "@/utils/format";
 
 interface DashboardListingCardProps {
     id: string;
+    id: string;
     image: string;
+    images?: string[];
     category: string;
     title: string;
     askingPrice: string | number;
@@ -21,6 +23,7 @@ interface DashboardListingCardProps {
 export function DashboardListingCard({
     id,
     image,
+    images = [],
     category,
     title,
     askingPrice,
@@ -46,7 +49,7 @@ export function DashboardListingCard({
                 <Image
                     fill
                     className="object-cover"
-                    src={image || `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(title || "Listing")}`}
+                    src={(images && images.length > 0) ? images[0] : (image || `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(title || "Listing")}`)}
                     alt={title}
                 />
 

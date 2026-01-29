@@ -140,6 +140,29 @@ export const MARKETPLACE_ABI = [
         "stateMutability": "nonpayable"
     },
     {
+        "type": "function",
+        "name": "updateListing",
+        "inputs": [
+            {
+                "name": "listingId",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "ipfsMetadata",
+                "type": "string",
+                "internalType": "string"
+            },
+            {
+                "name": "newPrice",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
         "type": "event",
         "name": "ListingCreated",
         "inputs": [

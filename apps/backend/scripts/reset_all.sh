@@ -79,16 +79,16 @@ if [ -f .env.local ]; then
     echo "   ✅ Backed up .env.local to .env.local.backup"
     
     # Update addresses
-    sed -i '' "s/NEXT_PUBLIC_IDRX_ADDRESS=.*/NEXT_PUBLIC_IDRX_ADDRESS=$IDRX_ADDRESS/" .env.local
-    sed -i '' "s/NEXT_PUBLIC_MARKETPLACE_ADDRESS=.*/NEXT_PUBLIC_MARKETPLACE_ADDRESS=$MARKETPLACE_ADDRESS/" .env.local
-    sed -i '' "s/NEXT_PUBLIC_ESCROW_ADDRESS=.*/NEXT_PUBLIC_ESCROW_ADDRESS=$ESCROW_ADDRESS/" .env.local
+    sed -i '' "s/NEXT_PUBLIC_IDRX_TOKEN_ADDRESS=.*/NEXT_PUBLIC_IDRX_TOKEN_ADDRESS=$IDRX_ADDRESS/" .env.local
+    sed -i '' "s/NEXT_PUBLIC_MARKETPLACE_CONTRACT_ADDRESS=.*/NEXT_PUBLIC_MARKETPLACE_CONTRACT_ADDRESS=$MARKETPLACE_ADDRESS/" .env.local
+    sed -i '' "s/NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS=.*/NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS=$ESCROW_ADDRESS/" .env.local
     
     echo "   ✅ Updated .env.local with new contract addresses"
 else
     echo "   ⚠️  .env.local not found. Please create it with:"
-    echo "      NEXT_PUBLIC_IDRX_ADDRESS=$IDRX_ADDRESS"
-    echo "      NEXT_PUBLIC_MARKETPLACE_ADDRESS=$MARKETPLACE_ADDRESS"
-    echo "      NEXT_PUBLIC_ESCROW_ADDRESS=$ESCROW_ADDRESS"
+    echo "      NEXT_PUBLIC_IDRX_TOKEN_ADDRESS=$IDRX_ADDRESS"
+    echo "      NEXT_PUBLIC_MARKETPLACE_CONTRACT_ADDRESS=$MARKETPLACE_ADDRESS"
+    echo "      NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS=$ESCROW_ADDRESS"
 fi
 
 echo ""

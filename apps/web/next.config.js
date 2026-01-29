@@ -16,6 +16,14 @@ const nextConfig = {
                 protocol: "https",
                 hostname: "placehold.co",
             },
+            {
+                protocol: "https",
+                hostname: "gateway.lighthouse.storage",
+            },
+            {
+                protocol: "https",
+                hostname: "gateway.pinata.cloud",
+            },
         ],
     },
 };

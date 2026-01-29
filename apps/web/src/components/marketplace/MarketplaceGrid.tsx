@@ -264,6 +264,7 @@ export function MarketplaceGrid() {
                                     key={`${item.id}-${idx}`}
                                     id={item.id}
                                     image={item.image || ""}
+                                    images={item.images || []}
                                     category={item.asset_type || "Other"}
                                     title={item.asset_name || "Untitled"}
                                     description={item.description || ""}

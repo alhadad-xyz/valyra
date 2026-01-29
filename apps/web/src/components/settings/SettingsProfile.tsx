@@ -66,10 +66,10 @@ export function SettingsProfile() {
             }
 
             await queryClient.invalidateQueries({ queryKey: ['user-me'] });
-            toast.success("Profile updated successfully");
+            toast.success("Profile changes saved successfully.");
         } catch (error: any) {
             console.error("Failed to update profile:", error);
-            toast.error(error.message || "Failed to update profile");
+            toast.error(error.message || "Unable to update profile.");
         } finally {
             setUpdating(false);
         }

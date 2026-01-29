@@ -7,6 +7,8 @@ from app.schemas.user import UserUpdate, UserResponse, PublicUserResponse, UserS
 from app.dependencies import get_current_user
 import logging
 from uuid import UUID
+from app.schemas.listing import ListingResponse
+
 
 router = APIRouter(prefix="/users", tags=["Users"])
 logger = logging.getLogger(__name__)
@@ -19,6 +21,47 @@ async def get_my_profile(
     Get current user's profile.
     """
     return current_user
+
+@router.get("/me/purchases", response_model=None) # Returning list of custom schema, avoiding circular import issues in signature if acceptable, or use string forward ref if needed. 
+# Actually, let's just use the schema. We need to import it at top level or use string.
+# To avoid circular imports (since listing schema imports from listing model which might import user...), better to keep import inside or check if safe.
+# ListingSchema imports ListingModel. ListingModel imports User (relationship). User imports nothing that causes loop usually.
+# Let's try simple fix: use explicit list of dicts or just allow it to pass through.
+# Providing response_model allows documentation to show correct fields.
+async def get_my_purchases(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get listings purchased by the current user (Accepted Offers).
+    Returns listing details + purchase metadata (price, date).
+    """
+    from app.models.offer import Offer, OfferStatus
+    from app.models.listing import Listing
+    from app.schemas.listing import PurchasedListingResponse
+    
+    # Query for Offer joined with Listing to get both easily
+    # We select Offer to access purchase details, and eager load listing
+    accepted_offers = db.query(Offer).join(Listing).filter(
+        Offer.buyer_id == current_user.id,
+        Offer.status == OfferStatus.ACCEPTED
+    ).all()
+    
+    results = []
+    for offer in accepted_offers:
+        listing_data = offer.listing
+        # 1. Validate base listing data first
+        base_listing = ListingResponse.model_validate(listing_data)
+        # 2. Convert to dict and add purchase details
+        response_dict = base_listing.model_dump()
+        response_dict["purchase_price"] = offer.offer_amount
+        response_dict["purchase_date"] = offer.updated_at
+        
+        # 3. Create final response object
+        response_item = PurchasedListingResponse(**response_dict)
+        results.append(response_item)
+    
+    return results
 
 @router.patch("/me", response_model=UserResponse)
 async def update_my_profile(

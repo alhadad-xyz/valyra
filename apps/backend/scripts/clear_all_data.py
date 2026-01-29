@@ -22,6 +22,7 @@ def clear_all_data():
         "pending_deposits",
         "holds",
         "balances",
+        "escrow_events",
         "escrows",
         "offers",
         "listings",

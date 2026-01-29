@@ -1,9 +1,10 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 from app.models.escrow import EscrowState
+from app.schemas.offer import OfferResponse
 
 class EscrowBase(BaseModel):
     pass
@@ -23,8 +24,25 @@ class EscrowResponse(EscrowBase):
     credentials_ipfs_hash: Optional[str] = None
     verification_deadline: Optional[datetime] = None
     
+    # Relationships
+    offer: Optional[OfferResponse] = None
+    
+    # Activity Log
+    events: List["EscrowEventResponse"] = []
+
     created_at: datetime
     updated_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class EscrowEventResponse(BaseModel):
+    """Schema for escrow event log."""
+    id: UUID
+    event_type: str
+    title: str
+    description: Optional[str]
+    tx_hash: Optional[str]
+    timestamp: datetime
     
     model_config = ConfigDict(from_attributes=True)
 

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Escrow Step 2: Asset Handover</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d59f2",
+                        "background-light": "#f5f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: "Space Grotesk", sans-serif
+        }
+
+        .custom-dashed {
+            background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBMwTpk0h28NSz5IMiB2yVxqME6dQi5Dld8GyqXGBSPdTmxjynmm0GevXO9_bGG-Nz4MxqfY3fCQB8cSIXRk6NuzlrO9YOnvUjDgGVbSmECi7rDlxkSTklTg7xDT-msZyfMB6x4rkfjQNRFFs4fJ4y5UGjkB0BbY0oAG3gla9mhpoiLAlpiMHmev6QKR5HKrHJ6vt-9EtPOIgq_X3oO2Y9ujW7v4W3WSHEYyoVYP_pdmfqq4mCYyiGRhOk8XHO9FxnC4Fi-IvGqP6mw);
+            border-radius: 1rem
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen">
+    <!-- Top Navigation Bar -->
+    <header
+        class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-[#282e39] px-6 md:px-10 py-3 bg-background-light dark:bg-background-dark sticky top-0 z-50">
+        <div class="flex items-center gap-4">
+            <div class="size-8 text-primary">
+                <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z"
+                        fill="currentColor"></path>
+                </svg>
+            </div>
+            <h2 class="text-xl font-bold leading-tight tracking-tight">SecureEscrow</h2>
+        </div>
+        <div class="flex flex-1 justify-end gap-8 items-center">
+            <nav class="hidden md:flex items-center gap-9">
+                <a class="text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
+                <a class="text-sm font-medium hover:text-primary transition-colors" href="#">Transactions</a>
+                <a class="text-sm font-medium hover:text-primary transition-colors" href="#">Security</a>
+            </nav>
+            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200 dark:border-slate-700"
+                data-alt="User profile avatar placeholder"
+                style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBWdAweHy7KASUZ7OhS03a-MrH6N3Gg-5mns16UJKWqOOJ-SSd_WjIyABq3w4KySoev3xaIzdVsjIDGEQrrurEPUKixj1wR3zvLIWPPsPBtuG7Y4UyS9IBiLqjMCK2_ek4u9SF51O7QGqW98YTgEQzK_ef9LPi4VGVt0QBuEUrf01jOWrums8pEQq-I4TRo_OcXK4GV05ecJR2QdgFQZ1TeZnoH-HvJ-bW6AoZA_TESgofEHC3-8raj5rPeRyq6PwA13HqKN8IoVEA5");'>
+            </div>
+        </div>
+    </header>
+    <main class="max-w-[1200px] mx-auto px-4 py-8">
+        <!-- Progress Bar Component -->
+        <div class="max-w-[960px] mx-auto mb-10">
+            <div class="flex flex-col gap-3">
+                <div class="flex gap-6 justify-between items-center">
+                    <p class="text-lg font-medium">Asset Handover Progress</p>
+                    <p class="text-sm font-normal text-primary">Step 2 of 5</p>
+                </div>
+                <div class="rounded-full bg-slate-200 dark:bg-[#3b4354] h-2.5 overflow-hidden">
+                    <div class="h-full rounded-full bg-primary" style="width: 40%;"></div>
+                </div>
+                <div class="flex items-center gap-2 text-slate-500 dark:text-[#9ca6ba] text-sm font-normal">
+                    <span class="material-symbols-outlined text-sm">lock</span>
+                    <span>Current Step: Secure Asset Handover (Seller)</span>
+                </div>
+            </div>
+        </div>
+        <!-- Main Content Layout -->
+        <div class="flex flex-col lg:flex-row gap-8 items-start max-w-[1200px] mx-auto">
+            <!-- Left Column: Form Area -->
+            <div class="flex-1 w-full">
+                <!-- Page Heading -->
+                <div class="flex flex-wrap justify-between items-end gap-4 mb-6">
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-primary text-3xl">upload_file</span>
+                            <h1 class="text-3xl md:text-4xl font-black tracking-tight">Handover Assets</h1>
+                        </div>
+                        <p class="text-slate-500 dark:text-[#9ca6ba] text-base">Securely upload credentials and
+                            documentation to the escrow smart contract.</p>
+                    </div>
+                    <button
+                        class="flex items-center justify-center rounded-xl h-10 px-4 bg-slate-200 dark:bg-[#282e39] hover:bg-slate-300 dark:hover:bg-[#323a48] transition-colors text-sm font-bold">
+                        <span class="truncate">View Contract Details</span>
+                    </button>
+                </div>
+                <!-- Transaction Card -->
+                <div
+                    class="bg-white dark:bg-[#1b1f27] rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
+                    <div class="p-6 md:p-8 space-y-8">
+                        <!-- Warning/Info Banner -->
+                        <div class="flex items-start gap-4 p-4 rounded-xl bg-primary/10 border border-primary/20">
+                            <span class="material-symbols-outlined text-primary">security</span>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-primary mb-1">Local Encryption Enabled</p>
+                                <p class="text-xs md:text-sm text-slate-600 dark:text-slate-300">All data entered here
+                                    is encrypted locally in your browser before being committed to the blockchain.
+                                    SecureEscrow never sees your raw credentials.</p>
+                            </div>
+                        </div>
+                        <!-- Form Section: Text Area -->
+                        <div class="flex flex-col gap-3">
+                            <label class="flex flex-col gap-2">
+                                <span class="text-base font-semibold">Encrypted Credentials / Private Notes</span>
+                                <textarea
+                                    class="form-input w-full resize-none rounded-xl border border-slate-300 dark:border-[#3b4354] bg-slate-50 dark:bg-[#101622] focus:ring-2 focus:ring-primary focus:border-transparent min-h-[160px] placeholder:text-slate-400 dark:placeholder:text-[#9ca6ba] p-4 text-sm md:text-base font-mono leading-relaxed"
+                                    placeholder="Paste repository keys, domain auth codes, AWS IAM secrets, or sensitive handover instructions here..."></textarea>
+                            </label>
+                            <p class="text-[10px] md:text-xs text-slate-500 uppercase tracking-widest font-bold">
+                                Client-side PGP Encryption Active</p>
+                        </div>
+                        <!-- Form Section: File Upload -->
+                        <div class="flex flex-col gap-3">
+                            <span class="text-base font-semibold">Asset Documentation</span>
+                            <div
+                                class="custom-dashed p-8 flex flex-col items-center justify-center gap-3 bg-slate-50/50 dark:bg-white/5 cursor-pointer hover:bg-slate-100 dark:hover:bg-white/10 transition-all">
+                                <div class="size-12 rounded-full bg-primary/20 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-primary text-3xl">cloud_upload</span>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-sm font-bold">Drag and drop files here</p>
+                                    <p class="text-xs text-slate-500 dark:text-[#9ca6ba]">PDF, ZIP, or JSON (Max 50MB)
+                                    </p>
+                                </div>
+                                <button class="mt-2 text-xs font-bold text-primary underline underline-offset-4">Browse
+                                    Files</button>
+                            </div>
+                        </div>
+                        <!-- Action Footer -->
+                        <div
+                            class="flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                            <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <span class="material-symbols-outlined text-lg">info</span>
+                                <span class="text-xs">Est. Gas Fee: <span class="font-mono">~0.0042 ETH</span></span>
+                            </div>
+                            <button
+                                class="w-full md:w-auto min-w-[240px] flex items-center justify-center gap-2 rounded-xl h-14 px-8 bg-primary hover:bg-primary/90 text-white text-lg font-bold transition-transform active:scale-95 shadow-lg shadow-primary/20">
+                                <span class="material-symbols-outlined">account_balance_wallet</span>
+                                <span>Upload &amp; Commit to Chain</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Right Column: Sidebar -->
+            <aside class="w-full lg:w-80 space-y-6">
+                <!-- Checklist Card -->
+                <div class="bg-white dark:bg-[#1b1f27] rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">checklist</span>
+                        Required Assets
+                    </h3>
+                    <ul class="space-y-4">
+                        <li
+                            class="flex items-start gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                            <span class="material-symbols-outlined text-emerald-500 mt-0.5">check_circle</span>
+                            <div>
+                                <p class="text-sm font-bold">Source Code</p>
+                                <p class="text-xs text-slate-500">GitHub/Bitbucket Repo</p>
+                            </div>
+                        </li>
+                        <li
+                            class="flex items-start gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                            <span class="material-symbols-outlined text-amber-500 mt-0.5">pending</span>
+                            <div>
+                                <p class="text-sm font-bold">Domain Access</p>
+                                <p class="text-xs text-slate-500">Auth Codes / Transfer</p>
+                            </div>
+                        </li>
+                        <li
+                            class="flex items-start gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                            <span class="material-symbols-outlined text-slate-400 mt-0.5">circle</span>
+                            <div>
+                                <p class="text-sm font-bold">AWS/Cloud Keys</p>
+                                <p class="text-xs text-slate-500">Infrastructure Identity</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Transaction Summary Card -->
+                <div class="bg-primary/5 rounded-xl border border-primary/20 p-6">
+                    <p class="text-xs uppercase tracking-widest text-primary font-bold mb-4">Transaction Details</p>
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-500 dark:text-slate-400">Total Value:</span>
+                            <span class="font-bold font-mono">125,000 USDC</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-500 dark:text-slate-400">Escrow ID:</span>
+                            <span class="font-bold font-mono text-xs">#TX-8821...99B</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-500 dark:text-slate-400">Buyer:</span>
+                            <span class="font-bold">oxDigital...Capital</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Help Link -->
+                <div
+                    class="flex items-center justify-center gap-2 text-slate-500 text-sm hover:text-primary cursor-pointer transition-colors">
+                    <span class="material-symbols-outlined text-base">help</span>
+                    <span>Need help with asset transfer?</span>
+                </div>
+            </aside>
+        </div>
+    </main>
+    <!-- Footer Security Note -->
+    <footer class="max-w-[1200px] mx-auto px-4 py-12 text-center text-slate-500 dark:text-slate-500">
+        <div class="flex items-center justify-center gap-6 mb-4 grayscale opacity-50">
+            <div class="h-6 w-24 bg-slate-300 dark:bg-slate-700 rounded"
+                data-alt="Security certification logo placeholder"></div>
+            <div class="h-6 w-24 bg-slate-300 dark:bg-slate-700 rounded" data-alt="Trusted partner logo placeholder">
+            </div>
+            <div class="h-6 w-24 bg-slate-300 dark:bg-slate-700 rounded" data-alt="Privacy shield logo placeholder">
+            </div>
+        </div>
+        <p class="text-xs">SecureEscrow uses end-to-end encryption for all off-chain data transfers. Your privacy is our
+            priority.</p>
+    </footer>
+</body>
+
+</html>

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Button, Badge } from 'ui';
 import { Offer, OfferStatus } from '@/hooks/useOffers';
 import { formatDistanceToNow } from 'date-fns';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, usePublicClient, useReadContract } from 'wagmi';
 import { ESCROW_ABI } from '@/abis/EscrowV1';
 import { ERC20_ABI } from '@/abis/ERC20';
 import { useState, useEffect } from 'react';
@@ -37,7 +37,6 @@ export function OfferCard({ offer, type }: OfferCardProps) {
 
     const { writeContractAsync, isPending: isWritePending, data: hash, error: writeError } = useWriteContract();
 
-    console.log(offer.es)
     // Watch for transaction completion
     const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
         hash
@@ -46,14 +45,14 @@ export function OfferCard({ offer, type }: OfferCardProps) {
     useEffect(() => {
         if (writeError) {
             setAction(null);
-            toast.error(`Transaction failed: ${writeError.message}`);
+            toast.error(`Unable to complete transaction: ${writeError.message}`);
         }
     }, [writeError]);
 
     useEffect(() => {
         if (isSuccess && action === 'accept') {
             setAction(null);
-            toast.success("Offer accepted! Redirecting to transaction details...", { duration: 3000 });
+            toast.success("Offer accepted. Redirecting to transaction details...", { duration: 3000 });
             // For accept, we still rely on indexer to create the escrow link, 
             // but we can try to reload or just give it a moment.
             setTimeout(() => window.location.reload(), 2000);
@@ -65,7 +64,7 @@ export function OfferCard({ offer, type }: OfferCardProps) {
 
     const handleAccept = async () => {
         if (!offer.on_chain_id) {
-            toast.error("This offer is not synced on-chain properly.");
+            toast.error("Offer synchronization error. Please try again later.");
             return;
         }
         setAction('accept');
@@ -84,7 +83,7 @@ export function OfferCard({ offer, type }: OfferCardProps) {
 
     const handleReject = async () => {
         if (!offer.on_chain_id) {
-            toast.error("This offer is not synced on-chain properly.");
+            toast.error("Offer synchronization error. Please try again later.");
             return;
         }
         setAction('reject');
@@ -97,7 +96,7 @@ export function OfferCard({ offer, type }: OfferCardProps) {
             });
 
             if (publicClient) {
-                toast.loading("Confirming rejection...", { id: 'reject-offer' });
+                toast.loading("Processing rejection on-chain...", { id: 'reject-offer' });
                 const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
                 if (receipt.status === 'success') {
@@ -109,19 +108,19 @@ export function OfferCard({ offer, type }: OfferCardProps) {
                             method: 'POST',
                             headers
                         });
-                        toast.success("Offer rejected", { id: 'reject-offer' });
+                        toast.success("Offer successfully rejected.", { id: 'reject-offer' });
                     } catch (e) {
-                        toast.success("Offer rejected on-chain. Syncing database...", { id: 'reject-offer' });
+                        toast.success("Rejection confirmed. Synchronizing data...", { id: 'reject-offer' });
                     }
                     setTimeout(() => window.location.reload(), 1000);
                 } else {
-                    toast.error("Transaction failed", { id: 'reject-offer' });
+                    toast.error("Transaction unable to complete.", { id: 'reject-offer' });
                     setAction(null);
                 }
             }
         } catch (error: any) {
             console.error(error);
-            toast.error(error.message || "Failed to reject offer");
+            toast.error(error.message || "Unable to reject offer");
             setAction(null);
         }
     };
@@ -129,7 +128,7 @@ export function OfferCard({ offer, type }: OfferCardProps) {
 
     const handleCancel = async () => {
         if (!offer.on_chain_id) {
-            toast.error("This offer is not synced on-chain properly.");
+            toast.error("Offer synchronization error. Please try again later.");
             return;
         }
         setAction('cancel');
@@ -142,7 +141,7 @@ export function OfferCard({ offer, type }: OfferCardProps) {
             });
 
             if (publicClient) {
-                toast.loading("Confirming cancellation...", { id: 'cancel-offer' });
+                toast.loading("Processing cancellation on-chain...", { id: 'cancel-offer' });
                 const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
                 if (receipt.status === 'success') {
@@ -154,120 +153,25 @@ export function OfferCard({ offer, type }: OfferCardProps) {
                             method: 'POST',
                             headers
                         });
-                        toast.success("Offer cancelled", { id: 'cancel-offer' });
+                        toast.success("Offer successfully cancelled.", { id: 'cancel-offer' });
                     } catch (e) {
-                        toast.success("Offer cancelled on-chain. Syncing database...", { id: 'cancel-offer' });
+                        toast.success("Cancellation confirmed. Synchronizing data...", { id: 'cancel-offer' });
                     }
                     setTimeout(() => window.location.reload(), 1000);
                 } else {
-                    toast.error("Transaction failed", { id: 'cancel-offer' });
+                    toast.error("Transaction unable to complete.", { id: 'cancel-offer' });
                     setAction(null);
                 }
             }
         } catch (error: any) {
             console.error(error);
-            toast.error(error.message || "Failed to cancel offer");
+            toast.error(error.message || "Unable to cancel offer.");
             setAction(null);
         }
     };
 
 
-    const handlePay = async () => {
-        console.log("handlePay: Starting payment flow", { offer, ESCROW_CONTRACT });
-        if (!ESCROW_CONTRACT) {
-            console.error("handlePay: Escrow contract address missing");
-            return;
-        }
-        setAction('pay');
-        try {
-            // 1. Approve
-            const IDRX_ADDRESS = process.env.NEXT_PUBLIC_IDRX_TOKEN_ADDRESS as `0x${string}`;
 
-            // Calculate remaining amount (Total Offer Price - Earnest Deposit)
-            // Or just approve full amount to be safe, contract matches exact need.
-            // But technically we only transfer remaining.
-            // Let's stick to full amount approval to keep it simple, or `offer_amount` wei.
-            const amountWei = BigInt(Math.floor(parseFloat(offer.offer_amount) * 1e18));
-
-            console.log("handlePay: Approving IDRX", {
-                token: IDRX_ADDRESS,
-                spender: ESCROW_CONTRACT,
-                amount: amountWei.toString()
-            });
-
-            const approveHash = await writeContractAsync({
-                address: IDRX_ADDRESS,
-                abi: ERC20_ABI,
-                functionName: 'approve',
-                args: [ESCROW_CONTRACT, amountWei]
-            });
-            console.log("handlePay: Approve Tx sent", approveHash);
-
-            if (!offer.escrow_on_chain_id) {
-                console.error("handlePay: Missing escrow_on_chain_id", offer);
-                toast.error("Escrow not synced on-chain properly. Please wait for indexing.");
-                setAction(null);
-                return;
-            }
-
-            // 2. Complete Funding (was Deposit)
-            console.log("handlePay: completing funding", {
-                escrowId: offer.escrow_on_chain_id,
-                amountApproved: amountWei.toString()
-            });
-
-            // Simulate first to catch reverts
-            if (publicClient) {
-                try {
-                    console.log("handlePay: Simulating completeFunding...");
-                    const { result } = await publicClient.simulateContract({
-                        address: ESCROW_CONTRACT,
-                        abi: ESCROW_ABI,
-                        functionName: 'completeFunding',
-                        args: [BigInt(offer.escrow_on_chain_id)],
-                        account: address,
-                    });
-                    console.log("handlePay: Simulation successful, result:", result);
-                } catch (simError: any) {
-                    console.error("handlePay: Simulation FAILED", simError);
-                    toast.error(`Transaction will fail: ${simError.shortMessage || simError.message}`);
-                    setAction(null);
-                    return;
-                }
-            }
-
-            const hash = await writeContractAsync({
-                address: ESCROW_CONTRACT,
-                abi: ESCROW_ABI,
-                functionName: 'completeFunding',
-                args: [BigInt(offer.escrow_on_chain_id)]
-            });
-            console.log("handlePay: CompleteFunding Tx sent", hash);
-
-            // 3. Wait and Redirect
-            if (publicClient) {
-                console.log("handlePay: Waiting for receipt...");
-                const receipt = await publicClient.waitForTransactionReceipt({ hash });
-                console.log("handlePay: Receipt received", receipt);
-                console.log("handlePay: Receipt status", receipt.status);
-
-                if (receipt.status === 'success') {
-                    // Redirect to Escrow Page
-                    // Redirect to Escrow Page
-                    const escrowId = offer.escrow_id;
-                    console.log("handlePay: Success, redirecting to", escrowId);
-                    router.push(`/app/escrow/${escrowId}`);
-                } else {
-                    throw new Error("Transaction failed on-chain");
-                }
-            }
-
-        } catch (e: any) {
-            console.error("handlePay: Error", e);
-            toast.error(e.message || "Payment failed");
-            setAction(null);
-        }
-    };
 
     const isLoading = isWritePending || isConfirming;
 
@@ -299,13 +203,88 @@ export function OfferCard({ offer, type }: OfferCardProps) {
             {/* Content */}
             <div className="flex-1 space-y-2 text-center md:text-left">
                 <div className="flex flex-wrap justify-center md:justify-start items-center gap-3">
-                    <Badge
-                        variant={statusVariants[offer.status]}
-                        size="sm"
-                        className="text-[10px] font-black tracking-widest uppercase px-3 py-1"
-                    >
-                        {offer.status}
-                    </Badge>
+                    {(() => {
+                        // 1. Fetch Real-time State
+                        const { data: escrowData } = useReadContract({
+                            address: ESCROW_CONTRACT,
+                            abi: ESCROW_ABI,
+                            functionName: 'getEscrow',
+                            args: offer.escrow_on_chain_id ? [BigInt(offer.escrow_on_chain_id)] : undefined,
+                            query: {
+                                enabled: !!offer.escrow_on_chain_id,
+                                staleTime: 5000 // refresh every 5s
+                            }
+                        });
+
+                        // Map contract state (number) to string
+                        const stateMap = ['CREATED', 'FUNDED', 'DELIVERED', 'CONFIRMED', 'TRANSITION', 'DISPUTED', 'RESOLVED', 'COMPLETED', 'REFUNDED', 'EXPIRED'];
+
+                        // Access state property
+                        const contractStateVal = escrowData ? (escrowData as any).state : undefined;
+                        const contractStateIdx = contractStateVal !== undefined ? Number(contractStateVal) : -1;
+
+                        const liveState = contractStateIdx >= 0 ? stateMap[contractStateIdx] : null;
+
+                        // Use live state if available, else backend
+                        const rawState = liveState || offer.escrow_state;
+
+                        // 2. Determine Display Status
+                        const isAcceptedWithEscrow = offer.status === 'ACCEPTED' && rawState;
+                        const statusToUse = isAcceptedWithEscrow ? rawState : offer.status;
+
+                        // 3. Map to Friendly Label (Consistent with EscrowPage)
+                        const labelMap: Record<string, string> = {
+                            'CREATED': 'Created',
+                            'FUNDED': 'Funded',
+                            'DELIVERED': 'Delivered',
+                            'CONFIRMED': 'Verified',
+                            'TRANSITION': 'Transition',
+                            'DISPUTED': 'Disputed',
+                            'RESOLVED': 'Resolved',
+                            'COMPLETED': 'Released',
+                            'REFUNDED': 'Refunded',
+                            'PENDING': 'Pending',
+                            'ACCEPTED': 'Accepted',
+                            'REJECTED': 'Rejected',
+                            'EXPIRED': 'Expired'
+                        };
+
+                        const label = labelMap[statusToUse.toUpperCase()] || statusToUse;
+
+                        // 4. Determine Variant
+                        let variant: "warning" | "success" | "error" | "neutral" = "neutral";
+                        if (isAcceptedWithEscrow) {
+                            switch (statusToUse.toUpperCase()) {
+                                case 'FUNDED':
+                                case 'DELIVERED':
+                                case 'TRANSITION':
+                                    variant = 'warning';
+                                    break;
+                                case 'CONFIRMED':
+                                case 'COMPLETED':
+                                case 'RESOLVED':
+                                    variant = 'success';
+                                    break;
+                                case 'DISPUTED':
+                                    variant = 'error';
+                                    break;
+                                default:
+                                    variant = 'neutral';
+                            }
+                        } else {
+                            variant = statusVariants[offer.status] || 'neutral';
+                        }
+
+                        return (
+                            <Badge
+                                variant={variant}
+                                size="sm"
+                                className="text-[10px] font-black tracking-widest uppercase px-3 py-1"
+                            >
+                                {label}
+                            </Badge>
+                        );
+                    })()}
                     <span className="text-xs text-gray-400">{timeAgo}</span>
                 </div>
                 <Link href={`/app/listings/${offer.listing_id}`}>
@@ -372,27 +351,16 @@ export function OfferCard({ offer, type }: OfferCardProps) {
             {/* Accepted State for Buyer - Pay Button or View Transaction */}
             {isAccepted && type === 'sent' && (
                 <div className="shrink-0 flex items-center gap-2">
-                    {offer.escrow_state && offer.escrow_state !== 'created' ? (
+                    {offer.escrow_id && (
                         <Link href={`/app/escrow/${offer.escrow_id}`}>
                             <Button
-                                variant="outline"
+                                variant="primary"
                                 size="sm"
                                 leftIcon={<span className="material-symbols-outlined text-lg">visibility</span>}
                             >
                                 View Transaction
                             </Button>
                         </Link>
-                    ) : (
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={handlePay}
-                            disabled={isLoading}
-                            loading={isLoading && action === 'pay'}
-                            leftIcon={<span className="material-symbols-outlined text-lg">payments</span>}
-                        >
-                            {isLoading && action === 'pay' ? 'Processing...' : 'Pay Now'}
-                        </Button>
                     )}
                 </div>
             )}

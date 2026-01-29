@@ -32,7 +32,15 @@ export function ActiveListingsTable() {
                                 <tr key={listing.id} className="hover:bg-background-light/50 dark:hover:bg-gray-800/50 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="size-8 rounded-lg bg-gray-100 dark:bg-gray-800 bg-center bg-cover" ></div>
+                                            <div
+                                                className="size-8 rounded-lg bg-gray-100 dark:bg-gray-800 bg-center bg-cover border border-gray-200 dark:border-gray-700"
+                                                style={{
+                                                    backgroundImage: `url('${(listing.images && listing.images.length > 0)
+                                                            ? listing.images[0]
+                                                            : (listing.image || `https://placehold.co/100x100/0052FF/FFFFFF?text=${encodeURIComponent(listing.asset_name.charAt(0))}`)
+                                                        }')`
+                                                }}
+                                            ></div>
                                             <span className="font-medium text-text-main dark:text-white">{listing.asset_name}</span>
                                         </div>
                                     </td>

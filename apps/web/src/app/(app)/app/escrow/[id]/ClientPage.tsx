@@ -110,7 +110,11 @@ export function EscrowClientPage({ id }: { id: string }) {
 
                     {/* RIGHT COLUMN: Sidebar (4 cols) */}
                     <div className="lg:col-span-4 flex flex-col gap-6 h-full">
-                        <EscrowSidebar />
+                        <EscrowSidebar
+                            escrow={escrow}
+                            currentUserAddress={address}
+                            userRole={userRole}
+                        />
 
                         {/* Support Card */}
                         <div className="bg-primary/10 rounded-xl p-4 flex items-center gap-4 border border-primary/20">

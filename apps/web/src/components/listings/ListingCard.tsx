@@ -7,7 +7,9 @@ import { formatCurrency } from "@/utils/format";
 
 interface ListingCardProps {
     id: string;
+    id: string;
     image: string;
+    images?: string[];
     category: string;
     title: string;
     description: string;
@@ -31,6 +33,7 @@ interface ListingCardProps {
 export function ListingCard({
     id,
     image,
+    images = [],
     category,
     title,
     description,
@@ -67,6 +70,8 @@ export function ListingCard({
         return "text-orange-600 dark:text-orange-400";
     };
 
+    const displayImage = (images && images.length > 0) ? images[0] : (image || `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(title || "Listing")}`);
+
     if (size === "large") {
         return (
             <div className="bg-white dark:bg-background-dark-elevated rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col hover:shadow-xl transition-shadow group">
@@ -75,7 +80,7 @@ export function ListingCard({
                         <Image
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-500"
-                            src={image || `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(title || "Listing")}`}
+                            src={displayImage}
                             alt={title}
                         />
                     ) : (
@@ -167,7 +172,7 @@ export function ListingCard({
                 <Image
                     fill
                     className="object-cover"
-                    src={image || `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(title || "Listing")}`}
+                    src={displayImage}
                     alt={title}
                 />
                 <span className="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur text-[10px] font-bold px-2 py-1 rounded text-text-main dark:text-white">

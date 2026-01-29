@@ -1,8 +1,8 @@
 "use client";
 
 import { FC } from 'react';
-import { useAccount, useReadContract } from 'wagmi';
-import { formatUnits } from 'viem';
+import { useAccount, useReadContract, useWriteContract, usePublicClient } from 'wagmi';
+import { formatUnits, parseUnits } from 'viem';
 import { useSellStore } from '../../stores/useSellStore';
 import { StepBasicInfo } from './StepBasicInfo';
 import { StepTech } from './StepTech';
@@ -45,19 +45,73 @@ export const SellWizard: FC<SellWizardProps> = ({ mode = 'create', listingId }) 
 
 
 
+    const [onChainId, setOnChainId] = useState<bigint | null>(null);
+    const [originalPrice, setOriginalPrice] = useState<string | null>(null);
+
+    // Fetch listing details for on-chain ID and original price
+    useEffect(() => {
+        if (!listingId) return;
+
+        const fetchListing = async () => {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/listings/${listingId}`);
+                if (!res.ok) throw new Error("Failed to fetch listing");
+                const data = await res.json();
+
+                if (data.on_chain_id !== undefined) {
+                    setOnChainId(BigInt(data.on_chain_id));
+                }
+                if (data.asking_price) {
+                    setOriginalPrice(data.asking_price.toString());
+                }
+            } catch (err) {
+                console.error("Error fetching listing details:", err);
+            }
+        };
+
+        fetchListing();
+    }, [listingId]);
+
+    const { writeContractAsync } = useWriteContract();
+    const publicClient = usePublicClient();
     const { signMessageAsync } = useSignMessage();
 
     const handleSave = async () => {
         if (!listingId) return;
         setIsSaving(true);
         try {
+            const state = useSellStore.getState();
+
+            // Check if price changed
+            const newPrice = parseFloat(state.price);
+            const oldPrice = originalPrice ? parseFloat(originalPrice) : 0;
+            const priceChanged = Math.abs(newPrice - oldPrice) > 0.000001; // Float comparison
+
+            if (priceChanged && onChainId !== null) {
+                // Execute on-chain update
+                const newPriceWei = parseUnits(state.price, 18);
+
+                const hash = await writeContractAsync({
+                    address: MARKETPLACE_ADDRESS,
+                    abi: MARKETPLACE_ABI,
+                    functionName: 'updateListing',
+                    args: [onChainId, "", newPriceWei]
+                });
+
+                toast.info("Price update transaction submitted. Waiting for confirmation...");
+
+                if (!publicClient) throw new Error("Public client not available");
+                await publicClient.waitForTransactionReceipt({ hash });
+
+                toast.success("Price updated on-chain!");
+            }
+
             // Generate valid signature
             if (!address) throw new Error("Wallet not connected");
             const timestamp = Math.floor(Date.now() / 1000).toString();
             const message = `Login to Valyra at ${timestamp}`;
             const signature = await signMessageAsync({ message });
 
-            const state = useSellStore.getState();
             const payload = {
                 asset_name: state.title,
                 description: state.description,
@@ -77,6 +131,7 @@ export const SellWizard: FC<SellWizardProps> = ({ mode = 'create', listingId }) 
                 domain_included: state.includeDomain,
                 source_code_included: state.includeCode,
                 customer_data_included: state.includeCustomerData,
+                images: state.images,
             };
 
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/listings/${listingId}`, {
@@ -97,9 +152,9 @@ export const SellWizard: FC<SellWizardProps> = ({ mode = 'create', listingId }) 
             }
 
             router.push(`/app/listings/${listingId}`);
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error("Failed to save changes. Please try again.");
+            toast.error(error.message || "Unable to save changes. Please try again or contact support.");
         } finally {
             setIsSaving(false);
         }
@@ -171,22 +226,22 @@ export const SellWizard: FC<SellWizardProps> = ({ mode = 'create', listingId }) 
                                     if (step === 1) {
                                         if (!title || !description || !websiteUrl) {
                                             isValid = false;
-                                            errorMsg = "Please fill in Title, Description, and Website URL.";
+                                            errorMsg = "Please complete the Title, Description, and Website URL fields.";
                                         }
                                     } else if (step === 2) {
                                         if (techStack.length === 0 || !customerCount) {
                                             isValid = false;
-                                            errorMsg = "Please add at least one Tech Stack item and enter Customer Count.";
+                                            errorMsg = "Please specify at least one Tech Stack item and the Customer Count.";
                                         }
                                     } else if (step === 3) {
                                         if (!mrr || !annualRevenue || !monthlyProfit || !monthlyExpenses) {
                                             isValid = false;
-                                            errorMsg = "Please fill in all Financial details.";
+                                            errorMsg = "Please complete all fields in the Financials section.";
                                         }
                                     } else if (step === 4) {
                                         if (!price) {
                                             isValid = false;
-                                            errorMsg = "Please set a Listing Price.";
+                                            errorMsg = "Please specify a valid Listing Price.";
                                         }
                                     } else if (step === 5) {
                                         const { sellerSignature } = useSellStore.getState();
@@ -194,7 +249,7 @@ export const SellWizard: FC<SellWizardProps> = ({ mode = 'create', listingId }) 
                                         // For now, enforce check if creating
                                         if (mode === 'create' && !sellerSignature) {
                                             isValid = false;
-                                            errorMsg = "You must sign the IP Assignment before proceeding.";
+                                            errorMsg = "IP Assignment signature is required to proceed.";
                                         }
                                     }
 

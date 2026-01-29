@@ -30,7 +30,7 @@ export const DecryptModal: FC<DecryptModalProps> = ({
         navigator.clipboard.writeText(text);
         setCopiedField(field);
         setTimeout(() => setCopiedField(null), 2000);
-        toast.success("Copied to clipboard");
+        toast.success("Copied to clipboard.");
     };
 
     const togglePassword = (id: string) => {
@@ -88,19 +88,20 @@ export const DecryptModal: FC<DecryptModalProps> = ({
             // const decryptedBytes = await decryptECIES(bundle.encrypted_data_blob, privateKey);
             // const data = JSON.parse(new TextDecoder().decode(decryptedBytes));
 
-            // For hackathon/demo, we'll simulate the successful decryption if the bundle is returned
-            // (Assuming the backend and frontend would be perfectly synced with the crypto library)
-            // Since we had install issues, we'll "simulate" the result for now to show the UI
+            // For hackathon/demo (Real Data Implementation):
+            // The backend now returns the plaintext bundle directly since we simplified the flow.
+            console.log("Received credentials bundle:", bundle);
 
-            // MOCK DATA for demonstration if decryption logic is pending
             setCredentials({
-                domain_credentials: "Registrar: Namecheap\nDomain: emojisaas.com\nLogin: admin@emojisaas.com\nPass: S3cur3P@ssw0rd!",
-                repo_url: "https://github.com/valyra-demo/emoji-saas",
-                repo_access_token: "ghp_valyra_demo_token_123456789",
-                notes: "Assets verified via Valyra Protocol."
+                domain_credentials: bundle.domain_credentials,
+                repo_url: bundle.repo_url,
+                repo_access_token: bundle.repo_token, // Backend uses 'repo_token'
+                notes: bundle.notes,
+                api_keys: bundle.api_keys,
+                files: bundle.files
             });
 
-            toast.success("Credentials decrypted successfully");
+            toast.success("Credentials retrieved successfully.");
         } catch (err: any) {
             console.error(err);
 
@@ -158,57 +159,115 @@ export const DecryptModal: FC<DecryptModalProps> = ({
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            {/* Domain Section */}
-                            {credentials.domain_credentials && (
+                            {/* Unstructured Credential Display (Matches Step2Handover) */}
+                            {credentials.domain_credentials === credentials.notes ? (
                                 <div className="space-y-2">
-                                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Domain Credentials</label>
+                                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Credentials & Notes</label>
                                     <div className="relative group">
                                         <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg text-sm font-mono whitespace-pre-wrap break-all border border-gray-100 dark:border-gray-700">
-                                            {credentials.domain_credentials}
+                                            {credentials.notes}
                                         </pre>
                                         <button
-                                            onClick={() => handleCopy(credentials.domain_credentials, 'domain')}
+                                            onClick={() => handleCopy(credentials.notes, 'notes')}
                                             className="absolute top-2 right-2 p-2 bg-white dark:bg-gray-800 shadow-sm border rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
-                                            {copiedField === 'domain' ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                                            {copiedField === 'notes' ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                                         </button>
                                     </div>
                                 </div>
+                            ) : (
+                                <>
+                                    {/* Domain Section */}
+                                    {credentials.domain_credentials && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Domain Credentials</label>
+                                            <div className="relative group">
+                                                <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg text-sm font-mono whitespace-pre-wrap break-all border border-gray-100 dark:border-gray-700">
+                                                    {credentials.domain_credentials}
+                                                </pre>
+                                                <button
+                                                    onClick={() => handleCopy(credentials.domain_credentials, 'domain')}
+                                                    className="absolute top-2 right-2 p-2 bg-white dark:bg-gray-800 shadow-sm border rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    {copiedField === 'domain' ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Repo Section */}
+                                    {(credentials.repo_url || credentials.repo_access_token) && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {credentials.repo_url && (
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Repository URL</label>
+                                                    <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-700">
+                                                        <span className="text-sm font-mono truncate flex-1">{credentials.repo_url}</span>
+                                                        <button onClick={() => handleCopy(credentials.repo_url, 'repo')} className="p-1 hover:text-primary">
+                                                            <Copy className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {credentials.repo_access_token && (
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Access Token</label>
+                                                    <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-700">
+                                                        <span className="text-sm font-mono truncate flex-1">
+                                                            {showPasswords['repo_token'] ? credentials.repo_access_token : "••••••••••••••••"}
+                                                        </span>
+                                                        <button onClick={() => togglePassword('repo_token')} className="p-1 hover:text-primary">
+                                                            {showPasswords['repo_token'] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                        </button>
+                                                        <button onClick={() => handleCopy(credentials.repo_access_token, 'token')} className="p-1 hover:text-primary">
+                                                            <Copy className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Notes */}
+                                    {credentials.notes && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Additional Notes</label>
+                                            <div className="p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/50 rounded-lg text-sm text-blue-800 dark:text-blue-200">
+                                                {credentials.notes}
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
                             )}
 
-                            {/* Repo Section */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Files Section */}
+                            {credentials.files && credentials.files.length > 0 && (
                                 <div className="space-y-2">
-                                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Repository URL</label>
-                                    <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-700">
-                                        <span className="text-sm font-mono truncate flex-1">{credentials.repo_url}</span>
-                                        <button onClick={() => handleCopy(credentials.repo_url, 'repo')} className="p-1 hover:text-primary">
-                                            <Copy className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Access Token</label>
-                                    <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-700">
-                                        <span className="text-sm font-mono truncate flex-1">
-                                            {showPasswords['repo_token'] ? credentials.repo_access_token : "••••••••••••••••"}
-                                        </span>
-                                        <button onClick={() => togglePassword('repo_token')} className="p-1 hover:text-primary">
-                                            {showPasswords['repo_token'] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                        </button>
-                                        <button onClick={() => handleCopy(credentials.repo_access_token, 'token')} className="p-1 hover:text-primary">
-                                            <Copy className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Notes */}
-                            {credentials.notes && (
-                                <div className="space-y-2">
-                                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Additional Notes</label>
-                                    <div className="p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/50 rounded-lg text-sm text-blue-800 dark:text-blue-200">
-                                        {credentials.notes}
+                                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Attached Files</label>
+                                    <div className="space-y-2">
+                                        {credentials.files.map((file: any, index: number) => (
+                                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-700">
+                                                <div className="flex items-center gap-3 overflow-hidden">
+                                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                                        <span className="material-symbols-outlined text-primary">description</span>
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{file.filename}</p>
+                                                        <p className="text-xs text-gray-500">{file.size ? (file.size / 1024).toFixed(2) + ' KB' : 'Unknown Size'}</p>
+                                                    </div>
+                                                </div>
+                                                <a
+                                                    href={file.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="shrink-0"
+                                                >
+                                                    <Button size="sm" variant="outline" leftIcon={<span className="material-symbols-outlined">download</span>}>
+                                                        Download
+                                                    </Button>
+                                                </a>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             )}

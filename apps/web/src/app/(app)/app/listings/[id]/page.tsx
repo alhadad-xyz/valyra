@@ -90,6 +90,8 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     const { signMessageAsync } = useSignMessage();
     const { address } = useAccount();
 
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
     // Check for existing offer on this listing
     const { data: existingOffer, isLoading: isCheckingExistingOffer } = useQuery({
         queryKey: ['existing-offer', listing?.id, address],
@@ -189,7 +191,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     }
 
     // Helper to extract image or use placeholder
-    const image = listing.tech_stack?.images?.[0] || `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(listing.asset_name)}`;
+    const image = listing.images?.[0] || listing.tech_stack?.images?.[0] || `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(listing.asset_name)}`;
     const isVerified = (listing.verified_level || 0) > 0;
     // Treat null/undefined as syncing, but 0 is a valid ID
     const isSyncing = !listing.on_chain_id && listing.on_chain_id !== 0;
@@ -269,13 +271,13 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 router.push(`/app/escrow/${escrowId}`);
             } else {
                 setBuyStatus('success');
-                toast.warning("Purchase successful but could not redirect to Escrow automatically. Please check your dashboard.");
+                toast.warning("Purchase confirmed. Please verify status in your dashboard.");
             }
 
         } catch (e: any) {
             console.error(e);
             setBuyStatus('error');
-            toast.error(e.message || "Transaction failed");
+            toast.error(e.message || "Transaction unable to complete.");
         }
     };
 
@@ -330,8 +332,8 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                             <div className="flex flex-col gap-4">
                                 <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-gray-100 shadow-sm border border-[#e6e6db]">
                                     <div
-                                        className="absolute inset-0 bg-cover bg-center"
-                                        style={{ backgroundImage: `url('${image}')` }}
+                                        className="absolute inset-0 bg-cover bg-center transition-all duration-300"
+                                        style={{ backgroundImage: `url('${selectedImage || image}')` }}
                                     ></div>
                                     <div className="absolute bottom-4 right-4 flex gap-2">
                                         <button className="flex size-10 items-center justify-center rounded-full bg-white/90 text-text-main backdrop-blur hover:bg-white">
@@ -340,14 +342,25 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                                     </div>
                                 </div>
                                 {/* Thumbnails */}
-                                <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-                                    <button className="relative h-20 w-32 shrink-0 overflow-hidden rounded-lg border-2 border-primary">
-                                        <div
-                                            className="absolute inset-0 bg-cover bg-center"
-                                            style={{ backgroundImage: `url('${image}')` }}
-                                        ></div>
-                                    </button>
-                                </div>
+                                {(listing.images && listing.images.length > 1) && (
+                                    <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+                                        {listing.images.map((img: string, idx: number) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => setSelectedImage(img)}
+                                                className={`relative h-20 w-32 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${(selectedImage === img || (!selectedImage && idx === 0))
+                                                    ? 'border-primary ring-2 ring-primary/20'
+                                                    : 'border-transparent opacity-70 hover:opacity-100'
+                                                    }`}
+                                            >
+                                                <div
+                                                    className="absolute inset-0 bg-cover bg-center"
+                                                    style={{ backgroundImage: `url('${img}')` }}
+                                                ></div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Tabs & Content */}
@@ -739,7 +752,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 listingUuid={listing.id}
                 listingPrice={listing?.asking_price}
                 onSuccess={() => {
-                    toast.success('Offer submitted successfully on-chain!');
+                    toast.success('Offer submitted successfully.');
                     setIsOfferModalOpen(false);
                     router.push('/app/offers');
                 }}

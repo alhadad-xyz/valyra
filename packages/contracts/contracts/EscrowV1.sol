@@ -478,8 +478,6 @@ contract EscrowV1 is
             actualReceived,
             encryptionMethod
         );
-
-        _snapshot(escrowId);
     }
 
     /**
@@ -510,8 +508,6 @@ contract EscrowV1 is
         escrow.state = EscrowState.DELIVERED;
 
         emit CredentialsUploaded(escrowId, credentialHash);
-
-        _snapshot(escrowId);
     }
 
     /**
@@ -575,8 +571,6 @@ contract EscrowV1 is
             retainer,
             block.timestamp + transitionPeriod
         );
-
-        _snapshot(escrowId);
     }
 
     /**
@@ -613,8 +607,6 @@ contract EscrowV1 is
         escrow.state = EscrowState.COMPLETED;
 
         emit TransitionRetainerClaimed(escrowId, hold.retainedAmount);
-
-        _snapshot(escrowId);
     }
 
     /**
@@ -637,8 +629,6 @@ contract EscrowV1 is
         escrow.state = EscrowState.DISPUTED;
 
         emit TransitionIssueReported(escrowId, issue);
-
-        _snapshot(escrowId);
     }
 
     /**
@@ -661,8 +651,6 @@ contract EscrowV1 is
         escrow.verifyDeadline += EXTENSION_PERIOD;
 
         emit VerificationExtended(escrowId, escrow.verifyDeadline);
-
-        _snapshot(escrowId);
     }
 
     // ============ Offer Functions ============
@@ -811,8 +799,6 @@ contract EscrowV1 is
             seller,
             offer.offerPrice
         );
-
-        _snapshot(escrowId);
     }
 
     /**
@@ -913,8 +899,6 @@ contract EscrowV1 is
         );
         // Note: FundsDeposited usually implies full amount for start.
         // We can emit it here signifying "Funding Complete".
-
-        _snapshot(escrowId);
     }
 
     // ============ Dispute Functions ============
@@ -958,8 +942,6 @@ contract EscrowV1 is
         escrow.state = EscrowState.DISPUTED;
 
         emit DisputeRaised(escrowId, msg.sender, disputeType, evidenceIpfs);
-
-        _snapshot(escrowId);
     }
 
     /**
@@ -1060,8 +1042,6 @@ contract EscrowV1 is
         }
 
         emit DisputeResolved(escrowId, resolution, msg.sender);
-
-        _snapshot(escrowId);
     }
 
     // ============ Timeout Functions ============
@@ -1089,7 +1069,6 @@ contract EscrowV1 is
 
             escrow.state = EscrowState.EXPIRED;
             emit TimeoutClaimed(escrowId, EscrowState.EXPIRED);
-            _snapshot(escrowId);
         } else if (escrow.state == EscrowState.DELIVERED) {
             // Buyer didn't confirm in time - auto-release to seller
             require(
@@ -1108,7 +1087,6 @@ contract EscrowV1 is
 
             escrow.state = EscrowState.COMPLETED;
             emit TimeoutClaimed(escrowId, EscrowState.COMPLETED);
-            _snapshot(escrowId);
         } else {
             revert("No timeout applicable for current state");
         }
@@ -1184,8 +1162,6 @@ contract EscrowV1 is
         escrow.state = EscrowState.EMERGENCY;
 
         emit EmergencyWithdrawal(escrowId, msg.sender);
-
-        _snapshot(escrowId);
     }
 
     // ============ Admin Functions ============
@@ -1260,7 +1236,6 @@ contract EscrowV1 is
             escrow.seller,
             hold.retainedAmount
         );
-        _snapshot(escrowId);
     }
 
     /**
@@ -1313,7 +1288,6 @@ contract EscrowV1 is
                 "Transfer failed"
             );
             emit EmergencyEjectEscrow(escrowId, amountToEject, safetyWallet);
-            _snapshot(escrowId);
         }
     }
 
@@ -1355,27 +1329,6 @@ contract EscrowV1 is
      */
     function unpause() external onlyOwner {
         _unpause();
-    }
-
-    // ============ Snapshot Logic ============
-
-    struct Snapshot {
-        uint256 balance;
-        EscrowState state;
-        uint256 timestamp;
-    }
-
-    mapping(uint256 => Snapshot[]) public history;
-
-    function _snapshot(uint256 escrowId) internal {
-        EscrowTransaction storage escrow = escrows[escrowId];
-        history[escrowId].push(
-            Snapshot({
-                balance: escrow.amount, // Tracking the escrow amount as balance
-                state: escrow.state,
-                timestamp: block.timestamp
-            })
-        );
     }
 
     // ============ View Functions ============

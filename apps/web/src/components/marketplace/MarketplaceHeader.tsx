@@ -3,6 +3,7 @@
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "ui";
 import { ExploreSearchBar } from "@/components/explore/ExploreSearchBar";
 import {
@@ -63,8 +64,14 @@ export function MarketplaceHeader() {
                 <div className="max-w-8xl mx-auto px-6 py-4 flex items-center justify-between gap-8">
                     {/* Logo */}
                     <Link href="/app" className="flex items-center gap-3 group">
-                        <div className="size-10 bg-primary rounded-xl flex items-center justify-center text-white">
-                            <span className="material-symbols-outlined filled text-2xl font-bold">token</span>
+                        <div className="relative size-10 flex items-center justify-center">
+                            <Image
+                                src="/icon.svg"
+                                alt="Valyra"
+                                width={40}
+                                height={40}
+                                className="object-contain"
+                            />
                         </div>
                         <h1 className="text-2xl font-bold tracking-tight text-text-main dark:text-white group-hover:text-primary/90 transition-colors">
                             Valyra
@@ -123,9 +130,9 @@ export function MarketplaceHeader() {
                                 </WalletDropdownLink>
                                 <WalletDropdownLink
                                     icon="shopping_bag"
-                                    href="/buyer/purchases"
+                                    href="/app/buyer/purchases"
                                 >
-                                    My Acquisition
+                                    My Acquisitions
                                 </WalletDropdownLink>
                                 <WalletDropdownLink
                                     icon="description"

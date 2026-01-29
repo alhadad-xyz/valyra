@@ -1,9 +1,11 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import Optional
+import typing
 from uuid import UUID
 from pydantic import BaseModel, Field, ConfigDict, field_validator, field_serializer
 from app.models.offer import OfferStatus
+from app.schemas.listing import ListingBase
 
 class OfferBase(BaseModel):
     offer_amount: Decimal = Field(..., gt=0)
@@ -19,6 +21,10 @@ class OfferResponse(OfferBase):
     earnest_deposit: Decimal
     on_chain_id: Optional[str] = None
     status: OfferStatus
+    
+    # Nested listing
+    listing: Optional[ListingBase] = None
+
     created_at: datetime
     expires_at: datetime
     

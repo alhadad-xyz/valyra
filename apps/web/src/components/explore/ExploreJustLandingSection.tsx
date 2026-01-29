@@ -39,6 +39,7 @@ export function ExploreJustLandingSection() {
     const displayListings = listings?.map((listing: any) => ({
         id: listing.id,
         image: listing.image || "",
+        images: listing.images || [],
         category: listing.asset_type || "Other",
         title: listing.asset_name || "Untitled",
         description: listing.description || "",

@@ -20,7 +20,7 @@ export const StepReview: FC<StepReviewProps> = ({ mode = 'create', onSave, isSav
     const {
         title, description, websiteUrl, assetType,
         includeDomain, includeCode, includeCustomerData,
-        techStack, customerCount, repoUrl,
+        techStack, customerCount, repoUrl, images,
         mrr, annualRevenue, monthlyProfit, monthlyExpenses, revenueTrend,
         price, verificationLevel,
         ipAssignmentHash, sellerSignature,
@@ -105,6 +105,7 @@ export const StepReview: FC<StepReviewProps> = ({ mode = 'create', onSave, isSav
                     ...techStack.reduce((acc, tag) => ({ ...acc, [tag]: true }), {}),
                     repo_url: repoUrl
                 },
+                images: images,
                 customer_count: parseInt(customerCount || "0"),
                 build_id: "build-v1.0",
                 mrr: parseFloat(mrr || "0"),
@@ -192,13 +193,14 @@ export const StepReview: FC<StepReviewProps> = ({ mode = 'create', onSave, isSav
                 websiteUrl,
                 assetType,
                 financials: { mrr, annualRevenue, monthlyProfit },
-                assets: { includeDomain, includeCode, includeCustomerData }
+                assets: { includeDomain, includeCode, includeCustomerData },
+                images: images
             });
 
             // Ensure we have IP signature
             if (!ipAssignmentHash || !sellerSignature) {
                 console.error("Missing signatures:", { ipAssignmentHash, sellerSignature });
-                toast.error("Missing IP Assignment Signature. Please go back and sign.");
+                toast.error("IP Assignment signature required. Please verify in previous step.");
                 return;
             }
 
@@ -220,7 +222,7 @@ export const StepReview: FC<StepReviewProps> = ({ mode = 'create', onSave, isSav
             });
         } catch (error: unknown) {
             console.error("Listing creation error:", error);
-            const errorMessage = error instanceof Error ? error.message : "Failed to create listing";
+            const errorMessage = error instanceof Error ? error.message : "Unable to create listing.";
             toast.error(errorMessage);
         }
     };
