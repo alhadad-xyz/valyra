@@ -74,7 +74,7 @@ export function EscrowClientPage({ id }: { id: string }) {
             case 2: return <Step2Handover escrowId={id} userRole={userRole} escrow={escrow} onUploadComplete={() => { console.log('Refreshing...'); refetch(); }} />;
             case 3: return <Step3Verification escrowId={id} userRole={userRole} escrow={escrow} />;
             case 4: return <Step4Confirmation escrowId={id} userRole={userRole} escrow={escrow} />;
-            case 5: return <Step5Released />;
+            case 5: return <Step5Released escrowId={id} userRole={userRole} />;
             default: return <Step2Handover escrowId={id} userRole={userRole} escrow={escrow} onUploadComplete={() => refetch()} />;
         }
     };

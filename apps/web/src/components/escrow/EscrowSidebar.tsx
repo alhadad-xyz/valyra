@@ -10,6 +10,13 @@ interface EscrowSidebarProps {
     userRole: 'buyer' | 'seller' | 'viewer';
 }
 
+interface ActivityLogItem {
+    date: Date;
+    title: string;
+    description?: string;
+    type: string;
+}
+
 export function EscrowSidebar({ escrow, currentUserAddress, userRole }: EscrowSidebarProps) {
     const [activeTab, setActiveTab] = useState<"activity" | "chat">("activity");
 
@@ -59,7 +66,7 @@ export function EscrowSidebar({ escrow, currentUserAddress, userRole }: EscrowSi
 
     // Activity Log Generation
     // Activity Log Generation
-    const generateActivityLog = () => {
+    const generateActivityLog = (): ActivityLogItem[] => {
         if (!escrow) return [];
 
         // Use DB events if available (Optimal Way)
@@ -138,11 +145,11 @@ export function EscrowSidebar({ escrow, currentUserAddress, userRole }: EscrowSi
                                 <div key={idx} className="flex gap-3">
                                     <div className="flex flex-col items-center">
                                         <div className={`w-2 h-2 rounded-full mt-2 ${log.type === 'funded' ? 'bg-success' :
-                                                log.type === 'confirmed' ? 'bg-blue-500' :
-                                                    log.type === 'disputed' ? 'bg-red-500' :
-                                                        log.type === 'resolved' ? 'bg-purple-500' :
-                                                            log.type === 'completed' ? 'bg-green-600' :
-                                                                'bg-gray-300 dark:bg-gray-600'
+                                            log.type === 'confirmed' ? 'bg-blue-500' :
+                                                log.type === 'disputed' ? 'bg-red-500' :
+                                                    log.type === 'resolved' ? 'bg-purple-500' :
+                                                        log.type === 'completed' ? 'bg-green-600' :
+                                                            'bg-gray-300 dark:bg-gray-600'
                                             }`}></div>
                                         {idx !== logs.length - 1 && <div className="w-px h-full bg-gray-200 dark:bg-gray-800 my-1"></div>}
                                     </div>

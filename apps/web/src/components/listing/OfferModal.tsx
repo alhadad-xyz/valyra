@@ -57,24 +57,26 @@ export function OfferModal({ isOpen, onClose, listingId, listingUuid, listingPri
     }, [chainId, switchChain]);
 
     // Check for existing offer using smart contract
-    const { data: hasActiveOfferData, isLoading: isCheckingOffer, refetch: refetchHasActiveOffer } = useReadContract({
-        address: ESCROW_ADDRESS,
-        abi: ESCROW_ABI,
-        functionName: 'hasActiveOffer',
-        args: address && listingId ? [listingId, address] : undefined,
-        query: {
-            enabled: !!address && !!listingId && isOpen,
-        }
-    });
+    // TODO: Re-enable when hasActiveOffer is added to contract
+    // const { data: hasActiveOfferData, isLoading: isCheckingOffer, refetch: refetchHasActiveOffer } = useReadContract({
+    //     address: ESCROW_ADDRESS,
+    //     abi: ESCROW_ABI,
+    //     functionName: 'hasActiveOffer',
+    //     args: address && listingId ? [listingId, address] : undefined,
+    //     query: {
+    //         enabled: !!address && !!listingId && isOpen,
+    //     }
+    // });
 
-    const hasExistingOffer = hasActiveOfferData === true;
+    // const hasExistingOffer = hasActiveOfferData === true;
+    const hasExistingOffer = false; // Temporarily disabled
 
     // Show toast when duplicate offer is detected
-    useEffect(() => {
-        if (hasExistingOffer && isOpen) {
-            toast.error('Duplicate offer detected. You already have an active offer for this listing.');
-        }
-    }, [hasExistingOffer, isOpen]);
+    // useEffect(() => {
+    //     if (hasExistingOffer && isOpen) {
+    //         toast.error('Duplicate offer detected. You already have an active offer for this listing.');
+    //     }
+    // }, [hasExistingOffer, isOpen]);
 
     // Effect: Handle Approve Success - Auto-submit offer
     useEffect(() => {

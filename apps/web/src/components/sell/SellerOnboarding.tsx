@@ -133,7 +133,7 @@ export const SellerOnboarding: FC<SellerOnboardingProps> = ({ onSuccess }) => {
                 onError: (error) => {
                     console.error('[SellerOnboarding] writeApprove onError callback:', error);
                     // Force toast immediate feedback
-                    toast.error(`Approval request failed: ${error.shortMessage || error.message}`);
+                    toast.error(`Approval request failed: ${(error as any).shortMessage || error.message}`);
                 },
                 onSuccess: (data) => console.log('[SellerOnboarding] writeApprove onSuccess:', data)
             });

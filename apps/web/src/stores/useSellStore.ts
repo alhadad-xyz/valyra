@@ -131,7 +131,6 @@ export const useSellStore = create<SellState>((set) => ({
         customerCount: listing.customer_count?.toString() || '',
         repoUrl: listing.tech_stack?.repo_url || '',
         images: listing.images || [],
-        images: listing.images || [],
 
         mrr: listing.mrr?.toString() || '',
         annualRevenue: listing.annual_revenue?.toString() || '',

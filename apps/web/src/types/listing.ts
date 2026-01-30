@@ -9,10 +9,6 @@ export interface Listing {
     annual_revenue: number; // or string
     monthly_profit: number;
     monthly_expenses: number;
-    mrr: number;
-    annual_revenue: number; // or string
-    monthly_profit: number;
-    monthly_expenses: number;
     revenue_trend?: string; // enum
 
     // Asset Inclusions
@@ -32,6 +28,7 @@ export interface Listing {
 
     // Frontend Specific / Optional
     image?: string;
+    images?: string[]; // Array of image URLs
     category?: string; // Mapped from asset_type or separate?
     tech_stack?: any; // Dict
     view_count?: number;

@@ -20,9 +20,9 @@ export function PurchasedListingCard({ listing }: PurchasedListingCardProps) {
     const purchasePrice = listing.purchase_price ?? listing.asking_price;
     const purchaseDate = listing.purchase_date ? new Date(listing.purchase_date).toLocaleDateString() : "Recent";
     // Use images array if available, or single image field
-    const displayImage = listing.images && listing.images.length > 0
-        ? listing.images[0]
-        : (listing.image || `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(listing.asset_name || "Asset")}`);
+    const displayImage = listing?.images && listing?.images.length > 0
+        ? listing?.images[0]
+        : (listing?.image || `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(listing?.asset_name || "Asset")}`);
 
     return (
         <div className="bg-white dark:bg-background-dark-elevated rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full group">

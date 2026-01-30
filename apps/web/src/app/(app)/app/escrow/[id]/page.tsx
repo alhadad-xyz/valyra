@@ -316,7 +316,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
                         <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-3">
                                 <h1 className="text-3xl md:text-4xl font-black tracking-tight text-gray-900 dark:text-white">
-                                    Transaction #{escrowId.toString()}
+                                    Transaction #{escrowId ? escrowId.toString() : id.slice(0, 8)}
                                 </h1>
                                 <Badge variant={
                                     currentState === EscrowState.COMPLETED ? "success" :

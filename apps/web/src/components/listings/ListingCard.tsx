@@ -7,7 +7,6 @@ import { formatCurrency } from "@/utils/format";
 
 interface ListingCardProps {
     id: string;
-    id: string;
     image: string;
     images?: string[];
     category: string;

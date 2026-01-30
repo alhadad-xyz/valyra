@@ -52,6 +52,7 @@ export function ListingPriceCard({ price, usdPrice, lastSold }: ListingPriceCard
                     isOpen={isOfferModalOpen}
                     onClose={() => setIsOfferModalOpen(false)}
                     listingId={1n} // TODO: Pass real listing ID
+                    listingUuid="placeholder-uuid" // TODO: Pass real listing UUID
                     listingPrice={price}
                     onSuccess={() => {
                         // Optional: Refresh data or show toast
