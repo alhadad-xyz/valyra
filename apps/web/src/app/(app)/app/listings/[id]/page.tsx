@@ -211,8 +211,16 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     // Helper to extract image or use placeholder
     const image = listing.images?.[0] || listing.tech_stack?.images?.[0] || `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(listing.asset_name)}`;
     const isVerified = (listing.verified_level || 0) > 0;
-    // Treat null/undefined as syncing, but 0 is a valid ID
-    const isSyncing = !listing.on_chain_id && listing.on_chain_id !== 0;
+
+    // Debug: Log on_chain_id value
+    console.log('[Listing] on_chain_id:', listing.on_chain_id, 'type:', typeof listing.on_chain_id);
+
+    // Only treat as syncing if on_chain_id is null AND listing was created very recently (< 30 seconds ago)
+    // This prevents old listings without on_chain_id from being stuck
+    const listingAge = listing.created_at ? Date.now() - new Date(listing.created_at).getTime() : Infinity;
+    const isSyncing = listing.on_chain_id === null && listingAge < 30000;
+
+    console.log('[Listing] isSyncing:', isSyncing, 'listingAge:', listingAge);
 
     const priceFormatted = formatCurrency(listing.asking_price);
 
