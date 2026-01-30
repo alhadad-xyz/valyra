@@ -35,20 +35,20 @@ export function useEscrowWebSocket(onEvent?: (event: EscrowRealtimeEvent) => voi
 
         const wsUrl = `${wsBaseUrl}/ws/listings`; // reusing endpoint
 
-        console.log(`[EscrowWS] Connecting to: ${wsUrl}`);
+        // console.log(`[EscrowWS] Connecting to: ${wsUrl}`);
 
         try {
             ws.current = new WebSocket(wsUrl);
 
             ws.current.onopen = () => {
-                console.log('[EscrowWS] Connected');
+                // console.log('[EscrowWS] Connected');
             };
 
             ws.current.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
                     if (message.type && message.type.startsWith('escrow.')) {
-                        console.log('[EscrowWS] Event:', message);
+                        // console.log('[EscrowWS] Event:', message);
                         if (onEventRef.current) {
                             onEventRef.current(message);
                         }
@@ -63,7 +63,7 @@ export function useEscrowWebSocket(onEvent?: (event: EscrowRealtimeEvent) => voi
             };
 
             ws.current.onclose = () => {
-                console.log('[EscrowWS] Disconnected');
+                // console.log('[EscrowWS] Disconnected');
             };
         } catch (err) {
             console.error('[EscrowWS] Init Failed:', err);

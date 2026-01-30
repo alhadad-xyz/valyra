@@ -125,7 +125,7 @@ export function OfferModal({ isOpen, onClose, listingId, listingUuid, listingPri
             toast.error('Duplicate offer detected. You already have an active offer for this listing.');
             return;
         }
-        console.log("handleApprove called", { address: IDRX_ADDRESS, spender: ESCROW_ADDRESS, amount: earnestMoney });
+        // console.log("handleApprove called", { address: IDRX_ADDRESS, spender: ESCROW_ADDRESS, amount: earnestMoney });
         try {
             writeApprove({
                 address: IDRX_ADDRESS,
@@ -134,7 +134,7 @@ export function OfferModal({ isOpen, onClose, listingId, listingUuid, listingPri
                 args: [ESCROW_ADDRESS, offerAmount], // APPROVING FULL AMOUNT to be safe (contract might pull full or partial)
             }, {
                 onError: (e) => console.error("Approve Write Error:", e),
-                onSuccess: (h) => console.log("Approve Write Success, Hash:", h)
+                onSuccess: (h) => { } // console.log("Approve Write Success, Hash:", h)
             });
         } catch (err: any) {
             console.error("Approve Try-Catch Error:", err);
@@ -156,7 +156,7 @@ export function OfferModal({ isOpen, onClose, listingId, listingUuid, listingPri
                 args: [listingId, offerAmount],
             }, {
                 onError: (e) => console.error("Offer Write Error:", e),
-                onSuccess: (h) => console.log("Offer Write Success, Hash:", h)
+                onSuccess: (h) => { } // console.log("Offer Write Success, Hash:", h)
             });
         } catch (err: any) {
             console.error("Offer Try-Catch Error:", err);

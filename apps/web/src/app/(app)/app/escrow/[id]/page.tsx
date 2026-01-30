@@ -61,7 +61,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
     const [showConfetti, setShowConfetti] = useState(false);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [isDecryptModalOpen, setIsDecryptModalOpen] = useState(false);
-    const [devMode, setDevMode] = useState(false);
+
 
     const { writeContract, isPending: isWritePending, data: hash } = useWriteContract();
     const { isSuccess: isTxSuccess, isLoading: isTxConfirming } = useWaitForTransactionReceipt({ hash });
@@ -399,12 +399,12 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
                                     {isSeller && (() => {
                                         const releaseTime = Number(transitionHold?.releaseTime || 0);
                                         const currentTime = Math.floor(Date.now() / 1000);
-                                        const canClaim = (currentTime >= releaseTime) || devMode;
+                                        const canClaim = currentTime >= releaseTime;
                                         const retainerAmount = Number(transitionHold?.retainedAmount || 0) / 1e18;
 
                                         return (
                                             <div className="space-y-3">
-                                                {!canClaim && !devMode && (
+                                                {!canClaim && (
                                                     <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                                                         <div className="flex items-start gap-3">
                                                             <span className="material-symbols-outlined text-yellow-600 dark:text-yellow-400 text-xl">schedule</span>
@@ -420,16 +420,16 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
                                                     </div>
                                                 )}
 
-                                                {(canClaim || devMode) && (
+                                                {canClaim && (
                                                     <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-3">
                                                         <div className="flex items-start gap-3">
                                                             <span className="material-symbols-outlined text-green-600 dark:text-green-400 text-xl">check_circle</span>
                                                             <div>
                                                                 <p className="font-semibold text-green-800 dark:text-green-200 mb-1">
-                                                                    {devMode && !(currentTime >= releaseTime) ? "Retainer Claimable (Dev Bypass Active)" : "Retainer Ready to Claim!"}
+                                                                    Retainer Ready to Claim!
                                                                 </p>
                                                                 <p className="text-sm text-green-700 dark:text-green-300">
-                                                                    {retainerAmount.toLocaleString()} IDRX is {devMode && !(currentTime >= releaseTime) ? "now claimable for testing" : "now available"}
+                                                                    {retainerAmount.toLocaleString()} IDRX is now available
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -556,76 +556,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
 
             <Footer />
 
-            {/* Dev Tools Panel */}
-            {process.env.NODE_ENV === 'development' && (
-                <div className="fixed bottom-4 left-4 z-50">
-                    <div className={`bg-gray-900 text-white rounded-xl shadow-2xl border border-gray-700 p-4 transition-all duration-300 ${devMode ? 'w-64' : 'w-12 h-12 flex items-center justify-center cursor-pointer overflow-hidden'}`}
-                        onClick={() => !devMode && setDevMode(true)}>
-                        {devMode ? (
-                            <div className="flex flex-col gap-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-yellow-400 text-sm">terminal</span>
-                                        <span className="text-xs font-bold uppercase tracking-widest">Dev Tools</span>
-                                    </div>
-                                    <button onClick={(e) => { e.stopPropagation(); setDevMode(false); }} className="text-gray-400 hover:text-white">
-                                        <span className="material-symbols-outlined text-sm">close</span>
-                                    </button>
-                                </div>
-                                <div className="h-px bg-gray-800 w-full"></div>
-                                <div className="flex flex-col gap-2">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-medium text-gray-400">UI Restriction Bypass</span>
-                                        <button
-                                            className={`w-8 h-4 rounded-full relative transition-colors ${devMode ? 'bg-primary' : 'bg-gray-700'}`}
-                                            onClick={(e) => { e.stopPropagation(); setDevMode(!devMode); }}
-                                        >
-                                            <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-all ${devMode ? 'translate-x-4' : ''}`}></div>
-                                        </button>
-                                    </div>
-                                    <div className="h-px bg-gray-800 w-full my-1"></div>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            writeContract({
-                                                address: ESCROW_CONTRACT,
-                                                abi: ESCROW_ABI,
-                                                functionName: 'setTransitionPeriod',
-                                                args: [0n]
-                                            });
-                                        }}
-                                        className="text-[10px] bg-gray-800 hover:bg-gray-700 text-yellow-400 py-1 px-2 rounded border border-gray-700 flex items-center justify-center gap-1"
-                                    >
-                                        <span className="material-symbols-outlined text-[12px]">timer_off</span>
-                                        Set Transition 0s
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (!escrowId) return;
-                                            writeContract({
-                                                address: ESCROW_CONTRACT,
-                                                abi: ESCROW_ABI,
-                                                functionName: 'adminReleaseRetainer',
-                                                args: [BigInt(escrowId)]
-                                            });
-                                        }}
-                                        className="text-[10px] bg-gray-800 hover:bg-gray-700 text-red-400 py-1 px-2 rounded border border-gray-700 flex items-center justify-center gap-1"
-                                    >
-                                        <span className="material-symbols-outlined text-[12px]">release_alert</span>
-                                        Force Release (Admin)
-                                    </button>
-                                </div>
-                                <p className="text-[10px] text-gray-500 italic mt-1 leading-tight">
-                                    Owner/Admin functions to truly bypass the contract timers.
-                                </p>
-                            </div>
-                        ) : (
-                            <span className="material-symbols-outlined text-yellow-400">terminal</span>
-                        )}
-                    </div>
-                </div>
-            )}
+
         </div>
     );
 }

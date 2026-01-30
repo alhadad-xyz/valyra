@@ -22,7 +22,7 @@ export const StepIPAssignment: FC = () => {
 
     const handleSign = async () => {
         try {
-            console.log('[StepIPAssignment] Starting sign process...');
+            // console.log('[StepIPAssignment] Starting sign process...');
             setIsSigning(true);
             const timestamp = Math.floor(Date.now() / 1000);
 
@@ -30,12 +30,12 @@ export const StepIPAssignment: FC = () => {
             // In production, EIP-712 is preferred, but personal_sign is fine for MVP
             const messageToSign = `${agreementText}\n\nTimestamp: ${timestamp}`;
             const hash = keccak256(toBytes(messageToSign));
-            console.log('[StepIPAssignment] Message prepared', { messageToSign, hash });
+            // console.log('[StepIPAssignment] Message prepared', { messageToSign, hash });
 
             const signature = await signMessageAsync({
                 message: messageToSign,
             });
-            console.log('[StepIPAssignment] Signature received', signature);
+            // console.log('[StepIPAssignment] Signature received', signature);
 
             // Store in global state
             setField('ipAssignmentHash', hash);
@@ -44,7 +44,7 @@ export const StepIPAssignment: FC = () => {
 
             // Auto-advance after short delay
             setTimeout(() => {
-                console.log('[StepIPAssignment] Auto-advancing...');
+                // console.log('[StepIPAssignment] Auto-advancing...');
                 nextStep();
             }, 1000);
 

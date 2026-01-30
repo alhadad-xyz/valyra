@@ -60,7 +60,7 @@ export const SellerOnboarding: FC<SellerOnboardingProps> = ({ onSuccess }) => {
 
     // Effect: Handle Approve Success
     useEffect(() => {
-        console.log('[SellerOnboarding] Approve Tx State:', { isApproveSuccess, isApproveError, approveHash });
+        // console.log('[SellerOnboarding] Approve Tx State:', { isApproveSuccess, isApproveError, approveHash });
         if (isApproveSuccess) {
             toast.success("Allowance approved. You may now proceed.");
             refetchAllowance();
@@ -93,37 +93,32 @@ export const SellerOnboarding: FC<SellerOnboardingProps> = ({ onSuccess }) => {
     useEffect(() => {
         const minStakeVal = minStake ? formatUnits(minStake, 18) : 'undefined';
         const allowanceVal = allowance ? formatUnits(allowance, 18) : 'undefined';
-        console.log('[SellerOnboarding] Data Check:', {
-            allowance: allowanceVal,
-            minStake: minStakeVal,
-            isApproveSuccess,
-            currentStep: step
-        });
+        // console.log('[SellerOnboarding] Data Check:', { ... });
 
         if (allowance !== undefined && minStake !== undefined) {
             // Only set step if data is loaded
             if (allowance >= minStake) {
-                console.log('[SellerOnboarding] Setting step to STAKE (Sufficient Allowance)');
+                // console.log('[SellerOnboarding] Setting step to STAKE (Sufficient Allowance)');
                 setStep('stake');
             } else if (!isApproveSuccess) {
-                console.log('[SellerOnboarding] Setting step to APPROVE (Insufficient Allowance & No Recent Success)');
+                // console.log('[SellerOnboarding] Setting step to APPROVE (Insufficient Allowance & No Recent Success)');
                 setStep('approve');
             } else {
-                console.log('[SellerOnboarding] Holding step at STAKE (Optimistic Success)');
+                // console.log('[SellerOnboarding] Holding step at STAKE (Optimistic Success)');
             }
         }
     }, [allowance, minStake, isApproveSuccess]);
 
     // Handlers
     const handleApprove = () => {
-        console.log('[SellerOnboarding] handleApprove clicked. minStake:', minStake);
+        // console.log('[SellerOnboarding] handleApprove clicked. minStake:', minStake);
         if (!minStake) {
             console.error('[SellerOnboarding] minStake is undefined, aborting.');
             toast.error("Calculating staking requirements. Please wait...");
             return;
         }
         try {
-            console.log('[SellerOnboarding] Calling writeApprove...');
+            // console.log('[SellerOnboarding] Calling writeApprove...');
             writeApprove({
                 address: IDRX_ADDRESS,
                 abi: ERC20_ABI,
@@ -135,7 +130,7 @@ export const SellerOnboarding: FC<SellerOnboardingProps> = ({ onSuccess }) => {
                     // Force toast immediate feedback
                     toast.error(`Approval request failed: ${(error as any).shortMessage || error.message}`);
                 },
-                onSuccess: (data) => console.log('[SellerOnboarding] writeApprove onSuccess:', data)
+                onSuccess: (data) => { } // console.log('[SellerOnboarding] writeApprove onSuccess:', data)
             });
         } catch (e) {
             console.error('[SellerOnboarding] Exception in writeApprove call:', e);

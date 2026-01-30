@@ -44,7 +44,7 @@ export const StepReview: FC<StepReviewProps> = ({ mode = 'create', onSave, isSav
                     if (listingLog && listingLog.topics[1]) {
                         const idHex = listingLog.topics[1];
                         const onChainId = parseInt(idHex, 16).toString();
-                        console.log("On-Chain Listing ID:", onChainId);
+                        // console.log("On-Chain Listing ID:", onChainId);
 
                         setIsIndexing(true);
 
@@ -63,7 +63,7 @@ export const StepReview: FC<StepReviewProps> = ({ mode = 'create', onSave, isSav
                                         setCreatedListingUUID(uuid);
                                         setIsIndexing(false);
                                         clearInterval(poll);
-                                        console.log("Found Listing UUID:", uuid);
+                                        // console.log("Found Listing UUID:", uuid);
 
                                         // Auto-redirect to view listing
                                         reset();
@@ -91,7 +91,7 @@ export const StepReview: FC<StepReviewProps> = ({ mode = 'create', onSave, isSav
 
     const handleCreateListing = async () => {
         try {
-            console.log("Creating Listing:", { title, price, ipAssignmentHash });
+            // console.log("Creating Listing:", { title, price, ipAssignmentHash });
 
             // 1. Create Draft Listing in Backend to store rich metadata
             // The indexer will link this via title + seller address
@@ -128,11 +128,11 @@ export const StepReview: FC<StepReviewProps> = ({ mode = 'create', onSave, isSav
 
             // Sign the auth message
             // Sign the auth message
-            console.log("Requesting Auth Signature...");
+            // console.log("Requesting Auth Signature...");
             let signature;
             try {
                 signature = await signMessageAsync({ message });
-                console.log("Signature received:", signature?.substring(0, 10) + "...");
+                // console.log("Signature received:", signature?.substring(0, 10) + "...");
             } catch (signErr) {
                 console.error("Signing failed or rejected:", signErr);
                 throw signErr;
@@ -162,7 +162,7 @@ export const StepReview: FC<StepReviewProps> = ({ mode = 'create', onSave, isSav
                     errData = { detail: errText };
                 }
 
-                console.error("Parsed Error Data:", errData);
+                // console.error("Parsed Error Data:", errData);
 
                 let errorMessage = "Failed to save listing details.";
                 if (errData.detail) {
@@ -177,7 +177,7 @@ export const StepReview: FC<StepReviewProps> = ({ mode = 'create', onSave, isSav
                 throw new Error(errorMessage);
             }
 
-            console.log("Draft created successfully");
+            // console.log("Draft created successfully");
 
             // 2. Proceed with Blockchain Transaction
             // Convert Price to Wei

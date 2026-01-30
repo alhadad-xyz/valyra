@@ -127,14 +127,14 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 }
             });
             if (!res.ok) {
-                console.log('Offers API failed:', res.status);
+                // console.log('Offers API failed:', res.status);
                 return null;
             }
             const data = await res.json();
-            console.log('Fetched offers:', data);
-            console.log('Current listing ID:', listing.id);
+            // console.log('Fetched offers:', data);
+            // console.log('Current listing ID:', listing.id);
             if (!Array.isArray(data)) {
-                console.log('Data is not an array');
+                // console.log('Data is not an array');
                 return null;
             }
             const foundOffer = data.find((offer: any) => {
@@ -143,7 +143,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 const isActive = offer.status === 'PENDING' || offer.status === 'ACCEPTED';
                 return isMatch && isActive;
             });
-            console.log('Found existing offer:', foundOffer);
+            // console.log('Found existing offer:', foundOffer);
             return foundOffer || null;
         },
         enabled: !!address && !!listing?.id,
@@ -155,7 +155,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     useEffect(() => {
         if (address && sellerProfile?.wallet_address && address.toLowerCase() === sellerProfile.wallet_address.toLowerCase()) {
             if (isOfferModalOpen) {
-                console.warn("Closing Offer Modal: Identify as Seller");
+                // console.warn("Closing Offer Modal: Identify as Seller");
                 setIsOfferModalOpen(false);
             }
         }
@@ -620,7 +620,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                                                 </div>
                                             ) : (
                                                 <>
-                                                    {console.log('Rendering buttons, existingOffer:', existingOffer)}
+                                                    {/* console.log('Rendering buttons, existingOffer:', existingOffer) */}
                                                     {!existingOffer && (
                                                         <Button
                                                             variant="primary"

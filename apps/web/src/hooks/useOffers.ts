@@ -42,7 +42,7 @@ export function useOffers() {
 
     // Auto-refresh on WebSocket events
     useOffersWebSocket((event) => {
-        console.log('[useOffers] Received realtime event:', event);
+        // console.log('[useOffers] Received realtime event:', event);
         queryClient.invalidateQueries({ queryKey: ['offers-sent'] });
         queryClient.invalidateQueries({ queryKey: ['offers-received'] });
     });

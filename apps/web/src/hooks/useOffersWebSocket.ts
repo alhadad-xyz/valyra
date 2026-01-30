@@ -19,20 +19,20 @@ export function useOffersWebSocket(onEvent?: (event: OfferEvent) => void) {
 
         const wsUrl = `${wsBaseUrl}/ws/listings`; // We reuse the single WS endpoint
 
-        console.log(`[OffersWS] Connecting to: ${wsUrl}`);
+        // console.log(`[OffersWS] Connecting to: ${wsUrl}`);
 
         try {
             ws.current = new WebSocket(wsUrl);
 
             ws.current.onopen = () => {
-                console.log('[OffersWS] Connected');
+                // console.log('[OffersWS] Connected');
             };
 
             ws.current.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
                     if (message.type && message.type.startsWith('offer.')) {
-                        console.log('[OffersWS] Event:', message);
+                        // console.log('[OffersWS] Event:', message);
                         if (onEvent) {
                             onEvent(message);
                         }
@@ -47,7 +47,7 @@ export function useOffersWebSocket(onEvent?: (event: OfferEvent) => void) {
             };
 
             ws.current.onclose = () => {
-                console.log('[OffersWS] Disconnected');
+                // console.log('[OffersWS] Disconnected');
             };
         } catch (err) {
             console.error('[OffersWS] Init Failed:', err);

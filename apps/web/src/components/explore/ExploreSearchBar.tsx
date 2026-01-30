@@ -10,7 +10,6 @@ export function ExploreSearchBar() {
 
     const handleSearch = () => {
         // Search functionality to be implemented
-        console.log("Searching for:", searchQuery, "in", selectedCategory);
     };
 
     return (

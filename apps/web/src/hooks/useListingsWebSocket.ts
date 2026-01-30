@@ -23,19 +23,19 @@ export function useListingsWebSocket() {
 
         const wsUrl = `${wsBaseUrl}/ws/listings`;
 
-        console.log(`Connecting to WebSocket: ${wsUrl}`);
+        // console.log(`Connecting to WebSocket: ${wsUrl}`);
 
         try {
             ws.current = new WebSocket(wsUrl);
 
             ws.current.onopen = () => {
-                console.log('WebSocket Connected');
+                // console.log('WebSocket Connected');
             };
 
             ws.current.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
-                    console.log('WebSocket Message:', message);
+                    // console.log('WebSocket Message:', message);
                     setLastEvent(message);
                 } catch (error) {
                     console.error('Error parsing WebSocket message:', error);
@@ -47,7 +47,7 @@ export function useListingsWebSocket() {
             };
 
             ws.current.onclose = () => {
-                console.log('WebSocket Disconnected');
+                // console.log('WebSocket Disconnected');
             };
         } catch (err) {
             console.error('Failed to initialize WebSocket:', err);
