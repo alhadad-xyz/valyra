@@ -5,7 +5,7 @@ import { ListingCard } from "@/components/listings/ListingCard";
 import { ListingSkeleton } from "@/components/listings/ListingSkeleton";
 import { formatCurrency } from "@/utils/format";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-
+import { useListingsWebSocket } from "@/hooks/useListingsWebSocket";
 
 import { useEffect } from "react";
 import { API_URL } from '@/utils/constants';
