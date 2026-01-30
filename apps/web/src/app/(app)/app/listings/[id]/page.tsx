@@ -617,23 +617,41 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                                             ) : (
                                                 <>
                                                     {/* console.log('Rendering buttons, existingOffer:', existingOffer) */}
-                                                    {!existingOffer && (
-                                                        <Button
-                                                            variant="primary"
-                                                            fullWidth
-                                                            size="lg"
-                                                            onClick={handleBuyNow}
-                                                            disabled={buyStatus === 'success' || buyStatus === 'approving' || buyStatus === 'buying' || isPending}
-                                                            className="py-4 text-base font-bold text-text-main"
-                                                            rightIcon={<span className="material-symbols-outlined text-lg">arrow_forward</span>}
-                                                        >
-                                                            {buyStatus === 'idle' && 'Buy Now'}
-                                                            {buyStatus === 'approving' && 'Approving IDRX...'}
-                                                            {buyStatus === 'approved' && 'Confirm Purchase...'}
-                                                            {buyStatus === 'buying' && 'Purchasing...'}
-                                                            {buyStatus === 'success' && 'Purchase Successful!'}
-                                                            {buyStatus === 'error' && 'Retry Purchase'}
-                                                        </Button>
+                                                    {!listing.on_chain_id && listing.on_chain_id !== 0 ? (
+                                                        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                                                            <div className="flex items-start gap-2">
+                                                                <span className="material-symbols-outlined text-yellow-600 dark:text-yellow-400 text-xl">info</span>
+                                                                <div className="flex-1">
+                                                                    <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-1">
+                                                                        Purchase Not Available
+                                                                    </p>
+                                                                    <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                                                                        This listing hasn't been synced to the blockchain yet. Only the seller can enable purchases by syncing the listing.
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            {!existingOffer && (
+                                                                <Button
+                                                                    variant="primary"
+                                                                    fullWidth
+                                                                    size="lg"
+                                                                    onClick={handleBuyNow}
+                                                                    disabled={buyStatus === 'success' || buyStatus === 'approving' || buyStatus === 'buying' || isPending}
+                                                                    className="py-4 text-base font-bold text-text-main"
+                                                                    rightIcon={<span className="material-symbols-outlined text-lg">arrow_forward</span>}
+                                                                >
+                                                                    {buyStatus === 'idle' && 'Buy Now'}
+                                                                    {buyStatus === 'approving' && 'Approving IDRX...'}
+                                                                    {buyStatus === 'approved' && 'Confirm Purchase...'}
+                                                                    {buyStatus === 'buying' && 'Purchasing...'}
+                                                                    {buyStatus === 'success' && 'Purchase Successful!'}
+                                                                    {buyStatus === 'error' && 'Retry Purchase'}
+                                                                </Button>
+                                                            )}
+                                                        </>
                                                     )}
                                                     {existingOffer ? (
                                                         <Button
@@ -647,16 +665,34 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                                                             View Your Offer
                                                         </Button>
                                                     ) : (
-                                                        <Button
-                                                            variant="outline"
-                                                            fullWidth
-                                                            size="lg"
-                                                            className="border-text-main/10 text-text-main hover:bg-[#f5f5f0]"
-                                                            onClick={() => setIsOfferModalOpen(true)}
-                                                            disabled={isSyncing}
-                                                        >
-                                                            Make Offer
-                                                        </Button>
+                                                        <>
+                                                            {!listing.on_chain_id && listing.on_chain_id !== 0 ? (
+                                                                <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                                                                    <div className="flex items-start gap-2">
+                                                                        <span className="material-symbols-outlined text-yellow-600 dark:text-yellow-400 text-xl">info</span>
+                                                                        <div className="flex-1">
+                                                                            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-1">
+                                                                                Offers Not Available
+                                                                            </p>
+                                                                            <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                                                                                This listing hasn't been synced to the blockchain yet. Only the seller can enable offers by syncing the listing.
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    fullWidth
+                                                                    size="lg"
+                                                                    className="border-text-main/10 text-text-main hover:bg-[#f5f5f0]"
+                                                                    onClick={() => setIsOfferModalOpen(true)}
+                                                                    disabled={isSyncing}
+                                                                >
+                                                                    Make Offer
+                                                                </Button>
+                                                            )}
+                                                        </>
                                                     )}
                                                 </>
                                             )}
