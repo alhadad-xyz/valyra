@@ -169,14 +169,6 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
         console.log('[ExistingOffer] Data:', existingOffer);
     }, [isCheckingExistingOffer, existingOffer]);
 
-    // Debug: Log all button visibility conditions
-    useEffect(() => {
-        console.log('[ButtonVisibility] isSyncing:', isSyncing);
-        console.log('[ButtonVisibility] isSellerLoading:', isSellerLoading);
-        console.log('[ButtonVisibility] isCheckingExistingOffer:', isCheckingExistingOffer);
-        console.log('[ButtonVisibility] Should show skeleton:', isSyncing || isSellerLoading || isCheckingExistingOffer);
-    }, [isSyncing, isSellerLoading, isCheckingExistingOffer]);
-
     // Safety: Close offer modal if user is seller
     useEffect(() => {
         if (address && sellerProfile?.wallet_address && address.toLowerCase() === sellerProfile.wallet_address.toLowerCase()) {
@@ -307,7 +299,13 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
         }
     };
 
-
+    // Debug: Log all button visibility conditions
+    useEffect(() => {
+        console.log('[ButtonVisibility] isSyncing:', isSyncing);
+        console.log('[ButtonVisibility] isSellerLoading:', isSellerLoading);
+        console.log('[ButtonVisibility] isCheckingExistingOffer:', isCheckingExistingOffer);
+        console.log('[ButtonVisibility] Should show skeleton:', isSyncing || isSellerLoading || isCheckingExistingOffer);
+    }, [isSyncing, isSellerLoading, isCheckingExistingOffer]);
 
     return (
         <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark text-text-main antialiased">
