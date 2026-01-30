@@ -59,7 +59,7 @@ export const SellWizard: FC<SellWizardProps> = ({ mode = 'create', listingId }) 
                 if (!res.ok) throw new Error("Failed to fetch listing");
                 const data = await res.json();
 
-                if (data.on_chain_id !== undefined) {
+                if (data.on_chain_id !== undefined && data.on_chain_id !== null) {
                     setOnChainId(BigInt(data.on_chain_id));
                 }
                 if (data.asking_price) {

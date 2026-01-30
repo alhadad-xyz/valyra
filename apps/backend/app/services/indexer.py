@@ -965,15 +965,16 @@ class IndexerService:
                 db.add(new_listing)
                 logger.info(f"Created new listing record for on_chain_id {listing_id}")
             
-                try:
-                    db.commit()
-                    logger.info(f"Created/Updated listing record for on_chain_id {listing_id}")
-                except Exception as e:
-                    db.rollback()
-                    if "unique constraint" in str(e).lower():
-                        logger.warning(f"Indexer: Duplicate listing {listing_id} handled safely.")
-                    else:
-                        logger.error(f"Indexer Error creating listing {listing_id}: {e}")
+            # Commit changes for BOTH update and create operations
+            try:
+                db.commit()
+                logger.info(f"Created/Updated listing record for on_chain_id {listing_id}")
+            except Exception as e:
+                db.rollback()
+                if "unique constraint" in str(e).lower():
+                    logger.warning(f"Indexer: Duplicate listing {listing_id} handled safely.")
+                else:
+                    logger.error(f"Indexer Error creating listing {listing_id}: {e}")
 
     def process_listing_updated(self, event):
         args = event['args']

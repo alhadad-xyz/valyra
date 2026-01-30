@@ -191,8 +191,9 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
     // Only treat as syncing if on_chain_id is null AND listing was created very recently (< 30 seconds ago)
     // This prevents old listings without on_chain_id from being stuck
+    // Handle clock skew: only consider syncing if the time difference is positive AND less than 30 seconds
     const listingAge = listing.created_at ? Date.now() - new Date(listing.created_at).getTime() : Infinity;
-    const isSyncing = listing.on_chain_id === null && listingAge < 30000;
+    const isSyncing = listing.on_chain_id === null && listingAge > 0 && listingAge < 30000;
 
     const priceFormatted = formatCurrency(listing.asking_price);
 
