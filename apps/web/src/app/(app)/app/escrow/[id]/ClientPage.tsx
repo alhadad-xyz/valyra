@@ -69,8 +69,8 @@ export function EscrowClientPage({ id }: { id: string }) {
         );
 
         switch (currentStep) {
-            case 0: return <Step0Funding />;
-            case 1: return <Step1Deposit />;
+            case 0: return <Step0Funding escrow={escrow} onCompleteFunding={() => refetch()} />;
+            case 1: return <Step1Deposit escrow={escrow} />;
             case 2: return <Step2Handover escrowId={id} userRole={userRole} escrow={escrow} onUploadComplete={() => { console.log('Refreshing...'); refetch(); }} />;
             case 3: return <Step3Verification escrowId={id} userRole={userRole} escrow={escrow} />;
             case 4: return <Step4Confirmation escrowId={id} userRole={userRole} escrow={escrow} />;
