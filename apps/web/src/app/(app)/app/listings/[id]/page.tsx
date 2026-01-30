@@ -97,7 +97,12 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     const { data: existingOffer, isLoading: isCheckingExistingOffer } = useQuery({
         queryKey: ['existing-offer', listing?.id, address],
         queryFn: async () => {
-            if (!address || !listing?.id) return null;
+            console.log('[ExistingOffer] Query starting...', { address, listingId: listing?.id });
+
+            if (!address || !listing?.id) {
+                console.log('[ExistingOffer] Missing address or listing ID');
+                return null;
+            }
 
             // Get auth session
             const { getAuthSession, setAuthSession } = await import('@/utils/authSession');
@@ -106,19 +111,25 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
             let timestamp = session?.timestamp;
 
             if (!session) {
+                console.log('[ExistingOffer] No session found, requesting signature...');
                 timestamp = Math.floor(Date.now() / 1000).toString();
                 const message = `Login to Valyra at ${timestamp}`;
                 try {
                     signature = await signMessageAsync({ message });
                     setAuthSession({ address, signature, timestamp });
+                    console.log('[ExistingOffer] Signature obtained');
                 } catch (err) {
-                    console.error('Auth failed:', err);
+                    console.error('[ExistingOffer] Auth failed:', err);
                     return null;
                 }
             }
 
-            if (!signature || !timestamp) return null;
+            if (!signature || !timestamp) {
+                console.log('[ExistingOffer] Missing signature or timestamp');
+                return null;
+            }
 
+            console.log('[ExistingOffer] Fetching offers from API...');
             const res = await fetch(`${API_URL}/offers/me`, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -128,14 +139,14 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 }
             });
             if (!res.ok) {
-                // console.log('Offers API failed:', res.status);
+                console.log('[ExistingOffer] Offers API failed:', res.status);
                 return null;
             }
             const data = await res.json();
-            // console.log('Fetched offers:', data);
-            // console.log('Current listing ID:', listing.id);
+            console.log('[ExistingOffer] Fetched offers:', data);
+            console.log('[ExistingOffer] Current listing ID:', listing.id);
             if (!Array.isArray(data)) {
-                // console.log('Data is not an array');
+                console.log('[ExistingOffer] Data is not an array');
                 return null;
             }
             const foundOffer = data.find((offer: any) => {
@@ -144,13 +155,19 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 const isActive = offer.status === 'PENDING' || offer.status === 'ACCEPTED';
                 return isMatch && isActive;
             });
-            // console.log('Found existing offer:', foundOffer);
+            console.log('[ExistingOffer] Found existing offer:', foundOffer);
             return foundOffer || null;
         },
         enabled: !!address && !!listing?.id,
         retry: false,
-        placeholderData: null
+        staleTime: 30000, // Cache for 30 seconds
     });
+
+    // Debug: Log loading state changes
+    useEffect(() => {
+        console.log('[ExistingOffer] Loading state changed:', isCheckingExistingOffer);
+        console.log('[ExistingOffer] Data:', existingOffer);
+    }, [isCheckingExistingOffer, existingOffer]);
 
     // Safety: Close offer modal if user is seller
     useEffect(() => {
