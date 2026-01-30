@@ -97,12 +97,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     const { data: existingOffer, isLoading: isCheckingExistingOffer } = useQuery({
         queryKey: ['existing-offer', listing?.id, address],
         queryFn: async () => {
-            console.log('[ExistingOffer] Query starting...', { address, listingId: listing?.id });
-
-            if (!address || !listing?.id) {
-                console.log('[ExistingOffer] Missing address or listing ID');
-                return null;
-            }
+            if (!address || !listing?.id) return null;
 
             // Get auth session
             const { getAuthSession, setAuthSession } = await import('@/utils/authSession');
@@ -111,25 +106,19 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
             let timestamp = session?.timestamp;
 
             if (!session) {
-                console.log('[ExistingOffer] No session found, requesting signature...');
                 timestamp = Math.floor(Date.now() / 1000).toString();
                 const message = `Login to Valyra at ${timestamp}`;
                 try {
                     signature = await signMessageAsync({ message });
                     setAuthSession({ address, signature, timestamp });
-                    console.log('[ExistingOffer] Signature obtained');
                 } catch (err) {
-                    console.error('[ExistingOffer] Auth failed:', err);
+                    console.error('Auth failed:', err);
                     return null;
                 }
             }
 
-            if (!signature || !timestamp) {
-                console.log('[ExistingOffer] Missing signature or timestamp');
-                return null;
-            }
+            if (!signature || !timestamp) return null;
 
-            console.log('[ExistingOffer] Fetching offers from API...');
             const res = await fetch(`${API_URL}/offers/me`, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -138,24 +127,16 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                     'X-Timestamp': timestamp,
                 }
             });
-            if (!res.ok) {
-                console.log('[ExistingOffer] Offers API failed:', res.status);
-                return null;
-            }
+            if (!res.ok) return null;
+
             const data = await res.json();
-            console.log('[ExistingOffer] Fetched offers:', data);
-            console.log('[ExistingOffer] Current listing ID:', listing.id);
-            if (!Array.isArray(data)) {
-                console.log('[ExistingOffer] Data is not an array');
-                return null;
-            }
+            if (!Array.isArray(data)) return null;
+
             const foundOffer = data.find((offer: any) => {
                 const isMatch = offer.listing_id === listing.id;
-                // Only consider it an "existing offer" if it's not rejected or expired (cancelled)
                 const isActive = offer.status === 'PENDING' || offer.status === 'ACCEPTED';
                 return isMatch && isActive;
             });
-            console.log('[ExistingOffer] Found existing offer:', foundOffer);
             return foundOffer || null;
         },
         enabled: !!address && !!listing?.id,
@@ -163,11 +144,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
         staleTime: 30000, // Cache for 30 seconds
     });
 
-    // Debug: Log loading state changes
-    useEffect(() => {
-        console.log('[ExistingOffer] Loading state changed:', isCheckingExistingOffer);
-        console.log('[ExistingOffer] Data:', existingOffer);
-    }, [isCheckingExistingOffer, existingOffer]);
+
 
     // Safety: Close offer modal if user is seller
     useEffect(() => {
@@ -212,15 +189,10 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     const image = listing.images?.[0] || listing.tech_stack?.images?.[0] || `https://placehold.co/600x400/0052FF/FFFFFF?text=${encodeURIComponent(listing.asset_name)}`;
     const isVerified = (listing.verified_level || 0) > 0;
 
-    // Debug: Log on_chain_id value
-    console.log('[Listing] on_chain_id:', listing.on_chain_id, 'type:', typeof listing.on_chain_id);
-
     // Only treat as syncing if on_chain_id is null AND listing was created very recently (< 30 seconds ago)
     // This prevents old listings without on_chain_id from being stuck
     const listingAge = listing.created_at ? Date.now() - new Date(listing.created_at).getTime() : Infinity;
     const isSyncing = listing.on_chain_id === null && listingAge < 30000;
-
-    console.log('[Listing] isSyncing:', isSyncing, 'listingAge:', listingAge);
 
     const priceFormatted = formatCurrency(listing.asking_price);
 
@@ -621,10 +593,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                                             </div>
                                         </div>
                                         <div className="flex flex-col gap-3">
-                                            {(() => {
-                                                console.log('[ButtonDebug] isSyncing:', isSyncing, '| isSellerLoading:', isSellerLoading, '| isCheckingExistingOffer:', isCheckingExistingOffer);
-                                                return isSyncing || isSellerLoading || isCheckingExistingOffer;
-                                            })() ? (
+                                            {isSyncing || isSellerLoading || isCheckingExistingOffer ? (
                                                 <div className="flex flex-col gap-3 w-full animate-pulse">
                                                     <div className="h-12 w-full rounded-lg bg-gray-200 dark:bg-gray-700"></div>
                                                     <div className="h-12 w-full rounded-lg bg-gray-200 dark:bg-gray-700"></div>
