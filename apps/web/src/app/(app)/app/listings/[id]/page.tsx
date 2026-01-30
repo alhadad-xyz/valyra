@@ -613,7 +613,10 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                                             </div>
                                         </div>
                                         <div className="flex flex-col gap-3">
-                                            {isSyncing || isSellerLoading || isCheckingExistingOffer ? (
+                                            {(() => {
+                                                console.log('[ButtonDebug] isSyncing:', isSyncing, '| isSellerLoading:', isSellerLoading, '| isCheckingExistingOffer:', isCheckingExistingOffer);
+                                                return isSyncing || isSellerLoading || isCheckingExistingOffer;
+                                            })() ? (
                                                 <div className="flex flex-col gap-3 w-full animate-pulse">
                                                     <div className="h-12 w-full rounded-lg bg-gray-200 dark:bg-gray-700"></div>
                                                     <div className="h-12 w-full rounded-lg bg-gray-200 dark:bg-gray-700"></div>
