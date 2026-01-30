@@ -1,5 +1,6 @@
 import { FC, useState } from 'react';
 import { Input, Button } from 'ui';
+import { API_URL } from '@/utils/constants';
 import { useSellStore } from '../../stores/useSellStore';
 
 export const StepPricing: FC = () => {
@@ -18,7 +19,7 @@ export const StepPricing: FC = () => {
         setError(null);
 
         try {
-            const response = await fetch('http://localhost:8000/api/v1/valuation/analyze', {
+            const response = await fetch(`${API_URL}/valuation/analyze`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

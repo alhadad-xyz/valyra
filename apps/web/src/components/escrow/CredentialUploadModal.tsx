@@ -6,6 +6,7 @@ import { Button } from "ui";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { ESCROW_ABI } from "@/abis/EscrowV1";
+import { API_URL } from '@/utils/constants';
 
 interface CredentialUploadModalProps {
     isOpen: boolean;
@@ -59,7 +60,7 @@ export const CredentialUploadModal: FC<CredentialUploadModalProps> = ({
                     const signature = await signMessageAsync({ message });
 
                     await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/escrow/${escrowId}/rollback-credentials`,
+                        `${API_URL}/escrow/${escrowId}/rollback-credentials`,
                         {
                             method: "POST",
                             headers: {
@@ -99,7 +100,7 @@ export const CredentialUploadModal: FC<CredentialUploadModalProps> = ({
             const signature = await signMessageAsync({ message });
 
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/escrow/${escrowId}/upload-credentials`,
+                `${API_URL}/escrow/${escrowId}/upload-credentials`,
                 {
                     method: "POST",
                     headers: {

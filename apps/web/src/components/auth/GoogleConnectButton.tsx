@@ -3,6 +3,7 @@
 import { Button } from "ui";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { API_URL } from '@/utils/constants';
 
 interface GoogleConnectButtonProps {
     userId: string;
@@ -16,7 +17,7 @@ export const GoogleConnectButton = ({ userId, isLinked = false }: GoogleConnectB
         try {
             setLoading(true);
             // Fetch the Google Auth URL from backend
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/auth/google/login?user_id=${userId}`);
+            const response = await fetch(`${API_URL}/auth/google/login?user_id=${userId}`);
             if (!response.ok) throw new Error("Failed to get auth url");
 
             const data = await response.json();

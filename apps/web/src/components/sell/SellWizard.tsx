@@ -20,6 +20,7 @@ import { SellStepper } from './SellStepper';
 import { MARKETPLACE_ABI } from '@/abis/MarketplaceV1';
 import { GenesisBadge } from '@/components/marketplace/GenesisBadge';
 import { ListingPreview } from './ListingPreview';
+import { API_URL } from '@/utils/constants';
 
 const MARKETPLACE_ADDRESS = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT_ADDRESS as `0x${string}`;
 
@@ -54,7 +55,7 @@ export const SellWizard: FC<SellWizardProps> = ({ mode = 'create', listingId }) 
 
         const fetchListing = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/listings/${listingId}`);
+                const res = await fetch(`${API_URL}/listings/${listingId}`);
                 if (!res.ok) throw new Error("Failed to fetch listing");
                 const data = await res.json();
 
@@ -134,7 +135,7 @@ export const SellWizard: FC<SellWizardProps> = ({ mode = 'create', listingId }) 
                 images: state.images,
             };
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/listings/${listingId}`, {
+            const response = await fetch(`${API_URL}/listings/${listingId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

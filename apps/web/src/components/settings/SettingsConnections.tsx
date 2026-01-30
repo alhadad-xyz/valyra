@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getAuthSession } from "@/utils/authSession";
 import { useState } from "react";
+import { API_URL } from '@/utils/constants';
 
 interface SettingsConnectionsProps {
     address?: string;
@@ -30,7 +31,7 @@ export function SettingsConnections({ address }: SettingsConnectionsProps) {
             // Retrieve session
             const authSession = getAuthSession(user.wallet_address);
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/auth/disconnect`, {
+            const res = await fetch(`${API_URL}/auth/disconnect`, {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",

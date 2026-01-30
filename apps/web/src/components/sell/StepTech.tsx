@@ -1,6 +1,7 @@
 import { FC, useState } from 'react';
 import { Button, Input, Badge } from 'ui';
 import { useSellStore } from '../../stores/useSellStore';
+import { API_URL } from '@/utils/constants';
 
 export const StepTech: FC = () => {
     const {
@@ -28,7 +29,7 @@ export const StepTech: FC = () => {
         setVerificationMsg('');
 
         try {
-            const response = await fetch('http://localhost:8000/api/v1/verification/verify-repo', {
+            const response = await fetch(`${API_URL}/verification/verify-repo`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ repo_url: repoUrl })

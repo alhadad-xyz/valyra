@@ -26,6 +26,7 @@ import { Step5Released } from "@/components/escrow/steps/Step5Released";
 
 import { EscrowSidebar } from "@/components/escrow/EscrowSidebar";
 import { useEscrowWebSocket } from "@/hooks/useEscrowWebSocket";
+import { API_URL } from '@/utils/constants';
 
 export default function EscrowPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -37,7 +38,7 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
     const { data: backendEscrow, isLoading: isBackendLoading, refetch: refetchBackend } = useQuery({
         queryKey: ['escrow-backend', id],
         queryFn: async () => {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/escrow/${id}`);
+            const res = await fetch(`${API_URL}/escrow/${id}`);
             if (!res.ok) throw new Error('Escrow not found');
             return res.json();
         }

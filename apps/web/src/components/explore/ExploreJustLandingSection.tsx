@@ -5,14 +5,16 @@ import { ListingCard } from "@/components/listings/ListingCard";
 import { ListingSkeleton } from "@/components/listings/ListingSkeleton";
 import { formatCurrency } from "@/utils/format";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useListingsWebSocket } from "@/hooks/useListingsWebSocket";
+
+
 import { useEffect } from "react";
+import { API_URL } from '@/utils/constants';
 
 export function ExploreJustLandingSection() {
     const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
     const queryClient = useQueryClient();
     const lastEvent = useListingsWebSocket();
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
 
     // Fetch listings
     const { data: listings, isLoading } = useQuery({

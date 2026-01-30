@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from "ui";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
+import { API_URL } from '@/utils/constants';
 
 // Step Components
 import { Step0Funding } from "@/components/escrow/steps/Step0Funding";
@@ -27,7 +28,7 @@ export function EscrowClientPage({ id }: { id: string }) {
     const { data: escrow, isLoading, error, refetch } = useQuery({
         queryKey: ['escrow', id],
         queryFn: async () => {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/escrow/${id}`);
+            const res = await fetch(`${API_URL}/escrow/${id}`);
             if (!res.ok) throw new Error('Escrow not found');
             return res.json();
         },

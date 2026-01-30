@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getAuthSession } from "@/utils/authSession";
 import { Button } from "ui";
+import { API_URL } from '@/utils/constants';
 
 export function SettingsProfile() {
     const { data: user } = useUser();
@@ -49,7 +50,7 @@ export function SettingsProfile() {
             // Wait, if I clear basename, length 0 < 2. So I must send None/null if I want to remove it.
             // But JSON.stringify(null) is 'null'.
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/me`, {
+            const response = await fetch(`${API_URL}/users/me`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",

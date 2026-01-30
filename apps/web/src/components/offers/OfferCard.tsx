@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { API_URL } from '@/utils/constants';
 import { Button, Badge } from 'ui';
 import { Offer, OfferStatus } from '@/hooks/useOffers';
 import { formatDistanceToNow } from 'date-fns';
@@ -103,7 +104,7 @@ export function OfferCard({ offer, type }: OfferCardProps) {
                     // Sync with backend
                     try {
                         const headers = await getAuthHeaders();
-                        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
                         await fetch(`${API_URL}/offers/${offer.id}/reject`, {
                             method: 'POST',
                             headers
@@ -148,7 +149,7 @@ export function OfferCard({ offer, type }: OfferCardProps) {
                     // Sync with backend
                     try {
                         const headers = await getAuthHeaders();
-                        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
                         await fetch(`${API_URL}/offers/${offer.id}/cancel`, {
                             method: 'POST',
                             headers

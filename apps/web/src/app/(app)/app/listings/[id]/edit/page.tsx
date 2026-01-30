@@ -7,6 +7,7 @@ import { SellWizard } from '@/components/sell/SellWizard';
 import { useSellStore } from '@/stores/useSellStore';
 import { MarketplaceHeader } from '@/components/marketplace/MarketplaceHeader';
 import { MARKETPLACE_ABI } from '@/abis/MarketplaceV1';
+import { API_URL } from '@/utils/constants';
 
 const MARKETPLACE_ADDRESS = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT_ADDRESS as `0x${string}`;
 
@@ -22,7 +23,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
     useEffect(() => {
         const fetchListing = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/listings/${id}`);
+                const res = await fetch(`${API_URL}/listings/${id}`);
                 if (!res.ok) throw new Error("Listing not found");
 
                 const listing = await res.json();

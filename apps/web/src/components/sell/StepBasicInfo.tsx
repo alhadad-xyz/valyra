@@ -1,4 +1,5 @@
 import { FC, useState } from 'react';
+import { API_URL } from '@/utils/constants';
 import { Input, Button } from 'ui';
 import { toast } from 'sonner';
 import { useSellStore, AssetType } from '../../stores/useSellStore';
@@ -83,7 +84,7 @@ export const StepBasicInfo: FC = () => {
                                                 const formData = new FormData();
                                                 formData.append('file', file);
 
-                                                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/upload/`, {
+                                                const response = await fetch(`${API_URL}/upload/`, {
                                                     method: 'POST',
                                                     body: formData,
                                                 });

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { WS_URL } from '@/utils/constants';
 
 type EscrowEventType =
     | 'escrow.created'
@@ -24,16 +25,11 @@ export function useEscrowWebSocket(onEvent?: (event: EscrowRealtimeEvent) => voi
         onEventRef.current = onEvent;
     }, [onEvent]);
 
+
+
     useEffect(() => {
-        // Determine WebSocket URL
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-
-        // Robust construction
-        let baseUrl = apiUrl.replace(/\/$/, '').replace(/\/api\/v1$/, '');
-        const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
-        const wsBaseUrl = baseUrl.replace(/^https?/, wsProtocol);
-
-        const wsUrl = `${wsBaseUrl}/ws/listings`; // reusing endpoint
+        // Use centralized WebSocket URL
+        const wsUrl = WS_URL;
 
         // console.log(`[EscrowWS] Connecting to: ${wsUrl}`);
 

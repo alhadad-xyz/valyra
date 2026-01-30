@@ -1,6 +1,7 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { API_URL } from '@/utils/constants';
 import { ListingCard } from "@/components/listings/ListingCard";
 import { ListingSkeleton } from "@/components/listings/ListingSkeleton";
 import { Fragment } from "react";
@@ -8,7 +9,7 @@ import { Fragment } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 // Helper to fetch listings from the API
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
 
 const fetchListings = async ({ pageParam = 1, filters }: { pageParam?: number, filters: any }) => {
     // Calculate skip based on page and limit

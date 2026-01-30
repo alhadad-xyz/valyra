@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { API_URL } from '@/utils/constants';
 import { useAccount, useSignMessage } from 'wagmi';
 import { useCallback } from 'react';
 import { getAuthSession, setAuthSession } from '@/utils/authSession';
@@ -33,7 +34,7 @@ interface OffersStats {
     accepted: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 
 export function useOffers() {
     const { address } = useAccount();

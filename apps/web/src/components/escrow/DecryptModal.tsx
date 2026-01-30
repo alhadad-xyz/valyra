@@ -6,6 +6,7 @@ import { Button, Badge } from "ui";
 import { X, Lock, Key, Eye, EyeOff, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { deriveKeypairFromSignature } from "@/utils/crypto";
+import { API_URL } from '@/utils/constants';
 
 interface DecryptModalProps {
     isOpen: boolean;
@@ -52,7 +53,7 @@ export const DecryptModal: FC<DecryptModalProps> = ({
 
             // 3. Register Public Key (if needed) - Backend will store it
             await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/escrow/${escrowId}/public-key`,
+                `${API_URL}/escrow/${escrowId}/public-key`,
                 {
                     method: "POST",
                     headers: {
@@ -67,7 +68,7 @@ export const DecryptModal: FC<DecryptModalProps> = ({
 
             // 4. Fetch Encrypted Credentials Bundle
             const bundleRes = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/escrow/${escrowId}/credentials`,
+                `${API_URL}/escrow/${escrowId}/credentials`,
                 {
                     headers: {
                         "X-Wallet-Address": address,

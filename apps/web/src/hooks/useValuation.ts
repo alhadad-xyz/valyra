@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import { API_URL } from '@/utils/constants';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
 
 interface ValuationRange {
     min: number;

@@ -5,6 +5,7 @@ import { useUser } from "@/hooks/useUser";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getAuthSession } from "@/utils/authSession";
+import { API_URL } from '@/utils/constants';
 
 export function SettingsNotifications() {
     const { data: user } = useUser();
@@ -37,7 +38,7 @@ export function SettingsNotifications() {
         try {
             const authSession = getAuthSession(user.wallet_address);
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/me`, {
+            const response = await fetch(`${API_URL}/users/me`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",

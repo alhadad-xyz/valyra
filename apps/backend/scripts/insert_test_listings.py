@@ -19,7 +19,7 @@ from app.models.user import User
 from app.models.credential import UserCredential # Needed for relationship mapping
 
 # Constants
-API_URL = "http://localhost:8000/api/v1"
+API_URL = os.getenv("API_URL", "http://localhost:8000/api/v1")
 NUM_LISTINGS = 20
 
 # Test Data

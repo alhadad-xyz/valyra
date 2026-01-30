@@ -76,7 +76,7 @@ class Settings(BaseSettings):
     # App Config
     environment: str = "development"
     frontend_url: str = "http://localhost:3000"
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = "http://localhost:3000,https://valyra-web.vercel.app"
     log_level: str = "INFO"
     api_v1_prefix: str = "/api/v1"
 

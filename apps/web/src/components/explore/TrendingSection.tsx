@@ -1,9 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { API_URL } from '@/utils/constants';
 import { ListingCard } from "@/components/listings/ListingCard";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
 
 export function TrendingSection() {
     const { data: listings, isLoading } = useQuery({

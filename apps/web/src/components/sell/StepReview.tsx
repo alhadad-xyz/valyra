@@ -1,4 +1,5 @@
 import { FC, useState, useEffect } from 'react';
+import { API_URL } from '@/utils/constants';
 import { Button } from 'ui';
 import { useSellStore } from '../../stores/useSellStore';
 import { useWriteContract, useWaitForTransactionReceipt, useSignMessage, useAccount } from 'wagmi';
@@ -31,63 +32,16 @@ export const StepReview: FC<StepReviewProps> = ({ mode = 'create', onSave, isSav
     const { signMessageAsync } = useSignMessage();
     const { address } = useAccount();
     const { isLoading: isConfirming, isSuccess, data: receipt } = useWaitForTransactionReceipt({ hash });
-    const [createdListingUUID, setCreatedListingUUID] = useState<string | null>(null);
-    const [isIndexing, setIsIndexing] = useState(false);
 
-    // Watch for success and extract Listing ID from logs, then poll for UUID
+
+    // Watch for success and redirect
     useEffect(() => {
-        if (isSuccess && receipt && !createdListingUUID && !isIndexing) {
-            const extractAndPoll = async () => {
-                try {
-                    const listingLog = receipt.logs.find(log => log.topics.length === 3);
-
-                    if (listingLog && listingLog.topics[1]) {
-                        const idHex = listingLog.topics[1];
-                        const onChainId = parseInt(idHex, 16).toString();
-                        // console.log("On-Chain Listing ID:", onChainId);
-
-                        setIsIndexing(true);
-
-                        // Poll API for UUID
-                        let attempts = 0;
-                        const maxAttempts = 20; // 40 seconds approx
-
-                        const poll = setInterval(async () => {
-                            attempts++;
-                            try {
-                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/listings?on_chain_id=${onChainId}`);
-                                if (res.ok) {
-                                    const data = await res.json();
-                                    if (data && data.length > 0) {
-                                        const uuid = data[0].id;
-                                        setCreatedListingUUID(uuid);
-                                        setIsIndexing(false);
-                                        clearInterval(poll);
-                                        // console.log("Found Listing UUID:", uuid);
-
-                                        // Auto-redirect to view listing
-                                        reset();
-                                        router.push(`/app/listings/${uuid}`);
-                                    }
-                                }
-                            } catch (err) {
-                                console.error("Polling error:", err);
-                            }
-
-                            if (attempts >= maxAttempts) {
-                                setIsIndexing(false);
-                                clearInterval(poll);
-                            }
-                        }, 2000);
-                    }
-                } catch (e) {
-                    console.error("Failed to parse listing ID from logs", e);
-                    setIsIndexing(false);
-                }
-            };
-            extractAndPoll();
+        if (isSuccess) {
+            toast.success("Listing created successfully!");
+            reset();
+            router.push('/app/dashboard');
         }
-    }, [isSuccess, receipt, createdListingUUID, isIndexing]);
+    }, [isSuccess, reset, router]);
 
     const handleCreateListing = async () => {
         try {
@@ -145,7 +99,7 @@ export const StepReview: FC<StepReviewProps> = ({ mode = 'create', onSave, isSav
                 'X-Timestamp': timestamp
             };
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/listings/`, {
+            const res = await fetch(`${API_URL}/listings/`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(draftPayload)
@@ -227,43 +181,7 @@ export const StepReview: FC<StepReviewProps> = ({ mode = 'create', onSave, isSav
         }
     };
 
-    if (isSuccess) {
-        return (
-            <div className="flex flex-col items-center justify-center p-12 text-center space-y-6 bg-white dark:bg-background-dark-elevated rounded-xl border border-gray-200 dark:border-gray-800">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="material-symbols-outlined text-green-600 text-[48px]">check_circle</span>
-                </div>
-                <div>
-                    <h2 className="text-2xl font-bold text-text-main dark:text-white mb-2">Listing Created Successfully!</h2>
-                    <p className="text-text-muted">Your project is now live on Valyra Marketplace.</p>
-                </div>
-                <div className="flex gap-4">
-                    <Button
-                        onClick={() => { reset(); router.push('/app/dashboard'); }}
-                        variant="outline"
-                        disabled={isIndexing}
-                    >
-                        My Listings
-                    </Button>
-                    <Button
-                        disabled={isIndexing || !createdListingUUID}
-                        loading={isIndexing}
-                        onClick={() => {
-                            reset();
-                            if (createdListingUUID) {
-                                router.push(`/app/listings/${createdListingUUID}`);
-                            } else {
-                                // Redirect to My Listings
-                                router.push('/app/listings');
-                            }
-                        }}
-                    >
-                        {isIndexing ? "Indexing..." : "View Listing Detail"}
-                    </Button>
-                </div>
-            </div>
-        );
-    }
+
 
     return (
         <div className="space-y-6">

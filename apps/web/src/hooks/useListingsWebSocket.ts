@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { WS_URL } from '@/utils/constants';
 
 type ListingEvent = {
     type: 'listing.create' | 'listing.update';
@@ -9,19 +10,11 @@ export function useListingsWebSocket() {
     const [lastEvent, setLastEvent] = useState<ListingEvent | null>(null);
     const ws = useRef<WebSocket | null>(null);
 
+
+
     useEffect(() => {
-        // Determine WebSocket URL
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-
-        // Robust construction:
-        // 1. Remove trailing slash if present
-        // 2. Remove /api/v1 suffix if present (to get base URL)
-        // 3. Replace protocol
-        let baseUrl = apiUrl.replace(/\/$/, '').replace(/\/api\/v1$/, '');
-        const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
-        const wsBaseUrl = baseUrl.replace(/^https?/, wsProtocol);
-
-        const wsUrl = `${wsBaseUrl}/ws/listings`;
+        // Use centralized WebSocket URL
+        const wsUrl = WS_URL;
 
         // console.log(`Connecting to WebSocket: ${wsUrl}`);
 

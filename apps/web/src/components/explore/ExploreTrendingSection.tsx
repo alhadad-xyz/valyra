@@ -5,8 +5,9 @@ import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { ListingSkeleton } from "@/components/listings/ListingSkeleton";
 import { useQuery } from "@tanstack/react-query";
+import { API_URL } from '@/utils/constants';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
 
 export function ExploreTrendingSection() {
     // Memoize options to prevent IntersectionObserver flickering on re-renders

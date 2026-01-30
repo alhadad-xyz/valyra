@@ -16,6 +16,7 @@ import { useValuation } from "@/hooks/useValuation";
 import { OfferModal } from "@/components/listing/OfferModal";
 import { ListingChat } from "@/components/listing/ListingChat";
 import { toast } from "sonner";
+import { API_URL } from '@/utils/constants';
 
 export default function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -29,7 +30,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     const { data: listing, isLoading, error } = useQuery({
         queryKey: ['listing', id],
         queryFn: async () => {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/listings/${id}`);
+            const res = await fetch(`${API_URL}/listings/${id}`);
             if (!res.ok) {
                 throw new Error('Listing not found');
             }
@@ -59,7 +60,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     const { data: verificationData, isLoading: isVerificationLoading } = useQuery({
         queryKey: ['verification', id],
         queryFn: async () => {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/listings/${id}/verification`);
+            const res = await fetch(`${API_URL}/listings/${id}/verification`);
             if (!res.ok) {
                 throw new Error('Failed to fetch verification data');
             }
@@ -74,7 +75,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
         queryKey: ['seller', listing?.seller_id],
         queryFn: async () => {
             if (!listing?.seller_id) return null;
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/users/${listing.seller_id}/profile`);
+            const res = await fetch(`${API_URL}/users/${listing.seller_id}/profile`);
             if (!res.ok) {
                 throw new Error('Failed to fetch seller profile');
             }
@@ -118,7 +119,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
             if (!signature || !timestamp) return null;
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/offers/me`, {
+            const res = await fetch(`${API_URL}/offers/me`, {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Wallet-Address': address,

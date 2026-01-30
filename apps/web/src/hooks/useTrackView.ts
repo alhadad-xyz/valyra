@@ -3,8 +3,9 @@
  * Tracks after 3 seconds to avoid counting quick bounces.
  */
 import { useEffect } from 'react';
+import { API_URL } from '@/utils/constants';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
 
 export function useTrackView(listingId: string | undefined) {
     useEffect(() => {

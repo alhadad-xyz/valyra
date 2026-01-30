@@ -1,5 +1,6 @@
 
 import { useReadContract } from 'wagmi';
+import { API_URL } from '@/utils/constants';
 import { ESCROW_ABI } from '@/abis/EscrowV1';
 import { useQuery } from '@tanstack/react-query';
 import { Address } from 'viem';
@@ -78,7 +79,7 @@ export function useEscrowDetails(escrowId?: bigint) {
     const { data: listing, isLoading: isListingLoading } = useQuery({
         queryKey: ['listing', listingId],
         queryFn: async () => {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/listings/${listingId}`);
+            const res = await fetch(`${API_URL}/listings/${listingId}`);
             if (!res.ok) throw new Error('Listing not found');
             return res.json();
         },

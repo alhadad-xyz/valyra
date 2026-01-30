@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { WS_URL } from '@/utils/constants';
 
 type OfferEvent = {
     type: 'offer.created' | 'offer.accepted' | 'offer.rejected' | 'offer.cancelled';
@@ -8,16 +9,16 @@ type OfferEvent = {
 export function useOffersWebSocket(onEvent?: (event: OfferEvent) => void) {
     const ws = useRef<WebSocket | null>(null);
 
+    // Use ref to keep latest handler without triggering effect re-run
+    const onEventRef = useRef(onEvent);
+
     useEffect(() => {
-        // Determine WebSocket URL
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+        onEventRef.current = onEvent;
+    }, [onEvent]);
 
-        // Robust construction (same as existing hook)
-        let baseUrl = apiUrl.replace(/\/$/, '').replace(/\/api\/v1$/, '');
-        const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
-        const wsBaseUrl = baseUrl.replace(/^https?/, wsProtocol);
-
-        const wsUrl = `${wsBaseUrl}/ws/listings`; // We reuse the single WS endpoint
+    useEffect(() => {
+        // Use centralized WebSocket URL
+        const wsUrl = WS_URL;
 
         // console.log(`[OffersWS] Connecting to: ${wsUrl}`);
 
@@ -33,8 +34,8 @@ export function useOffersWebSocket(onEvent?: (event: OfferEvent) => void) {
                     const message = JSON.parse(event.data);
                     if (message.type && message.type.startsWith('offer.')) {
                         // console.log('[OffersWS] Event:', message);
-                        if (onEvent) {
-                            onEvent(message);
+                        if (onEventRef.current) {
+                            onEventRef.current(message);
                         }
                     }
                 } catch (error) {
@@ -58,5 +59,5 @@ export function useOffersWebSocket(onEvent?: (event: OfferEvent) => void) {
                 ws.current.close();
             }
         };
-    }, [onEvent]);
+    }, []); // Empty dependency array = Connect ONCE on mount
 }

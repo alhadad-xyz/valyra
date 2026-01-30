@@ -6,6 +6,7 @@ import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { ESCROW_ABI } from "@/abis/EscrowV1";
 import { keccak256, toBytes } from "viem";
 import { toast } from "sonner";
+import { API_URL } from '@/utils/constants';
 
 const ESCROW_CONTRACT = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS as `0x${string}`;
 
@@ -62,7 +63,7 @@ export function Step2Handover({ escrowId, userRole, escrow, onUploadComplete }: 
                 formData.append('file', file);
             }
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/escrow/${escrowId}/upload-credentials`, {
+            const response = await fetch(`${API_URL}/escrow/${escrowId}/upload-credentials`, {
                 method: 'POST',
                 headers: {
                     ...Object.fromEntries(Object.entries(authHeaders).filter(([key]) => key !== 'Content-Type')),
